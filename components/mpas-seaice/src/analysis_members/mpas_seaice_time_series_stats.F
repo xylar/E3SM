@@ -271,7 +271,6 @@ subroutine seaice_init_time_series_stats(domain, instance, err)!{{{
           MPAS_LOG_ERR, masterOnly=.true., flushNow=.true.)
      err = ior(err, err_tmp)
   endif
-
   call mpas_pool_get_config(domain % configs, 'config_output_reference_time', &
     config_output_reference_time)
   call mpas_set_time(reference_time, dateTimeString=config_output_reference_time)
@@ -1478,22 +1477,26 @@ subroutine get_alarms(domain, instance, series, alarms, err)
   type (time_series_alarms_type), dimension(:), intent(out) :: alarms
 
   ! local variables
-  character (len=StrKIND), pointer :: config_results
+  character (len=StrKIND), pointer :: config_results, simulationStartTime
   character (len=StrKIND) :: config, namelist_prefix
   integer :: b
   integer(I8KIND) :: n
   logical :: ok
   type (mpas_timeinterval_type) :: rem, zero
+  type(MPAS_pool_type), pointer :: diagnosticsPool
 
   ! create prefix
   namelist_prefix = trim(CONFIG_PREFIX) // trim(instance)
+
+  call MPAS_pool_get_subpool(domain % blocklist % structs, "diagnostics", diagnosticsPool)
+  call MPAS_pool_get_array(diagnosticsPool, "simulationStartTime", simulationStartTime)
 
   ! configure start times - we don't have to check ok
   ! because the timer count is based on reference_times tokens
   config = trim(namelist_prefix) // trim(REFERENCE_TIMES_SUFFIX)
   call mpas_pool_get_config(domain % configs, config, config_results)
   call set_times(series, alarms, domain % clock, START_TIMES, &
-    config_results, ok, err)
+    config_results, simulationStartTime, ok, err)
 
   ! order matters, don't reorder these following ones!
   ! it matters because times/intervals can be configured to be equal
@@ -1503,7 +1506,7 @@ subroutine get_alarms(domain, instance, series, alarms, err)
   config = trim(namelist_prefix) // trim(RESET_INTERVALS_SUFFIX)
   call mpas_pool_get_config(domain % configs, config, config_results)
   call set_times(series, alarms, domain % clock, RESET_INTERVALS, &
-    config_results, ok, err)
+    config_results, simulationStartTime, ok, err)
   if (.not. ok) then
     call mpas_log_write(trim(CURRENT_CORE_NAME) // &
       ' ERROR: number of listed times in ' // &
@@ -1516,7 +1519,7 @@ subroutine get_alarms(domain, instance, series, alarms, err)
   config = trim(namelist_prefix) // trim(REPEAT_INTERVALS_SUFFIX)
   call mpas_pool_get_config(domain % configs, config, config_results)
   call set_times(series, alarms, domain % clock, REPEAT_INTERVALS, &
-    config_results, ok, err)
+    config_results, simulationStartTime, ok, err)
   if (.not. ok) then
     call mpas_log_write(trim(CURRENT_CORE_NAME) // &
       ' ERROR: number of listed times in ' // &
@@ -1529,7 +1532,7 @@ subroutine get_alarms(domain, instance, series, alarms, err)
   config = trim(namelist_prefix) // trim(DURATION_INTERVALS_SUFFIX)
   call mpas_pool_get_config(domain % configs, config, config_results)
   call set_times(series, alarms, domain % clock, DURATION_INTERVALS, &
-    config_results, ok, err)
+    config_results, simulationStartTime, ok, err)
   if (.not. ok) then
     call mpas_log_write(trim(CURRENT_CORE_NAME) // &
       ' ERROR: number of listed times in ' // &
@@ -1784,10 +1787,10 @@ end subroutine walk_string!}}}
 !>  Walk a list of times delimited by spaces and set the time info
 !>  for the buffer structure so that alarms can be set.
 !-----------------------------------------------------------------------
-subroutine set_times(series, alarms, clock, which, config, ok, err)
+subroutine set_times(series, alarms, clock, which, config, simulationStartTime, ok, err)
   ! input variables
   integer, intent(in) :: which
-  character (len=StrKIND), pointer, intent(in) :: config
+  character (len=StrKIND), pointer, intent(in) :: config, simulationStartTime
 
   ! input/output variables
   type (time_series_type), intent(inout) :: series
@@ -1818,8 +1821,8 @@ subroutine set_times(series, alarms, clock, which, config, ok, err)
     ! set the time
     if (which == START_TIMES) then
       if (time == INITIAL_TIME_TOKEN) then
-        alarms(b) % start_time = &
-          mpas_get_clock_time(clock, MPAS_START_TIME, err)
+        call mpas_set_time(alarms(b) % start_time, &
+          dateTimeString=simulationStartTime)
       else
         call mpas_set_time(alarms(b) % start_time, &
           dateTimeString=time, ierr=err)
