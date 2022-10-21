@@ -17,6 +17,9 @@
 		<dim name="nVertices"
 			description="The total number of cells in the dual grid. Also the number of corners in the primary grid."
 		/>
+		<dim name="bnds" definition="2"
+			description="The number of coordinate bound"
+		/>
 		<dim name="ONE"
 			definition="1"
 			description="The number one as a dimension."
@@ -5353,6 +5356,9 @@
 		/>
 		<var name="Time" type="real" dimensions="Time" bounds="Time_bnds"
 			 description="time" standard_name="time"
+		/>
+		<var name="Time_bnds" type="real" dimensions="Time bnds"
+			 description="time bounds"
 		/>
 		<var name="simulationStartTime"
 		     type="text"

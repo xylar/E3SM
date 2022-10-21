@@ -74,6 +74,9 @@ contains
     real(kind=RKIND), pointer :: &
          Time
 
+    real (kind=RKIND), dimension(:), pointer :: &
+         Time_bnds
+
     type (field0DReal), pointer :: TimeField
 
     character (len=StrKIND) :: units
@@ -103,6 +106,7 @@ contains
           config_output_reference_time)
        call MPAS_pool_get_config(block % configs, "config_calendar_type", config_calendar_type)
        call mpas_pool_get_array(diagnosticsPool, 'Time', Time)
+       call mpas_pool_get_array(diagnosticsPool, 'Time_bnds', Time_bnds)
        ! add units of "days since <ref_date>" to Time
        write(units, '(a10,a20)') 'days since', &
          config_output_reference_time(1:10)//" "//config_output_reference_time(12:19)
@@ -116,6 +120,9 @@ contains
        call mpas_set_time(referenceTime_timeType, dateTimeString=config_output_reference_time)
        call mpas_get_timeInterval(startTime - referenceTime_timeType, dt=Time)
        Time = Time*seaiceDaysPerSecond
+       ! bounds on instantaneous time are just the time itself
+       Time_bnds(1) = Time
+       Time_bnds(2) = Time
 
        block => block % next
     end do
@@ -163,6 +170,9 @@ contains
          daysSinceStartOfSim, &
          Time
 
+    real (kind=RKIND), dimension(:), pointer :: &
+         Time_bnds
+
     integer :: &
          ierr
 
@@ -188,9 +198,13 @@ contains
        call MPAS_pool_get_config(block % configs, "config_output_reference_time", &
           config_output_reference_time)
        call mpas_pool_get_array(diagnosticsPool, 'Time', Time)
+       call mpas_pool_get_array(diagnosticsPool, 'Time_bnds', Time_bnds)
        call mpas_set_time(referenceTime_timeType, dateTimeString=config_output_reference_time)
        call mpas_get_timeInterval(xtime_timeType - referenceTime_timeType,  dt=Time)
        Time = Time*seaiceDaysPerSecond
+       ! bounds on instantaneous time are just the time itself
+       Time_bnds(1) = Time
+       Time_bnds(2) = Time
 
        block => block % next
     end do
