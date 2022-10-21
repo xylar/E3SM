@@ -306,10 +306,11 @@ end subroutine seaice_init_time_series_stats!}}}
 !>  This routine conducts all computation required for this
 !>  MPAS-Seaice analysis member.
 !-----------------------------------------------------------------------
-subroutine seaice_compute_time_series_stats(domain, timeLevel, instance, err)!{{{
+subroutine seaice_compute_time_series_stats(domain, timeLevel, instance, computeInterval, err)!{{{
   ! input variables
   character (len=StrKIND), intent(in) :: instance
   integer, intent(in) :: timeLevel
+  type (MPAS_TimeInterval_type), intent(in) :: computeInterval
 
   ! input/output variables
   type (domain_type), intent(inout) :: domain
@@ -345,7 +346,7 @@ subroutine seaice_compute_time_series_stats(domain, timeLevel, instance, err)!{{
       if (unset_xtime) then
         end_intv = mpas_get_clock_time(domain % clock, MPAS_NOW, err)
         call mpas_get_time(end_intv, dateTimeString=end_xtime, ierr=err)
-        start_intv = end_intv - mpas_get_clock_timestep(domain % clock, err)
+        start_intv = end_intv - computeInterval
         call mpas_get_time(start_intv, dateTimeString=start_xtime, ierr=err)
         call mpas_set_time(reference_time, dateTimeString=config_output_reference_time)
         call mpas_get_timeInterval(start_intv - reference_time, dt=Time_bnds(1))

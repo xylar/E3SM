@@ -534,11 +534,12 @@ contains
 
       integer :: timeLevel, err_tmp
 
-      character (len=StrKIND) :: configName, timerName
-      character (len=StrKIND), pointer :: config_AM_output_stream
+      character (len=StrKIND) :: configName, alarmName, timerName
+      character (len=StrKIND), pointer :: config_AM_output_stream, config_AM_compute_interval
       logical, pointer :: config_AM_enable, config_AM_write_on_startup, config_AM_compute_on_startup
       type (mpas_pool_iterator_type) :: poolItr
       integer :: nameLength
+      type (MPAS_TimeInterval_type) :: computeInterval
 
       err = 0
 
@@ -558,18 +559,29 @@ contains
             configName = 'config_AM_' // poolItr % memberName(1:nameLength) // '_write_on_startup'
             call mpas_pool_get_config(domain % configs, configName, config_AM_write_on_startup)
 
+            configName = 'config_AM_' // poolItr % memberName(1:nameLength) // '_output_stream'
+            call mpas_pool_get_config(domain % configs, configName, config_AM_output_stream)
+
             if ( config_AM_compute_on_startup ) then
                timerName = trim(computeStartupTimerPrefix) // poolItr % memberName(1:nameLength)
                !call mpas_log_write('      Computing AM ' // poolItr % memberName(1:nameLength))
+               configName = 'config_AM_' // poolItr % memberName(1:nameLength) // '_compute_interval'
+               call mpas_pool_get_config(domain % configs, configName, config_AM_compute_interval)
+               if ( config_AM_compute_interval == 'output_interval') then
+                  computeInterval = MPAS_stream_mgr_get_stream_interval(domain % streamManager, &
+                     streamID=config_AM_output_stream, direction=MPAS_STREAM_OUTPUT, ierr=err_tmp)
+               else
+                  alarmName = poolItr % memberName(1:nameLength) // computeAlarmSuffix
+                  computeInterval = mpas_alarm_interval(domain % clock, alarmName, ierr=err_tmp)
+               end if
+
                call mpas_timer_start(timerName)
-               call seaice_compute_analysis_members(domain, timeLevel, poolItr % memberName, err_tmp)
+               call seaice_compute_analysis_members(domain, timeLevel, poolItr % memberName, computeInterval, err_tmp)
                call mpas_timer_stop(timerName)
                err = ior(err, err_tmp)
             end if
 
             if ( config_AM_write_on_startup ) then
-               configName = 'config_AM_' // poolItr % memberName(1:nameLength) // '_output_stream'
-               call mpas_pool_get_config(domain % configs, configName, config_AM_output_stream)
                if ( config_AM_output_stream /= 'none' ) then
                   !call mpas_log_write('      Writing AM ' // poolItr % memberName(1:nameLength))
                   call mpas_stream_mgr_write(domain % streamManager, streamID=config_AM_output_stream, &
@@ -731,6 +743,7 @@ contains
       logical, pointer :: config_AM_enable
       type (mpas_pool_iterator_type) :: poolItr
       integer :: nameLength
+      type (MPAS_TimeInterval_type) :: computeInterval
 
       err = 0
 
@@ -759,15 +772,18 @@ contains
                if ( mpas_stream_mgr_ringing_alarms(domain % streamManager, streamID=config_AM_output_stream, &
                     direction=MPAS_STREAM_OUTPUT, ierr=err_tmp) ) then
                   !call mpas_log_write('      Computing AM ' // poolItr % memberName(1:nameLength))
+                  computeInterval = MPAS_stream_mgr_get_stream_interval(domain % streamManager, streamID=config_AM_output_stream, &
+                    direction=MPAS_STREAM_OUTPUT, ierr=err_tmp)
                   call mpas_timer_start(timerName)
-                  call seaice_compute_analysis_members(domain, timeLevel, poolItr % memberName, err_tmp)
+                  call seaice_compute_analysis_members(domain, timeLevel, poolItr % memberName, computeInterval, err_tmp)
                   call mpas_timer_stop(timerName)
                end if
             else if ( mpas_is_alarm_ringing(domain % clock, alarmName, ierr=err_tmp) ) then
                call mpas_reset_clock_alarm(domain % clock, alarmName, ierr=err_tmp)
                !call mpas_log_write('      Computing AM ' // poolItr % memberName(1:nameLength))
+               computeInterval = mpas_alarm_interval(domain % clock, alarmName, ierr=err_tmp)
                call mpas_timer_start(timerName)
-               call seaice_compute_analysis_members(domain, timeLevel, poolItr % memberName, err_tmp)
+               call seaice_compute_analysis_members(domain, timeLevel, poolItr % memberName, computeInterval, err_tmp)
                call mpas_timer_stop(timerName)
             end if
          end if
@@ -1274,11 +1290,12 @@ contains
 !>  This private routine calls the correct compute routine for each analysis member.
 !
 !-----------------------------------------------------------------------
-   subroutine seaice_compute_analysis_members(domain, timeLevel, analysisMemberName, iErr)!{{{
+   subroutine seaice_compute_analysis_members(domain, timeLevel, analysisMemberName, computeInterval, iErr)!{{{
       type (domain_type), intent(inout) :: domain !< Input: Domain information
       integer, intent(in) :: timeLevel !< Input: Time level to compute with in analysis member
       character (len=*), intent(in) :: analysisMemberName !< Input: Name of analysis member
       integer, intent(out) :: iErr !< Output: Error code
+      type (MPAS_TimeInterval_type), intent(in) :: computeInterval
 
       integer :: nameLength, err_tmp
 
@@ -1317,13 +1334,13 @@ contains
       else if ( analysisMemberName(1:nameLength) == 'icePresent' ) then
          call seaice_compute_ice_present(domain, '', timeLevel, err_tmp)
       else if ( analysisMemberName(1:nameLength) == 'timeSeriesStatsDaily' ) then
-         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesDailyTAG, err_tmp)
+         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesDailyTAG, computeInterval, err_tmp)
       else if ( analysisMemberName(1:nameLength) == 'timeSeriesStatsMonthly' ) then
-         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesMonthlyTAG, err_tmp)
+         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesMonthlyTAG, computeInterval, err_tmp)
       else if ( analysisMemberName(1:nameLength) == 'timeSeriesStatsClimatology' ) then
-         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesClimatologyTAG, err_tmp)
+         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesClimatologyTAG, computeInterval, err_tmp)
       else if ( analysisMemberName(1:nameLength) == 'timeSeriesStatsCustom' ) then
-         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesCustomTAG, err_tmp)
+         call seaice_compute_time_series_stats(domain, timeLevel, timeSeriesCustomTAG, computeInterval, err_tmp)
 !     else if ( analysisMemberName(1:nameLength) == 'surfaceAreaWeightedAverages' ) then
 !        call seaice_compute_surface_area_weighted_averages(domain, '', timeLevel, err_tmp)
 !     else if ( analysisMemberName(1:nameLength) == 'TEMPLATE' ) then
