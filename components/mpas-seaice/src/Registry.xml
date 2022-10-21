@@ -322,6 +322,10 @@
 			description="Selection of the type of calendar that should be used in the simulation."
 			possible_values="'gregorian', 'noleap'"
 		/>
+		<nml_option name="config_output_reference_time" type="character" default_value="0001-01-01_00:00:00"
+					description="Reference time used in the units attribute of Time in output files."
+					possible_values="'YYYY-MM-DD_HH:MM:SS'"
+		/>
 		<nml_option name="config_start_time" type="character" default_value="2000-01-01_00:00:00" units="unitless"
 			description="Timestamp describing the initial time of the simulation. If it is set to 'file', the initial time is read from restart_timestamp."
 			possible_values="'YYYY-MM-DD_HH:MM:SS' or 'file'"
@@ -5346,6 +5350,9 @@
 		<var name="xtime"
 		     type="text"
 		     dimensions="Time"
+		/>
+		<var name="Time" type="real" dimensions="Time" bounds="Time_bnds"
+			 description="time" standard_name="time"
 		/>
 		<var name="simulationStartTime"
 		     type="text"

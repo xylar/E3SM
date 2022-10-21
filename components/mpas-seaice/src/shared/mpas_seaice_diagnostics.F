@@ -46,6 +46,9 @@ contains
 
   subroutine seaice_initialize_time_diagnostics(domain)!{{{
 
+    use seaice_constants, only: &
+         seaiceDaysPerSecond
+
     type (domain_type), intent(inout) :: &
          domain !< Input/Output:
 
@@ -57,13 +60,23 @@ contains
 
     character(len=strKIND), pointer :: &
          xtime, &
-         simulationStartTime
+         simulationStartTime, &
+         config_output_reference_time, &
+         config_calendar_type
 
     logical, pointer :: &
          config_do_restart
 
     type(MPAS_Time_Type) :: &
-         startTime
+         startTime, &
+         referenceTime_timeType
+
+    real(kind=RKIND), pointer :: &
+         Time
+
+    type (field0DReal), pointer :: TimeField
+
+    character (len=StrKIND) :: units
 
     integer :: &
          ierr
@@ -85,6 +98,24 @@ contains
           call MPAS_pool_get_array(diagnosticsPool, "simulationStartTime", simulationStartTime)
           simulationStartTime = xtime
        endif
+
+       call MPAS_pool_get_config(block % configs, "config_output_reference_time", &
+          config_output_reference_time)
+       call MPAS_pool_get_config(block % configs, "config_calendar_type", config_calendar_type)
+       call mpas_pool_get_array(diagnosticsPool, 'Time', Time)
+       ! add units of "days since <ref_date>" to Time
+       write(units, '(a10,a20)') 'days since', &
+         config_output_reference_time(1:10)//" "//config_output_reference_time(12:19)
+       call mpas_pool_get_Field(diagnosticsPool, 'Time', TimeField)
+       call mpas_add_att(TimeField % attLists(1) % attList, 'units', units)
+
+       ! Add calendar attribute to Time
+       call mpas_add_att(TimeField % attLists(1) % attList, 'calendar', config_calendar_type)
+
+       ! compute Time as days since config_output_reference_time
+       call mpas_set_time(referenceTime_timeType, dateTimeString=config_output_reference_time)
+       call mpas_get_timeInterval(startTime - referenceTime_timeType, dt=Time)
+       Time = Time*seaiceDaysPerSecond
 
        block => block % next
     end do
@@ -119,15 +150,18 @@ contains
 
     character(len=strKIND), pointer :: &
          xtime, &
-         simulationStartTime
+         simulationStartTime, &
+         config_output_reference_time
 
     type(MPAS_Time_Type) :: &
          currTime, &
          xtime_timeType, &
-         simulationStartTime_timeType
+         simulationStartTime_timeType, &
+         referenceTime_timeType
 
     real(kind=RKIND), pointer :: &
-         daysSinceStartOfSim
+         daysSinceStartOfSim, &
+         Time
 
     integer :: &
          ierr
@@ -149,6 +183,14 @@ contains
        call mpas_set_time(simulationStartTime_timeType, dateTimeString=simulationStartTime)
        call mpas_get_timeInterval(xtime_timeType - simulationStartTime_timeType,dt=daysSinceStartOfSim)
        daysSinceStartOfSim = daysSinceStartOfSim*seaiceDaysPerSecond
+
+       ! compute time since reference time, in days
+       call MPAS_pool_get_config(block % configs, "config_output_reference_time", &
+          config_output_reference_time)
+       call mpas_pool_get_array(diagnosticsPool, 'Time', Time)
+       call mpas_set_time(referenceTime_timeType, dateTimeString=config_output_reference_time)
+       call mpas_get_timeInterval(xtime_timeType - referenceTime_timeType,  dt=Time)
+       Time = Time*seaiceDaysPerSecond
 
        block => block % next
     end do
