@@ -28,7 +28,7 @@
       type (MPAS_TimeInterval_type) :: ringTimeInterval
       type (MPAS_Alarm_type), pointer :: next => null()
    end type
-   
+
    type MPAS_Clock_type
       integer :: direction
       integer :: nAlarms
