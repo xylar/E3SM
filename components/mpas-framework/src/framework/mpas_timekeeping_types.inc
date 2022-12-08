@@ -23,6 +23,7 @@
       character (len=ShortStrKIND) :: alarmID
       logical :: isRecurring
       logical :: isSet
+      logical :: allowCalibration
       type (MPAS_Time_type) :: ringTime
       type (MPAS_Time_type) :: prevRingTime
       type (MPAS_TimeInterval_type) :: ringTimeInterval

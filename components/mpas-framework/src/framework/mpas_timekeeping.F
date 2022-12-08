@@ -465,7 +465,8 @@ module mpas_timekeeping
    end function mpas_get_clock_time
 
 
-   subroutine mpas_add_clock_alarm(clock, alarmID, alarmTime, alarmTimeInterval, ierr)
+   subroutine mpas_add_clock_alarm(clock, alarmID, alarmTime, alarmTimeInterval,
+                                   allowCalibration, ierr)
 ! TODO: possibly add a stop time for recurring alarms
 
       implicit none
@@ -474,10 +475,18 @@ module mpas_timekeeping
       character (len=*), intent(in) :: alarmID
       type (MPAS_Time_type), intent(in) :: alarmTime
       type (MPAS_TimeInterval_type), intent(in), optional :: alarmTimeInterval
+      logical, intent(in), optional :: allowCalibration
       integer, intent(out), optional :: ierr
 
       type (MPAS_Alarm_type), pointer :: alarmPtr
       integer :: threadNum
+      logical :: localAllowCalibration
+
+      if (present(allowCalibration)) then
+         localAllowCalibration = allowCalibration
+      else
+         localAllowCalibration = .true.
+      end if
 
       threadNum = mpas_threading_get_thread_num()
 
@@ -520,6 +529,7 @@ module mpas_timekeeping
 
          alarmPtr % isSet = .true.
          alarmPtr % ringTime = alarmTime
+         alarmPtr % allowCalibration = localAllowCalibration
 
 
          if (present(alarmTimeInterval)) then
@@ -1056,44 +1066,47 @@ module mpas_timekeeping
          alarmPtr => clock % alarmListHead
          do while (associated(alarmPtr))
 
-            if (.not. alarmPtr % isRecurring) then
-               alarmPtr % isSet = .true.
-            else
+            if (alarmPtr % allowCalibration) then
 
-               previousRingTime = alarmPtr % prevRingTime
-
-               if (previousRingTime <= now) then
-
-                  do while(previousRingTime <= now)
-                     previousRingTime = previousRingTime + alarmPtr % ringTimeInterval
-                  end do
-                  positiveNeighborRingTime = previousRingTime
-
-                  do while(previousRingTime >= now)
-                     previousRingTime = previousRingTime - alarmPtr % ringTimeInterval
-                  end do
-                  negativeNeighborRingTime = previousRingTime
-
+               if (.not. alarmPtr % isRecurring) then
+                  alarmPtr % isSet = .true.
                else
 
-                  do while(previousRingTime >= now)
-                     previousRingTime = previousRingTime - alarmPtr % ringTimeInterval
-                  end do
-                  negativeNeighborRingTime = previousRingTime
+                  previousRingTime = alarmPtr % prevRingTime
 
-                  do while(previousRingTime <= now)
-                     previousRingTime = previousRingTime + alarmPtr % ringTimeInterval
-                  end do
-                  positiveNeighborRingTime = previousRingTime
+                  if (previousRingTime <= now) then
+
+                     do while(previousRingTime <= now)
+                        previousRingTime = previousRingTime + alarmPtr % ringTimeInterval
+                     end do
+                     positiveNeighborRingTime = previousRingTime
+
+                     do while(previousRingTime >= now)
+                        previousRingTime = previousRingTime - alarmPtr % ringTimeInterval
+                     end do
+                     negativeNeighborRingTime = previousRingTime
+
+                  else
+
+                     do while(previousRingTime >= now)
+                        previousRingTime = previousRingTime - alarmPtr % ringTimeInterval
+                     end do
+                     negativeNeighborRingTime = previousRingTime
+
+                     do while(previousRingTime <= now)
+                        previousRingTime = previousRingTime + alarmPtr % ringTimeInterval
+                     end do
+                     positiveNeighborRingTime = previousRingTime
+
+                  end if
+
+                  if (clock % direction == MPAS_FORWARD) then
+                     alarmPtr % prevRingTime = negativeNeighborRingTime
+                  else
+                     alarmPtr % prevRingTime = positiveNeighborRingTime
+                  end if
 
                end if
-
-               if (clock % direction == MPAS_FORWARD) then
-                  alarmPtr % prevRingTime = negativeNeighborRingTime
-               else
-                  alarmPtr % prevRingTime = positiveNeighborRingTime
-               end if
-
             end if
 
             alarmPtr => alarmPtr % next
