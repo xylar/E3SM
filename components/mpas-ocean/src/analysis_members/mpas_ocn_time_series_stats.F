@@ -1091,7 +1091,7 @@ subroutine modify_stream(domain, instance, series, valid_input, err)!{{{
        streamID=restart_stream_name, fieldName=fieldName) .and. emptyRestartStream)
        emptyRestartStream = .false.
      end do
-   
+
      if (.not. emptyRestartStream) then
        call mpas_log_write( 'Stream named ''' &
          // trim(restart_stream_name) // ''' is not empty, but is used in ' // &
@@ -1491,7 +1491,7 @@ subroutine set_alarms(domain, instance, series, alarms, err)
          trim(START_ALARM_PREFIX) // trim(buf_identifier)
        call mpas_add_clock_alarm(domain % clock, &
          series % buffers(b) % start_alarm_ID, &
-         alarms(b) % start_time, ierr=err)
+         alarms(b) % start_time, allowCalibration=.false., ierr=err)
      end if
 
     ! set next reset time and flag
@@ -1565,21 +1565,22 @@ subroutine set_alarms(domain, instance, series, alarms, err)
     call mpas_add_clock_alarm(domain % clock, &
       series % buffers(b) % duration_alarm_ID, &
       duration_time, & ! duration sets the offset
-      alarms(b) % repeat_interval, ierr=err) ! but repeat is interval
+      alarms(b) % repeat_interval, allowCalibration=.false.,
+      ierr=err) ! but repeat is interval
 
     series % buffers(b) % repeat_alarm_ID = trim(alarm_prefix) // &
       trim(REPEAT_ALARM_PREFIX) // trim(buf_identifier)
     call mpas_add_clock_alarm(domain % clock, &
       series % buffers(b) % repeat_alarm_ID, &
       repeat_time, &
-      alarms(b) % repeat_interval, ierr=err)
+      alarms(b) % repeat_interval, allowCalibration=.false., ierr=err)
 
     series % buffers(b) % reset_alarm_ID = trim(alarm_prefix) // &
       trim(RESET_ALARM_PREFIX) // trim(buf_identifier)
     call mpas_add_clock_alarm(domain % clock, &
       series % buffers(b) % reset_alarm_ID, &
       reset_time, &
-      alarms(b) % reset_interval, ierr=err)
+      alarms(b) % reset_interval, allowCalibration=.false., ierr=err)
   end do
 end subroutine set_alarms
 
