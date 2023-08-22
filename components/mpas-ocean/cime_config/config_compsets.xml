@@ -10,8 +10,8 @@
   <!-- E3SM C/G compsets -->
 
   <compset>
-    <alias>CMPASO-NYF-SICE-ISMF</alias>
-    <lname>2000_DATM%NYF_SLND_SICE_MPASO%ISMFDATMFORCED_DROF%NYFAIS45_SGLC_SWAV</lname>
+    <alias>CMPASO-NYF-SICE-PISMF</alias>
+    <lname>2000_DATM%NYF_SLND_SICE_MPASO%PISMFDATMFORCED_DROF%NYFAIS45_SGLC_SWAV</lname>
     <support_level>"Experimental, under development"</support_level>
   </compset>
 
@@ -22,8 +22,8 @@
   </compset>
 
   <compset>
-    <alias>CMPASO-NYF-ISMF</alias>
-    <lname>2000_DATM%NYF_SLND_DICE%SSMI_MPASO%ISMFDATMFORCED_DROF%NYFAIS45_SGLC_SWAV</lname>
+    <alias>CMPASO-NYF-PISMF</alias>
+    <lname>2000_DATM%NYF_SLND_DICE%SSMI_MPASO%PISMFDATMFORCED_DROF%NYFAIS45_SGLC_SWAV</lname>
     <support_level>"Experimental, under development"</support_level>
   </compset>
 
@@ -40,8 +40,8 @@
   </compset>
 
   <compset>
-    <alias>CMPASO-JRA1p5-ISMF</alias>
-    <lname>2000_DATM%JRA-1p5_SLND_DICE%SSMI_MPASO%ISMFDATMFORCED_DROF%JRA-1p5-AIS0ROF_SGLC_SWAV</lname>
+    <alias>CMPASO-JRA1p5-PISMF</alias>
+    <lname>2000_DATM%JRA-1p5_SLND_DICE%SSMI_MPASO%PISMFDATMFORCED_DROF%JRA-1p5-AIS0ROF_SGLC_SWAV</lname>
     <support_level>"Experimental, under development"</support_level>
   </compset>
 
