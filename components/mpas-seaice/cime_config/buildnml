@@ -263,6 +263,15 @@ def buildnml(case, caseroot, compname):
             # Below is just a placeholder
             grid_prefix = 'seaice.ICOS10_80Layer.restartFromChrysalis'
 
+    elif ice_grid == 'EC30to60E3r2':
+        grid_date = '20230920'
+        grid_prefix = 'mpassi.EC30to60E3r2'
+        decomp_date = '20230920'
+        decomp_prefix = 'partitions/mpas-seaice.graph.info.'
+        data_iceberg_file = 'Iceberg_Climatology_Merino.EC30to60E3r2.20230920.nc'
+        if ice_ic_mode == 'spunup':
+            logger.warning("WARNING: The specified compset is requesting seaice ICs spunup from a G-case")
+            logger.warning("         But no file available for this grid.")
 
     #--------------------------------------------------------------------
     # Set the initial file
