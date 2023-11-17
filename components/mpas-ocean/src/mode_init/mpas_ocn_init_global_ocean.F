@@ -860,9 +860,12 @@ contains
        end do
 
        ! Iteratively smooth bottomDepthObserved before using it to construct the vertical grid
+       call ocn_init_set_smoothing_weights(domain,
+                                           config_global_ocean_topography_smooth_weight, &
+                                           config_global_ocean_topography_smooth_min_depth)
+
        call ocn_init_smooth_field(domain, 'bottomDepthObserved', 'mesh', &
-                                  config_global_ocean_topography_smooth_iterations, &
-                                  config_global_ocean_topography_smooth_weight)
+                                  config_global_ocean_topography_smooth_iterations)
 
        block_ptr => domain % blocklist
        do while(associated(block_ptr))
@@ -1162,20 +1165,16 @@ contains
        ! and landIceGroundedFracObserved before using them to adjust SSH, compute
        ! land-ice pressure, etc.
        call ocn_init_smooth_field(domain, 'landIceDraftObserved', 'landIceInit', &
-                                  config_global_ocean_topography_smooth_iterations, &
-                                  config_global_ocean_topography_smooth_weight)
+                                  config_global_ocean_topography_smooth_iterations)
 
        call ocn_init_smooth_field(domain, 'landIceThkObserved', 'landIceInit', &
-                                  config_global_ocean_topography_smooth_iterations, &
-                                  config_global_ocean_topography_smooth_weight)
+                                  config_global_ocean_topography_smooth_iterations)
 
        call ocn_init_smooth_field(domain, 'landIceFracObserved', 'landIceInit', &
-                                  config_global_ocean_topography_smooth_iterations, &
-                                  config_global_ocean_topography_smooth_weight)
+                                  config_global_ocean_topography_smooth_iterations)
 
        call ocn_init_smooth_field(domain, 'landIceGroundedFracObserved', 'landIceInit', &
-                                  config_global_ocean_topography_smooth_iterations, &
-                                  config_global_ocean_topography_smooth_weight)
+                                  config_global_ocean_topography_smooth_iterations)
 
        block_ptr => domain % blocklist
        do while(associated(block_ptr))

@@ -2500,6 +2500,10 @@
 			 description="Depth of the bottom of the ocean, before any alterations for modeling purposes. Given as a positive distance from sea level."
 			 packages="initMode"
 		/>
+		<var name="initSmoothingWeights" type="real" dimensions="nCells" units="1"
+			 description="The weights given to the central cell during smoothing in init mode.  The n cellsOnCell are given a weight (1-weight)/n."
+			 packages="initMode"
+		/>
 		<var name="oceanFracObserved" type="real" dimensions="nCells" units="1"
 			 description="fraction of each cell containing ocean, used to determine which cells are culled as land."
 			 packages="initMode"
