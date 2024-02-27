@@ -307,7 +307,7 @@ def buildnml(case, caseroot, compname):
             ic_date = '20240131'
             ic_prefix = 'mpaso.SOwISC12to30E3r2.rstFromG-chrysalis'
         if ocn_ismf == 'data':
-            data_ismf_file = 'prescribed_ismf_adusumilli2020.SOwISC12to30E3r2.20240104.nc'
+            data_ismf_file = 'prescribed_ismf_paolo2023.SOwISC12to30E3r2.20240227.nc'
 
     #--------------------------------------------------------------------
     # Set OCN_FORCING = datm_forced_restoring if restoring file is available
