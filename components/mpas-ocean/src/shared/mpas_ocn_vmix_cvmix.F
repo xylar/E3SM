@@ -796,6 +796,7 @@ contains
          !$omp parallel
          !$omp do schedule(runtime) private(nEdges, areaSum, edgeCount, iEdge, iNeighbor)
          do iCell=1,nCells
+            if (maxLevelCell(iCell) == 0) cycle
             nEdges = nEdgesOnCell(iCell)
             boundaryLayerDepthSmooth(iCell) = 0.0_RKIND
             areaSum = 0.0_RKIND
