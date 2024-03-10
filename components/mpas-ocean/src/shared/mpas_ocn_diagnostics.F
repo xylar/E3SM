@@ -1763,6 +1763,7 @@ contains
             enddo
 
             k = min(ksfc+1, kmax)
+            if (k == 0) cycle
             do n=1,nTracers
                tracersSurfaceLayerValue(n,iCell) = &
               (tracersSurfaceLayerValue(n,iCell) + &
