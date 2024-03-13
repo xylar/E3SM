@@ -324,8 +324,8 @@ def buildnml(case, caseroot, compname):
         grid_date = '20240227'
         grid_prefix = 'mpassi.NARRM14to30E3r1'
         if ice_ic_mode == 'spunup':
-            logger.warning("WARNING: The specified compset is requesting seaice ICs spunup from a G-case")
-            logger.warning("         But no file available for this grid.")
+            grid_date = '20240312'
+            grid_prefix = 'mpassi.NARRM14to30E3r1.rstFromG-chrysalis'
 
     elif ice_grid == 'NARRM14to30E3r2':
         decomp_date = '20240228'
