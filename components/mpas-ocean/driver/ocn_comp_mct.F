@@ -2920,8 +2920,7 @@ contains
 !      o2x_o % rAttr(index_o2x_Faoo_fdms_ocn, n) = DMSFlux(i)
 !      o2x_o % rAttr(index_o2x_Faoo_fco2_ocn, n) = surfaceUpwardCO2Flux(i)
 
-       if ( trim(config_land_ice_flux_mode) .eq. 'standalone' .or. &
-            trim(config_land_ice_flux_mode) .eq. 'coupled'  ) then
+       if ( trim(config_land_ice_flux_mode) .eq. 'coupled'  ) then
           o2x_o % rAttr(index_o2x_So_blt, n) = landIceBoundaryLayerTracers(indexBLT,i)
           o2x_o % rAttr(index_o2x_So_bls, n) = landIceBoundaryLayerTracers(indexBLS,i)
           o2x_o % rAttr(index_o2x_So_htv, n) = landIceTracerTransferVelocities(indexHeatTrans,i)
@@ -4203,8 +4202,7 @@ contains
                o2x_om(n, index_o2x_So_don1) = max(0.0_RKIND,avgOceanSurfaceDON(i))
             endif
 
-            if ( trim(config_land_ice_flux_mode) .eq. 'standalone' .or. &
-                  trim(config_land_ice_flux_mode) .eq. 'coupled'  ) then
+            if ( trim(config_land_ice_flux_mode) .eq. 'coupled'  ) then
                o2x_om(n, index_o2x_So_blt) = landIceBoundaryLayerTracers(indexBLT,i)
                o2x_om(n, index_o2x_So_bls) = landIceBoundaryLayerTracers(indexBLS,i)
                o2x_om(n, index_o2x_So_htv) = landIceTracerTransferVelocities(indexHeatTrans,i)
