@@ -2471,6 +2471,16 @@
       <mask>oEC60to30v3wLI</mask>
     </model_grid>
 
+    <model_grid alias="T62_IcoswISC30E3r5_ais20" compset="MPASO.*_MALI">
+      <grid name="atm">T62</grid>
+      <grid name="lnd">T62</grid>
+      <grid name="ocnice">IcoswISC30E3r5</grid>
+      <grid name="rof">rx1</grid>
+      <grid name="glc">mpas.ais20km</grid>
+      <grid name="wav">null</grid>
+      <mask>IcoswISC30E3r5</mask>
+    </model_grid>
+
   </grids>
 
   <domains>
