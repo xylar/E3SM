@@ -324,7 +324,7 @@ def buildnml(case, caseroot, compname):
         grid_date = '20240227'
         grid_prefix = 'mpassi.NARRM14to30E3r1'
         if ice_ic_mode == 'spunup':
-            grid_date = '20240312'
+            grid_date = '20240328'
             grid_prefix = 'mpassi.NARRM14to30E3r1.rstFromG-chrysalis'
 
     elif ice_grid == 'NARRM14to30E3r2':

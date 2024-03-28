@@ -373,7 +373,7 @@ def buildnml(case, caseroot, compname):
         ic_date = '20240227'
         ic_prefix = 'mpaso.NARRM14to30E3r1'
         if ocn_ic_mode == 'spunup':
-            ic_date = '20240312'
+            ic_date = '20240328'
             ic_prefix = 'mpaso.NARRM14to30E3r1.rstFromG-chrysalis'
 
     elif ocn_grid == 'NARRM14to30E3r2':
