@@ -12,9 +12,8 @@ program fmain
   include 'netcdf.inc'
 
   character(len= 256) :: arg
-  integer :: n                   !index 
-  integer :: nargs               !number of arguments  
-  integer, external :: iargc     !number of arguments function
+  integer :: n                   !index
+  integer :: nargs               !number of arguments
   character(len=256) :: finidati !input initial dataset to read
   character(len=256) :: finidato !output initial dataset to create
   character(len=256) :: cmdline  !input command line
@@ -51,7 +50,7 @@ program fmain
        cmdline = trim(cmdline) // ' ' // trim(arg)
     end select
   end do
-  
+
   if (finidati == ' ' .or. finidato == ' ') then
     call usage_exit ('Must specify all the following arguments')
   end if
