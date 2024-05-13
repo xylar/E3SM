@@ -22,11 +22,13 @@ flake8
 mypy
 
 # documentation
-sphinx
-sphinx_rtd_theme
-myst-parser
-sphinx-multiversion
-rst-to-myst
+mkdocs-material
+pymdown-extensions
+mkdocs-monorepo-plugin
+mdutils
+mkdocs-bibtex
+mkdocs-redirects
+markdownlint-cli2
 
 # CF-compliance
 cfchecker

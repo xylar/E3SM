@@ -26,6 +26,7 @@ theme:
 #    - navigation.tabs
 
 markdown_extensions:
+  - admonition
   - footnotes
   - pymdownx.highlight
   - pymdownx.superfences

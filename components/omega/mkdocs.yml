@@ -1,0 +1,7 @@
+site_name: Omega
+
+nav:
+ - Introduction: 'index.md'
+ - Users Guide: userGuide/index.md
+ - Developers Guide: devGuide/index.md
+ - Design Documents: design/index.md
