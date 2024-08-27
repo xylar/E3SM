@@ -476,7 +476,8 @@ contains
          ! outputs: pressureAdjustedSSH, gradSSH
          if (landIcePressureOn) then
             call ocn_diagnostic_solve_ssh(forcingPool, ssh, seaIcePressure, &
-                   pressureAdjustedSSH, gradSSH, landIceDraft=landIceDraft )
+                   pressureAdjustedSSH, gradSSH, landIceDraft=landIceDraft, &
+                   landIceFraction=landIceFraction )
         else
             call ocn_diagnostic_solve_ssh(forcingPool, ssh, seaIcePressure, &
                    pressureAdjustedSSH, gradSSH)
@@ -2819,7 +2820,7 @@ contains
 !
 !-----------------------------------------------------------------------
    subroutine ocn_diagnostic_solve_ssh(forcingPool, ssh, seaIcePressure, &
-                pressureAdjustedSSH, gradSSH, landIceDraft)!{{{
+                pressureAdjustedSSH, gradSSH, landIceDraft, landIceFraction)!{{{
 
       implicit none
 
@@ -2836,6 +2837,8 @@ contains
          seaIcePressure
       real (kind=RKIND), dimension(:), optional, intent(in) :: &
          landIceDraft
+      real (kind=RKIND), dimension(:), optional, intent(in) :: &
+         landIceFraction
 
       !-----------------------------------------------------------------
       !
@@ -2873,7 +2876,7 @@ contains
       !$omp end parallel
 #endif
 
-      if (landIcePressureOn) then
+      if (present(landIceDraft)) then
 #ifdef MPAS_OPENACC
          !! This first directive should be correct, but there may
          !! be a problem with the optional argument. Removing optional
@@ -2913,6 +2916,29 @@ contains
       !$omp end do
       !$omp end parallel
 #endif
+
+      if (present(landIceFraction)) then
+#ifdef MPAS_OPENACC
+         !$acc parallel loop present(cellsOnEdge, landIceFraction, gradSSH)
+#else
+         !$omp parallel
+         !$omp do schedule(runtime) private(cell1, cell2)
+#endif
+         do iEdge = 1, nEdges
+            cell1 = cellsOnEdge(1, iEdge)
+            cell2 = cellsOnEdge(2, iEdge)
+
+            if (landIceFraction(cell1) > 0.0_RKIND .or. landIceFraction(cell2) > 0.0_RKIND) then
+               ! zero out the gradient where there is land ice, since we don't
+               ! trust it
+               gradSSH(iEdge) = 0.0_RKIND
+            end if
+         end do
+#ifndef MPAS_OPENACC
+         !$omp end do
+         !$omp end parallel
+#endif
+      end if
 
    end subroutine ocn_diagnostic_solve_ssh!}}}
 
