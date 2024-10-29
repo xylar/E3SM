@@ -1638,6 +1638,9 @@ is the value of that variable from the *previous* time level!
 		<var name="stiffnessFactor" type="real" dimensions="nCells Time" default_value="1.0"
 		     description="stiffness factor applied to effective viscosity in higher-order velocity solve"
 		/>
+                <var name="bedRoughnessRC" type="real" dimensions="nCells Time" units="m" default_value="1.0"
+                     description="input value of bed roughness parameter for regularized Coulomb basal friction.  This corresponds to lambda_max / m_max."
+                />
                 <var name="exx" type="real" dimensions="nCells Time" units="s^-1"
                      description="x-component of depth-integrated strain rate"
                 />
