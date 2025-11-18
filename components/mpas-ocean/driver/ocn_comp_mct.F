@@ -2583,9 +2583,6 @@ contains
            end if
         endif
 
-        if ( landIceFreshwaterFluxField % isActive ) then
-           !landIceFreshwaterFlux(i) = x2o_o(index_x2o_Fogx_qicelo, n)
-        end if
         if ( landIceInterfaceTracersField % isActive ) then
            !landIceInterfaceTracers(indexIT, i) = x2o_o(index_x2o_Sg_blit, n)
            !landIceInterfaceTracers(indexIS, i) = x2o_o(index_x2o_Sg_blis, n)
