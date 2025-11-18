@@ -836,7 +836,7 @@ contains
     units    = 'kg m-3'
     attname  = 'Sa_dens'
     call metadata_set(attname, longname, stdname, units)
-    
+
     ! UoverN for use by topounits
     call seq_flds_add(a2x_states,"Sa_uovern")
     call seq_flds_add(x2l_states,"Sa_uovern")
@@ -2464,7 +2464,7 @@ contains
     units    = 'kg m-2 s-1'
     attname  = 'Flrr_supply'
     call metadata_set(attname, longname, stdname, units)
-    
+
     call seq_flds_add(r2x_fluxes,'Flrr_deficit')
     call seq_flds_add(x2l_fluxes,'Flrr_deficit')
     longname = 'River model supply deficit'
@@ -2818,12 +2818,12 @@ contains
    !----------------------------
    ! lnd->iac, iac->lnd, iac->atm
    !----------------------------
-   
+
    ! lnd/iac coupling needs one field in each class per pft
    ! Note that this ends up as 17*4=68 coupled fields...
    ! also send harvest fraction from iac to land
    ! use the same loop and index string
- 
+
    ! these two variables are hardcoded above because there is not an appropriate
    !    namelist to put them in: iac_npft and iac_nharvest
 
@@ -2842,7 +2842,7 @@ contains
       attname  = 'Sl_hr_pft' // pftstr
       attname  = trim(attname)
       call metadata_set(attname, longname, stdname, units)
-      
+
       if(add_iac_to_cplstate)call seq_flds_add(l2x_states,'Sl_npp_pft' // pftstr)
       call seq_flds_add(x2z_states,'Sl_npp_pft' // pftstr)
       longname = 'Net primary production for pft ' // pftstr
@@ -2850,7 +2850,7 @@ contains
       units    = 'gC/m^2/s'
       attname  = 'Sl_npp_pft' // pftstr
       call metadata_set(attname, longname, stdname, units)
-   
+
       ! Review
       if(add_iac_to_cplstate)call seq_flds_add(l2x_states,'Sl_pftwgt_pft' //pftstr)
       call seq_flds_add(x2z_states,'Sl_pftwgt_pft' //pftstr)
@@ -2885,7 +2885,7 @@ contains
       attname  = 'Sz_pct_pft_prev' //pftstr
       attname  = trim(attname)
       call metadata_set(attname, longname, stdname, units)
- 
+
       ! send the harvest data also, these are for model year
       if (i <= iac_nharvest) then
          call seq_flds_add(z2x_states,trim('Sz_harvest_frac' //pftstr))
@@ -4386,7 +4386,7 @@ contains
     call catFields(seq_flds_z2x_fields, seq_flds_z2x_states, seq_flds_z2x_fluxes)
     call catFields(seq_flds_x2z_fields, seq_flds_x2z_states, seq_flds_x2z_fluxes)
     call catFields(seq_flds_o2x_fields_to_lnd, seq_flds_o2x_states_to_lnd, seq_flds_o2x_fluxes_to_lnd)
- 
+
     if (seq_comm_iamroot(ID)) then
       write(logunit,*) subname//': seq_flds_dom_fields= ',trim(seq_flds_dom_fields)
       write(logunit,*) subname//': seq_flds_xao_fields= ',trim(seq_flds_xao_fields)
@@ -4685,7 +4685,7 @@ contains
     integer            :: num
     character(len= 16) :: cnum
     logical :: l_additional_list  ! local version of the optional additional_list argument
-    
+
     l_additional_list = .false.
     if (present(additional_list)) then
        l_additional_list = additional_list
