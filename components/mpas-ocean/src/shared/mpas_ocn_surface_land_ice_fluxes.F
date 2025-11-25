@@ -851,7 +851,7 @@ contains
       case ('data','Data','DATA')
          landIceFluxesOn = .true.
          landIceDataOn = .true.
-      case ('prognostic','Prognostic','PROGNOSTIC')
+      case ('active','Active','ACTIVE')
          landIceFluxesOn = .true.
          landIceDataOn = .false.
       case ('off','Off','OFF')
