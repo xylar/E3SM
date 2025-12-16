@@ -4179,20 +4179,12 @@
 			packages="landIceFluxesPKG"
 		/>
 		<!-- Output fields for land-ice coupling -->
-		<var_array name="avgLandIceBoundaryLayerTracers" type="real" dimensions="nCells Time" packages="landIceFluxesPKG">
-			<var name="avgLandIceBoundaryLayerTemperature" array_group="landIceBoundaryLayerValues" units="C"
-				description="The time-averaged temperature averaged over the sub-ice-shelf boundary layer"
+		<var_array name="avgLandIceInterfaceTracers" type="real" dimensions="nCells Time" packages="landIceFluxesPKG">
+			<var name="avgLandIceInterfaceTemperature" array_group="landIceInterfaceValues" units="C"
+				description="The time-averaged temperature at the land ice-ocean interface (the local freezing temperature)"
 			/>
-			<var name="avgLandIceBoundaryLayerSalinity" array_group="landIceBoundaryLayerValues" units="1.e-3"
-				description="The time-averaged salinity averaged over the sub-ice-shelf boundary layer"
-			/>
-		</var_array>
-		<var_array name="avgLandIceTracerTransferVelocities" type="real" dimensions="nCells Time" packages="landIceFluxesPKG">
-			<var name="avgLandIceHeatTransferVelocity" array_group="landIceTransferVelocityValues" units="m s^-1"
-				description="time-averaged friction velocity times nondimensional heat transfer coefficient"
-			/>
-			<var name="avgLandIceSaltTransferVelocity" array_group="landIceTransferVelocityValues" units="m s^-1"
-				description="time-averaged friction velocity times nondimensional salt transfer coefficient"
+			<var name="avgLandIceInterfaceSalinity" array_group="landIceInterfaceValues" units="1.e-3"
+				description="The time-averaged salinity at the land ice-ocean interface"
 			/>
 		</var_array>
 		<var name="avgThermalForcingAtZLevels" type="real" dimensions="nGlcZLevels nCells Time" units="C" packages="landIceThermalForcing3DPKG"

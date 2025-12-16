@@ -505,12 +505,6 @@ contains
 
       integer, dimension(:), pointer :: landIceFloatingMask
 
-      real (kind=RKIND), dimension(:,:), pointer :: &
-                                                    landIceInterfaceTracers
-
-      integer, pointer :: indexITPtr, indexISPtr
-      integer :: indexIT, indexIS
-
       ! Scratch Arrays
       !---
       ! freezeInterfaceSalinity: salinity at land ice-ocean interface where freezing is occurring
@@ -544,16 +538,6 @@ contains
          call mpas_pool_get_array(forcingPool, 'landIcePressure', landIcePressure)
          call mpas_pool_get_array(forcingPool, 'landIceFloatingFraction', landIceFloatingFraction)
          call mpas_pool_get_array(forcingPool, 'landIceHeatFlux', landIceHeatFlux)
-
-         call mpas_pool_get_array(forcingPool, 'landIceInterfaceTracers', landIceInterfaceTracers)
-         call mpas_pool_get_dimension(forcingPool, &
-                                 'index_landIceInterfaceTemperature', &
-                                    indexITPtr)
-         call mpas_pool_get_dimension(forcingPool, &
-                                 'index_landIceInterfaceSalinity', &
-                                    indexISPtr)
-         indexIT = indexITPtr
-         indexIS = indexISPtr
 
          if (useHollandJenkinsAdvDiff) then
             call mpas_pool_get_array(forcingPool, 'landIceSurfaceTemperature', landIceSurfaceTemperature)
