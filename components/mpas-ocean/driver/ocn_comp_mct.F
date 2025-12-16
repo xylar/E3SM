@@ -2536,10 +2536,6 @@ contains
            end if
         endif
 
-        if ( landIceInterfaceTracersField % isActive ) then
-           !landIceInterfaceTracers(indexIT, i) = x2o_o % rAttr(index_x2o_Sg_blit, n)
-           !landIceInterfaceTracers(indexIS, i) = x2o_o % rAttr(index_x2o_Sg_blis, n)
-        end if
         if ( landIceFractionField % isActive ) then
            !landIceFraction(i) = x2o_o % rAttr(index_x2o_Sg_icemask, n)
         end if
@@ -3295,18 +3291,6 @@ contains
 !      o2x_o % rAttr(index_o2x_Faoo_fdms_ocn, n) = DMSFlux(i)
 !      o2x_o % rAttr(index_o2x_Faoo_fco2_ocn, n) = surfaceUpwardCO2Flux(i)
 
-!JW       o2x_o % rAttr(index_o2x_So_blt, n) = landIceBoundaryLayerTemperature(i)
-!JW       o2x_o % rAttr(index_o2x_So_bls, n) = landIceBoundaryLayerSalinity(i)
-!JW       o2x_o % rAttr(index_o2x_So_htv, n) = landIceHeatTransferVelocity(i)
-!JW       o2x_o % rAttr(index_o2x_So_stv, n) = landIceSaltTransferVelocity(i)
-
-!       if ( trim(config_land_ice_flux_mode) .eq. 'active' ) then
-!          o2x_o % rAttr(index_o2x_So_blt, n) = landIceBoundaryLayerTracers(indexBLT,i)
-!          o2x_o % rAttr(index_o2x_So_bls, n) = landIceBoundaryLayerTracers(indexBLS,i)
-!          o2x_o % rAttr(index_o2x_So_htv, n) = landIceTracerTransferVelocities(indexHeatTrans,i)
-!          o2x_o % rAttr(index_o2x_So_stv, n) = landIceTracerTransferVelocities(indexSaltTrans,i)
-!       endif
-
        if (trim(config_glc_thermal_forcing_coupling_mode) == '3d') then
           do iLevel = 1, nGlcZLevels
              if (avgThermalForcingAtZLevelsMask(ilevel, i) > 0.9_RKIND) then
@@ -3323,18 +3307,6 @@ contains
              endif
           enddo
        endif
-
-
-       !Fyke: test
-       !write(stderrUnit,*) 'n=',n
-       !write(stderrUnit,*) 'o2x_o % rAttr(index_o2x_So_blt, n)=',o2x_o % rAttr(index_o2x_So_blt, n)
-       !write(stderrUnit,*) 'o2x_o % rAttr(index_o2x_So_bls, n)=',o2x_o % rAttr(index_o2x_So_bls, n)
-       !write(stderrUnit,*) 'o2x_o % rAttr(index_o2x_So_htv, n)=',o2x_o % rAttr(index_o2x_So_htv, n)
-       !write(stderrUnit,*) 'o2x_o % rAttr(index_o2x_So_stv, n)=',o2x_o % rAttr(index_o2x_So_stv, n)
-       !o2x_o % rAttr(index_o2x_So_blt, n) = 0._r8
-       !o2x_o % rAttr(index_o2x_So_bls, n) = 34.5_r8
-       !o2x_o % rAttr(index_o2x_So_htv, n) = 1.e-4_r8
-       !o2x_o % rAttr(index_o2x_So_stv, n) = 3.e-6_r8
 
      end do
 
@@ -4164,10 +4136,6 @@ contains
            end if
         endif
 
-        if ( landIceInterfaceTracersField % isActive ) then
-           !landIceInterfaceTracers(indexIT, i) = x2o_om(n, index_x2o_Sg_blit)
-           !landIceInterfaceTracers(indexIS, i) = x2o_om(n, index_x2o_Sg_blis)
-        end if
         if ( landIceFractionField % isActive ) then
            !landIceFraction(i) = x2o_om(n, index_x2o_Sg_icemask)
         end if
@@ -4891,29 +4859,6 @@ contains
 !      o2x_om(n, index_o2x_Faoo_fco2_ocn) = CO2Flux(i)
 !      o2x_om(n, index_o2x_Faoo_fdms_ocn) = DMSFlux(i)
 !      o2x_om(n, index_o2x_Faoo_fco2_ocn) = surfaceUpwardCO2Flux(i)
-
-!JW       o2x_om(n, index_o2x_So_blt) = landIceBoundaryLayerTemperature(i)
-!JW       o2x_om(n, index_o2x_So_bls) = landIceBoundaryLayerSalinity(i)
-!JW       o2x_om(n, index_o2x_So_htv) = landIceHeatTransferVelocity(i)
-!JW       o2x_om(n, index_o2x_So_stv) = landIceSaltTransferVelocity(i)
-
-!       if ( trim(config_land_ice_flux_mode) .eq. 'active' ) then
-!          o2x_om(n, index_o2x_So_blt) = landIceBoundaryLayerTracers(indexBLT,i)
-!          o2x_om(n, index_o2x_So_bls) = landIceBoundaryLayerTracers(indexBLS,i)
-!          o2x_om(n, index_o2x_So_htv) = landIceTracerTransferVelocities(indexHeatTrans,i)
-!          o2x_om(n, index_o2x_So_stv) = landIceTracerTransferVelocities(indexSaltTrans,i)
-!       endif
-
-       !Fyke: test
-       !write(stderrUnit,*) 'n=',n
-       !write(stderrUnit,*) 'o2x_om(n, index_o2x_So_blt)=',o2x_om(n, index_o2x_So_blt)
-       !write(stderrUnit,*) 'o2x_om(n, index_o2x_So_bls)=',o2x_om(n, index_o2x_So_bls)
-       !write(stderrUnit,*) 'o2x_om(n, index_o2x_So_htv)=',o2x_om(n, index_o2x_So_htv)
-       !write(stderrUnit,*) 'o2x_om(n, index_o2x_So_stv)=',o2x_om(n, index_o2x_So_stv)
-       !o2x_om(n, index_o2x_So_blt) = 0._r8
-       !o2x_om(n, index_o2x_So_bls) = 34.5_r8
-       !o2x_om(n, index_o2x_So_htv) = 1.e-4_r8
-       !o2x_om(n, index_o2x_So_stv) = 3.e-6_r8
 
      end do
 

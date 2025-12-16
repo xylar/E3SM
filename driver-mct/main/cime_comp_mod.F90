@@ -146,7 +146,7 @@ module cime_comp_mod
   ! diagnostic routines
   use seq_diag_mct, only : seq_diag_zero_mct , seq_diag_avect_mct, seq_diag_lnd_mct
   use seq_diag_mct, only : seq_diag_rof_mct  , seq_diag_ocn_mct  , seq_diag_atm_mct
-  use seq_diag_mct, only : seq_diag_ice_mct  , seq_diag_glc_mct 
+  use seq_diag_mct, only : seq_diag_ice_mct  , seq_diag_glc_mct
   use seq_diag_mct, only : seq_diag_accum_mct, seq_diag_print_mct
   use seq_diagBGC_mct, only : seq_diagBGC_zero_mct , seq_diagBGC_avect_mct, seq_diagBGC_lnd_mct
   use seq_diagBGC_mct, only : seq_diagBGC_rof_mct  , seq_diagBGC_ocn_mct  , seq_diagBGC_atm_mct
@@ -743,9 +743,9 @@ contains
     integer(i8) :: beg_count          ! start time
     integer(i8) :: end_count          ! end time
     integer(i8) :: irtc_rate          ! factor to convert time to seconds
-    
+
     beg_count = shr_sys_irtc(irtc_rate)
-    
+
 #if defined(MPINIT_WORKAROUND) && (MPINIT_WORKAROUND == 1)
     call atm_init_hip_mct()
 #endif
@@ -754,7 +754,7 @@ contains
 
     end_count = shr_sys_irtc(irtc_rate)
     mpi_init_time = real( (end_count-beg_count), r8)/real(irtc_rate, r8)
-    
+
     call mpi_comm_dup(MPI_COMM_WORLD, global_comm, ierr)
     call shr_mpi_chkerr(ierr,subname//' mpi_comm_dup')
 
@@ -1436,9 +1436,9 @@ contains
     !Print BFBFLAG value in the log file
     if (iamroot_CPLID) then
        call seq_infodata_GetData(infodata, bfbflag=bfbflag)
-       write(logunit,'(2A,L4)') subname,'BFBFLAG is:',bfbflag       
+       write(logunit,'(2A,L4)') subname,'BFBFLAG is:',bfbflag
     endif
-    
+
     call t_stopf('CPL:cime_pre_init2')
 
     ! CPL:cime_pre_init2 timer elapsed time will be double counted
@@ -2329,7 +2329,7 @@ contains
           call seq_nlmap_init_a2oi_cons(mapper_lcl, fractions_ax)
        end if
     end if
-    
+
 
     !----------------------------------------------------------
     !| ATM PREP for recalculation of initial solar
@@ -2458,7 +2458,7 @@ contains
           write(logunit,103) subname,' Reading restart file ',trim(rest_file)
           call shr_sys_flush(logunit)
        end if
-       
+
        call t_startf('CPL:seq_rest_read-init')
        call seq_rest_read(rest_file, infodata, &
             atm, lnd, ice, ocn, rof, glc, wav, esp, iac, &
@@ -4194,7 +4194,7 @@ contains
             info_debug=info_debug, timer_diag='CPL:iacpost_diagav')
 
        ! Need to reset our max vector to zero for the following year
-       if (lnd_present) then 
+       if (lnd_present) then
           call prep_iac_zero_max()
        endif
 
@@ -4262,26 +4262,9 @@ contains
 
     if (glc_present) then
 
-       ! create o2x_gx for either ocn-glc coupling or ocn-glc shelf coupling
-       if (ocn_c2_glctf .or. (ocn_c2_glcshelf .and. glcshelf_c2_ocn)) then
+       ! create o2x_gx for ocn-glc shelf coupling
+       if (ocn_c2_glctf) then
           call prep_glc_calc_o2x_gx(ocn_c2_glctf, ocn_c2_glcshelf, timer='CPL:glcprep_ocn2glc') !remap ocean fields to o2x_g at ocean couping interval
-       endif
-
-       ! if ice-shelf coupling is on, now proceed to handle those calculations here in the coupler
-       if (ocn_c2_glcshelf .and. glcshelf_c2_ocn) then
-          ! the boundary flux calculations done in the coupler require inputs from both GLC and OCN,
-          ! so they will only be valid if both OCN->GLC and GLC->OCN
-
-          call prep_glc_calculate_subshelf_boundary_fluxes ! this is actual boundary layer flux calculation
-                                        !this outputs
-                                        !x2g_g/g2x_g, where latter is going
-                                        !to ocean, so should get remapped to
-                                        !ocean grid in prep_ocn_shelf_calc_g2x_ox
-          call prep_ocn_shelf_calc_g2x_ox(timer='CPL:glcpost_glcshelf2ocn')
-                                        !Map g2x_gx shelf fields that were updated above, to g2x_ox.
-                                        !Do this at intrinsic coupling
-                                        !frequency
-          call prep_glc_accum_ocn(timer='CPL:glcprep_accum_ocn') !accum x2g_g fields here into x2g_gacc
        endif
 
        if (glcshelf_c2_ice) then
@@ -4785,7 +4768,7 @@ contains
     if (present(in_cplrun)) then
        lcplrun = .not. in_cplrun
     endif
-    
+
     if (iamin_CPLID) then
        call cime_comp_barriers(mpicom=mpicom_CPLID, timer='CPL:BUDGET1_BARRIER')
        call t_drvstartf ('CPL:BUDGET1',cplrun=lcplrun,budget=.true.,barrier=mpicom_CPLID)
@@ -4829,7 +4812,7 @@ contains
     if (present(in_cplrun)) then
        lcplrun = .not. in_cplrun
     endif
-    
+
     if (iamin_CPLID) then
        call cime_comp_barriers(mpicom=mpicom_CPLID, timer='CPL:BUDGET2_BARRIER')
 
@@ -4901,7 +4884,7 @@ contains
     if (present(in_cplrun)) then
        lcplrun = .not. in_cplrun
     endif
-    
+
     if (iamin_CPLID) then
        call cime_comp_barriers(mpicom=mpicom_CPLID, timer='CPL:BUDGET0_BARRIER')
        call t_drvstartf ('CPL:BUDGET0',cplrun=lcplrun,budget=.true.,barrier=mpicom_CPLID)
@@ -5506,7 +5489,7 @@ contains
     ! the steps required for rpointer file consistency based on state.
 
     logical, intent(in) :: force_remove ! force removal of .prev files in this call
-    
+
     integer :: i, n, rcode, unit
     logical :: previous_rings, file_exists
     character(32) :: buf

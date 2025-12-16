@@ -533,7 +533,6 @@ contains
   subroutine prep_ocn_merge( flux_epbalfact, a2x_o, i2x_o, r2x_o, w2x_o, g2x_o, xao_o, &
        fractions_o, x2o_o )
 
-    use prep_glc_mod, only: prep_glc_calculate_subshelf_boundary_fluxes
     use seq_flds_mod, only: wav_ocn_coup
 
     !-----------------------------------------------------------------------
@@ -1302,7 +1301,7 @@ contains
 
 #ifdef COMPARE_TO_NUOPC
        call seq_map_mapvect(mapper_Va2o, vect_map, a2x_ax, a2x_ox(eai), 'Sa_u', 'Sa_v', norm=.true.)
-#else 
+#else
        !--- tcx the norm should be true below, it's false for bfb backwards compatability
        call seq_map_mapvect(mapper_Va2o, vect_map, a2x_ax, a2x_ox(eai), 'Sa_u', 'Sa_v', norm=.false.)
 #endif

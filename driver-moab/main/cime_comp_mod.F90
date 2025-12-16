@@ -697,7 +697,7 @@ module cime_comp_mod
 
 #ifdef MOABDEBUG
 ! allocate to get data frpm moab
-  real(r8) ,  private, pointer :: moab_tag_vals(:,:) ! various tags for debug purposes 
+  real(r8) ,  private, pointer :: moab_tag_vals(:,:) ! various tags for debug purposes
   integer nvert(3), nvise(3), nbl(3), nsurf(3), nvisBC(3), arrsize, ent_type
   character(100) :: tagname
   type(mct_aVect) , pointer :: a2x_aa => null()
@@ -4465,22 +4465,9 @@ contains
 
     if (glc_present) then
 
-       if (ocn_c2_glcshelf .and. glcshelf_c2_ocn) then
-          ! the boundary flux calculations done in the coupler require inputs from both GLC and OCN,
-          ! so they will only be valid if both OCN->GLC and GLC->OCN
-
-          call prep_glc_calc_o2x_gx(timer='CPL:glcprep_ocn2glc') !remap ocean fields to o2x_g at ocean couping interval
-
-          call prep_glc_calculate_subshelf_boundary_fluxes ! this is actual boundary layer flux calculation
-                                        !this outputs
-                                        !x2g_g/g2x_g, where latter is going
-                                        !to ocean, so should get remapped to
-                                        !ocean grid in prep_ocn_shelf_calc_g2x_ox
-          call prep_ocn_shelf_calc_g2x_ox(timer='CPL:glcpost_glcshelf2ocn')
-                                        !Map g2x_gx shelf fields that were updated above, to g2x_ox.
-                                        !Do this at intrinsic coupling
-                                        !frequency
-          call prep_glc_accum_ocn(timer='CPL:glcprep_accum_ocn') !accum x2g_g fields here into x2g_gacc
+       ! create o2x_gx for ocn-glc shelf coupling
+       if (ocn_c2_glctf) then
+          call prep_glc_calc_o2x_gx(ocn_c2_glctf, ocn_c2_glcshelf, timer='CPL:glcprep_ocn2glc') !remap ocean fields to o2x_g at ocean couping interval
        endif
 
        if (glcshelf_c2_ice) then

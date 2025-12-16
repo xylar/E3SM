@@ -914,14 +914,14 @@ contains
          if (samegrid_ro) then
             ! this creates a parallel communication graph between mbrxid and mboxid,
             ! with ids rof(1)%cplcompid, ocn(1)%cplcompid
-            ! this will be used in send/receive mappers 
+            ! this will be used in send/receive mappers
             ierr = iMOAB_ComputeCommGraph( mbrxid, mboxid, mpicom_CPLID, mpigrp_CPLID, mpigrp_CPLID, &
                                              type_grid, type_grid, rof(1)%cplcompid, ocn(1)%cplcompid )
             if (ierr .ne. 0) then
                write(logunit,*) subname,' error in compute graph ROF -  ocean '
                call shr_sys_abort(subname//' ERROR in compute graph ROF - ocean  ')
             endif
-            mapper_Fr2o%intx_context = ocn(1)%cplcompid 
+            mapper_Fr2o%intx_context = ocn(1)%cplcompid
             mapper_Rr2o_ice%intx_context = ocn(1)%cplcompid
             mapper_Rr2o_liq%intx_context = ocn(1)%cplcompid
 
@@ -2162,7 +2162,6 @@ subroutine prep_ocn_mrg_moab(infodata, xao_ox)
   subroutine prep_ocn_merge( flux_epbalfact, a2x_o, i2x_o, r2x_o, w2x_o, g2x_o, xao_o, &
        fractions_o, x2o_o )
 
-    use prep_glc_mod, only: prep_glc_calculate_subshelf_boundary_fluxes
     use seq_flds_mod, only: wav_ocn_coup
 
     !-----------------------------------------------------------------------
