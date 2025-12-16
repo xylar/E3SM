@@ -17,7 +17,6 @@ module glc_cpl_indices
   integer, public :: index_x2g_Flgl_qice = 0 !Ice sheet surface mass balance
   integer, public :: index_x2g_Sl_tsrf   = 0 !Ice sheet upper surface boundary temperature
 
-  integer, public :: index_x2g_So_rhoeff = 0 !Ocean effective pressure
   integer, public :: index_x2g_So_tf3d(glc_nzoc_max)   = 0 !Ocean thermal forcing at specified z-levels
   integer, public :: index_x2g_So_tf3d_mask(glc_nzoc_max)   = 0 !mask of ocean thermal forcing at specified z-levels
   integer, public :: index_x2g_Fogx_qicehi = 0 !Subshelf heat flux for the ice sheet
@@ -67,7 +66,6 @@ contains
     ! Surface temperature (deg C)
 
     index_x2g_Fogx_qicehi =               mct_avect_indexra(x2g,'Fogx_qicehi',perrwith='quiet')
-    index_x2g_So_rhoeff =                 mct_avect_indexra(x2g,'So_rhoeff',perrwith='quiet')
 
     ! Sub-ice-shelf fluxes from ocean
     index_x2g_Foxo_ismw =                 mct_avect_indexra(x2g,'Foxo_ismw',perrwith='quiet')
