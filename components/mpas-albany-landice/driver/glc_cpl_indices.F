@@ -17,6 +17,7 @@ module glc_cpl_indices
   integer, public :: index_x2g_Flgl_qice = 0 !Ice sheet surface mass balance
   integer, public :: index_x2g_Sl_tsrf   = 0 !Ice sheet upper surface boundary temperature
 
+  integer, public :: index_x2g_So_intrt  = 0 !Ice shelf-ocean interface temperature
   integer, public :: index_x2g_So_tf3d(glc_nzoc_max)   = 0 !Ocean thermal forcing at specified z-levels
   integer, public :: index_x2g_So_tf3d_mask(glc_nzoc_max)   = 0 !mask of ocean thermal forcing at specified z-levels
   integer, public :: index_x2g_Fogx_qicehi = 0 !Subshelf heat flux for the ice sheet
@@ -137,6 +138,9 @@ contains
     ! conservation in configurations that have an ice sheet instance running
     ! but not evolving.  The GLC_TWO_WAY_COUPLING xml variable is what controls
     ! how this should be handled in CLM and the ice sheet model.
+
+    ! ice shelf-ocean interface temperature from the ocean
+    index_x2g_So_intrt = mct_avect_indexra(g2x,'So_intrt',perrwith='quiet')
 
     call mct_aVect_clean(x2g)
     call mct_aVect_clean(g2x)

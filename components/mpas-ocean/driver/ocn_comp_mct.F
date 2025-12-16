@@ -3023,7 +3023,8 @@ contains
                                                  avgSSHGradient, avgOceanSurfacePhytoC, &
                                                  avgOceanSurfaceDOC, layerThickness, &
                                                  avgThermalForcingAtZLevels, &
-                                                 avgThermalForcingAtZLevelsMask
+                                                 avgThermalForcingAtZLevelsMask, &
+                                                 avgLandIceInterfaceTracers
 
    real (kind=RKIND) :: surfaceFreezingTemp
 
@@ -3172,6 +3173,10 @@ contains
         call mpas_pool_get_array(MacroMoleculesSeaIceCoupling, 'avgOceanSurfaceDOC', avgOceanSurfaceDOC)
         call mpas_pool_get_array(MacroMoleculesSeaIceCoupling, 'avgOceanSurfaceDON', avgOceanSurfaceDON)
      endif
+     if(trim(config_land_ice_flux_mode) == 'active') then
+        call mpas_pool_get_array(forcingPool, 'avgLandIceInterfaceTracers', avgLandIceInterfaceTracers)
+     end if
+
 !    call mpas_pool_get_array(forcingPool, 'CO2Flux', CO2Flux)
 !    call mpas_pool_get_array(forcingPool, 'DMSFlux', DMSFlux)
 !    call mpas_pool_get_array(forcingPool, 'surfaceUpwardCO2Flux', surfaceUpwardCO2Flux)
@@ -3290,6 +3295,10 @@ contains
 !      o2x_o % rAttr(index_o2x_Faoo_fco2_ocn, n) = CO2Flux(i)
 !      o2x_o % rAttr(index_o2x_Faoo_fdms_ocn, n) = DMSFlux(i)
 !      o2x_o % rAttr(index_o2x_Faoo_fco2_ocn, n) = surfaceUpwardCO2Flux(i)
+
+       if ( trim(config_land_ice_flux_mode) .eq. 'active' ) then
+          o2x_o % rAttr(index_o2x_So_intrt, n) = avgLandIceInterfaceTracers(indexIT,i)
+       endif
 
        if (trim(config_glc_thermal_forcing_coupling_mode) == '3d') then
           do iLevel = 1, nGlcZLevels
@@ -4620,8 +4629,8 @@ contains
 
    real (kind=RKIND), dimension(:,:), pointer :: avgTracersSurfaceValue, avgSurfaceVelocity, &
                                                  avgSSHGradient, avgOceanSurfacePhytoC, &
-                                                 avgOceanSurfaceDOC, layerThickness
-
+                                                 avgOceanSurfaceDOC, layerThickness, &
+                                                 avgLandIceInterfaceTracers
    real (kind=RKIND) :: surfaceFreezingTemp
 
    logical, pointer :: frazilIceActive,          &
@@ -4733,6 +4742,9 @@ contains
         call mpas_pool_get_array(MacroMoleculesSeaIceCoupling, 'avgOceanSurfaceDOC', avgOceanSurfaceDOC)
         call mpas_pool_get_array(MacroMoleculesSeaIceCoupling, 'avgOceanSurfaceDON', avgOceanSurfaceDON)
      endif
+     if(trim(config_land_ice_flux_mode) == 'active') then
+        call mpas_pool_get_array(forcingPool, 'avgLandIceInterfaceTracers', avgLandIceInterfaceTracers)
+     end if
 !    call mpas_pool_get_array(forcingPool, 'CO2Flux', CO2Flux)
 !    call mpas_pool_get_array(forcingPool, 'DMSFlux', DMSFlux)
 !    call mpas_pool_get_array(forcingPool, 'surfaceUpwardCO2Flux', surfaceUpwardCO2Flux)
@@ -4859,6 +4871,10 @@ contains
 !      o2x_om(n, index_o2x_Faoo_fco2_ocn) = CO2Flux(i)
 !      o2x_om(n, index_o2x_Faoo_fdms_ocn) = DMSFlux(i)
 !      o2x_om(n, index_o2x_Faoo_fco2_ocn) = surfaceUpwardCO2Flux(i)
+
+       if ( trim(config_land_ice_flux_mode) .eq. 'active' ) then
+          o2x_om(n, index_o2x_So_intrt) = avgLandIceInterfaceTracers(indexIT,i)
+       endif
 
      end do
 
