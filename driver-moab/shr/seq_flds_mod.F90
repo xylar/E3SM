@@ -2958,16 +2958,6 @@ contains
     call set_glc_elevclass_field(name, attname, longname, stdname, units, x2l_fluxes_from_glc, &
          additional_list = .true.)
 
-    name = 'So_rhoeff'
-    call seq_flds_add(o2x_states,trim(name))
-    call seq_flds_add(x2g_states,trim(name))
-    call seq_flds_add(x2g_shelf_states_from_ocn,trim(name))
-    longname = 'Ocean effective pressure'
-    stdname  = 'Ocean_effective_pressure'
-    units    = 'Pa'
-    attname  = 'So_rhoeff'
-    call metadata_set(attname, longname, stdname, units)
-
     if ((flds_tf) .and. (glc_nzoc > 0)) then
        ! glc fields with multiple ocn z classes: ocn->glc
        !
