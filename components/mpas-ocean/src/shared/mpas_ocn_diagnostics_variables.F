@@ -75,9 +75,9 @@ module ocn_diagnostics_variables
    real (kind=RKIND), dimension(:), pointer :: pressureAdjustedSSH
    real (kind=RKIND), dimension(:), pointer :: pgf_sal
    real (kind=RKIND), dimension(:), pointer :: temp_twd
-   real (kind=RKIND), dimension(:), pointer :: normalCoeffTWD 
-   real (kind=RKIND), dimension(:), pointer :: tangentialCoeffTWD 
-   real (kind=RKIND), dimension(:), pointer :: topographicWaveDrag 
+   real (kind=RKIND), dimension(:), pointer :: normalCoeffTWD
+   real (kind=RKIND), dimension(:), pointer :: tangentialCoeffTWD
+   real (kind=RKIND), dimension(:), pointer :: topographicWaveDrag
 
    real (kind=RKIND), dimension(:,:), pointer :: tracersSurfaceValue
    real (kind=RKIND), dimension(:,:), pointer :: tracersSurfaceLayerValue
@@ -101,10 +101,12 @@ module ocn_diagnostics_variables
    real (kind=RKIND), dimension(:), pointer :: bed_slope_edges
    real (kind=RKIND), dimension(:), pointer :: lonGradEdge
    real (kind=RKIND), dimension(:), pointer :: latGradEdge
+   real (kind=RKIND), dimension(:,:), pointer :: landIceInterfaceTracers
    real (kind=RKIND), dimension(:,:), pointer :: landIceBoundaryLayerTracers
    real (kind=RKIND), dimension(:,:), pointer :: landIceTracerTransferVelocities
 
-   integer :: indexBLT, indexBLS, &
+   integer :: indexIT, indexIS, &
+              indexBLT, indexBLS, &
               indexHeatTrans, indexSaltTrans
 
    real (kind=RKIND), dimension(:), pointer :: penetrativeTemperatureFluxOBL
@@ -260,6 +262,7 @@ contains
 
       ! Local pointers for pool retrievals
       integer, pointer :: &
+         indexITPtr, indexISPtr, &
          indexBLTPtr, indexBLSPtr, &
          indexHeatTransPtr, indexSaltTransPtr, &
          index_vertNonLocalFluxTempPtr, &
@@ -364,6 +367,10 @@ contains
          call mpas_pool_get_array(diagnosticsPool, 'landIceDraftForSsh', landIceDraftForSsh)
          call mpas_pool_get_array(diagnosticsPool, 'topDragMagnitude', topDragMag)
          call mpas_pool_get_dimension(diagnosticsPool, &
+                   'index_landIceInterfaceTemperature', indexITPtr)
+         call mpas_pool_get_dimension(diagnosticsPool, &
+                   'index_landIceInterfaceSalinity', indexISPtr)
+         call mpas_pool_get_dimension(diagnosticsPool, &
                    'index_landIceBoundaryLayerTemperature', indexBLTPtr)
          call mpas_pool_get_dimension(diagnosticsPool, &
                    'index_landIceBoundaryLayerSalinity', indexBLSPtr)
@@ -371,11 +378,15 @@ contains
                    'index_landIceHeatTransferVelocity', indexHeatTransPtr)
          call mpas_pool_get_dimension(diagnosticsPool, &
                    'index_landIceSaltTransferVelocity', indexSaltTransPtr)
+         indexIT = indexITPtr
+         indexIS = indexISPtr
          indexBLT = indexBLTPtr
          indexBLS = indexBLSPtr
          indexHeatTrans = indexHeatTransPtr
          indexSaltTrans = indexSaltTransPtr
 
+         call mpas_pool_get_array(diagnosticsPool, &
+                   'landIceInterfaceTracers', landIceInterfaceTracers)
          call mpas_pool_get_array(diagnosticsPool, &
                    'landIceBoundaryLayerTracers', landIceBoundaryLayerTracers)
          call mpas_pool_get_array(diagnosticsPool, &
@@ -755,6 +766,7 @@ contains
          !$acc enter data create(                                 &
          !$acc                   topDrag,                         &
          !$acc                   topDragMag,                      &
+         !$acc                   landIceInterfaceTracers,         &
          !$acc                   landIceBoundaryLayerTracers,     &
          !$acc                   landIceTracerTransferVelocities, &
          !$acc                   landIceFrictionVelocity,         &
@@ -1017,6 +1029,7 @@ contains
          !$acc exit data delete(                                  &
          !$acc                   topDrag,                         &
          !$acc                   topDragMag,                      &
+         !$acc                   landIceInterfaceTracers,         &
          !$acc                   landIceBoundaryLayerTracers,     &
          !$acc                   landIceTracerTransferVelocities, &
          !$acc                   landIceDraftForSsh,              &
@@ -1247,6 +1260,7 @@ contains
       if ( trim(config_land_ice_flux_mode) /= 'off' ) then
          nullify(topDrag,                         &
                  topDragMag,                      &
+                 landIceInterfaceTracers,         &
                  landIceBoundaryLayerTracers,     &
                  landIceTracerTransferVelocities, &
                  landIceFrictionVelocity,         &
