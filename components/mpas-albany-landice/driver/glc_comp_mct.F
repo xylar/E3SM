@@ -51,6 +51,7 @@ module glc_comp_mct
   ! MALI modules
   use li_core
   use li_core_interface
+  use li_constants, only: kelvin_to_celsius
 
   implicit none
   save
@@ -1411,7 +1412,8 @@ contains
                                                floatingBasalMassBal,&
                                                surfaceTemperature,&
                                                basalOceanHeatflx,&
-                                               OceanDensity
+                                               iceOceanInterfaceTemperature
+
    real (kind=RKIND), dimension(:,:), pointer :: ismip6shelfMelt_3dThermalForcing
    integer, dimension(:,:), pointer :: orig3dOceanMask
    real(kind=RKIND), pointer :: config_invalid_value_TF
@@ -1443,7 +1445,7 @@ contains
          call mpas_pool_get_array(geometryPool, 'ismip6shelfMelt_3dThermalForcing', ismip6shelfMelt_3dThermalForcing)
          call mpas_pool_get_array(extrapOceanDataPool, 'orig3dOceanMask', orig3dOceanMask)
 !         call mpas_pool_get_array(thermalPool, 'basalOceanHeatflx',basalOceanHeatflx)
-         !call mpas_pool_get_array(geometryPool, 'OceanDensity',OceanDensity)
+         call mpas_pool_get_array(thermalPool, 'iceOceanInterfaceTemperature', iceOceanInterfaceTemperature)
 
          if (nISMIP6OceanLayers > 0) then
             orig3dOceanMask(:,:) = 0
@@ -1479,7 +1481,7 @@ contains
 !            surfaceTemperature(i) = x2g_g % rAttr(index_x2g_Sl_tsrf, n)
 !JW            basalOceanHeatflx(i) = x2g_g % rAttr(index_x2g_Fogo_qiceh, n)
 !            basalOceanHeatflx(i) = x2g_g % rAttr(index_x2g_Fogx_qicehi, n)
-            !OceanDensity (i) = x2g_g % rAttr(, n)
+            iceOceanInterfaceTemperature(i) = x2g_g % rAttr(index_x2g_So_intrt, n) + kelvin_to_celsius
          end do
 
          block => block % next
