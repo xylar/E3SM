@@ -51,7 +51,6 @@ module glc_comp_mct
   ! MALI modules
   use li_core
   use li_core_interface
-  use li_constants, only: kelvin_to_celsius
 
   implicit none
   save
@@ -1415,7 +1414,8 @@ contains
 
    real (kind=RKIND), dimension(:,:), pointer :: ismip6shelfMelt_3dThermalForcing
    integer, dimension(:,:), pointer :: orig3dOceanMask
-   real(kind=RKIND), pointer :: config_invalid_value_TF
+   real(kind=RKIND), pointer :: config_invalid_value_TF, config_min_floating_frac, &
+                                config_invalid_value_ocn_intr_temp
    character(len=StrKIND), pointer :: config_smb_source
    real(kind=RKIND) :: fractionalMaskVal
 
@@ -1423,6 +1423,10 @@ contains
 
     call mpas_pool_get_config(domain % configs, 'config_invalid_value_TF', config_invalid_value_TF)
     call mpas_pool_get_config(domain % configs, 'config_smb_source', config_smb_source)
+    call mpas_pool_get_config(domain % configs, 'config_min_floating_frac', config_min_floating_frac)
+    call mpas_pool_get_config(domain % configs, 'config_min_floating_frac', config_min_floating_frac)
+    call mpas_pool_get_config(domain % configs, 'config_invalid_value_ocn_intr_temp', &
+                              config_invalid_value_ocn_intr_temp)
 
     n = 0
     block => domain % blocklist
@@ -1480,7 +1484,13 @@ contains
 !            surfaceTemperature(i) = x2g_g % rAttr(index_x2g_Sl_tsrf, n)
 !JW            basalOceanHeatflx(i) = x2g_g % rAttr(index_x2g_Fogo_qiceh, n)
 !            basalOceanHeatflx(i) = x2g_g % rAttr(index_x2g_Fogx_qicehi, n)
-            iceOceanInterfaceTemperature(i) = x2g_g % rAttr(index_x2g_So_intrt, n) + kelvin_to_celsius
+            fractionalMaskVal = x2g_g % rAttr(index_x2g_So_liflfrac, n)
+            if (fractionalMaskVal > config_min_floating_frac) then
+               iceOceanInterfaceTemperature(i) = x2g_g % rAttr(index_x2g_So_tfrz_isf, n) &
+                                                 / fractionalMaskVal
+            else
+               iceOceanInterfaceTemperature(i) = config_invalid_value_ocn_intr_temp
+            endif
          end do
 
          block => block % next

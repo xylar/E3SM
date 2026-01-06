@@ -2958,14 +2958,24 @@ contains
     call set_glc_elevclass_field(name, attname, longname, stdname, units, x2l_fluxes_from_glc, &
          additional_list = .true.)
 
-    name = 'So_intrt'
+    name = 'So_tfrz_isf'
     call seq_flds_add(o2x_states,trim(name))
     call seq_flds_add(x2g_states,trim(name))
     call seq_flds_add(x2g_shelf_states_from_ocn,trim(name))
-    longname = 'Ice shelf-ocean interface temperature'
-    stdname  = 'Ice_shelf_ocean_interface_temperature'
-    units    = 'C'
-    attname  = 'So_intrt'
+    longname = 'Ice shelf-ocean freezing temperature'
+    stdname  = 'Ice_shelf_ocean_freezing_temperature'
+    units    = 'K'
+    attname  = 'So_tfrz_isf'
+    call metadata_set(attname, longname, stdname, units)
+
+    name = 'So_liflfrac'
+    call seq_flds_add(o2x_states,trim(name))
+    call seq_flds_add(x2g_states,trim(name))
+    call seq_flds_add(x2g_shelf_states_from_ocn,trim(name))
+    longname = 'Floating ice shelf area fraction'
+    stdname  = 'floating_ice_shelf_area_fraction'
+    units    = '1'
+    attname  = name
     call metadata_set(attname, longname, stdname, units)
 
     if ((flds_tf) .and. (glc_nzoc > 0)) then

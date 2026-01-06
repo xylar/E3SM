@@ -34,7 +34,8 @@ module mpaso_cpl_indices
 
   ! ocn -> drv for calculation of ocean-ice sheet interactions
 
-  integer :: index_o2x_So_intrt !boundary layer temperature
+  integer :: index_o2x_So_tfrz_isf !boundary layer temperature
+  integer :: index_o2x_So_liflfrac !floating ice shelf fraction
   integer :: index_o2x_So_tf3d(glc_nzoc_max) !ocean thermal forcing at predefined z-levels
   integer :: index_o2x_So_tf3d_mask(glc_nzoc_max) !mask ofocean thermal forcing at predefined z-levels
 
@@ -210,7 +211,8 @@ contains
     index_o2x_Foxo_ismh     = mct_avect_indexra(o2x,'Foxo_ismh',perrWith='quiet')
     index_o2x_Foxo_rrofih   = mct_avect_indexra(o2x,'Foxo_rrofih',perrWith='quiet')
 
-    index_o2x_So_intrt      = mct_avect_indexra(o2x,'So_intrt')
+    index_o2x_So_tfrz_isf      = mct_avect_indexra(o2x,'So_tfrz_isf')
+    index_o2x_So_liflfrac      = mct_avect_indexra(o2x,'So_liflfrac')
     if (glc_nzoc > 0) then
        do iLev = 1, glc_nzoc
           cnum = glc_zocnclass_as_string(iLev)
