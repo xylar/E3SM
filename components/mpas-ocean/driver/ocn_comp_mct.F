@@ -3082,6 +3082,7 @@ contains
    integer, dimension(:), pointer :: landIceMask
 
    real (kind=RKIND), dimension(:), pointer :: seaIceEnergy, accumulatedFrazilIceMass, frazilSurfacePressure, &
+                                               landIceFloatingFraction, &
                                                avgTotalFreshWaterTemperatureFlux, &
                                                avgCO2_gas_flux, DMSFlux, surfaceUpwardCO2Flux, &
                                                avgOceanSurfaceDIC, &
@@ -3194,6 +3195,7 @@ contains
      call mpas_pool_get_array(statePool, 'layerThickness', layerThickness, 1)
 
      call mpas_pool_get_array(forcingPool, 'landIceMask', landIceMask)
+     call mpas_pool_get_array(forcingPool, 'landIceFloatingFraction', landIceFloatingFraction)
      call mpas_pool_get_array(forcingPool, 'avgTracersSurfaceValue', avgTracersSurfaceValue)
      call mpas_pool_get_array(forcingPool, 'avgSurfaceVelocity', avgSurfaceVelocity)
      call mpas_pool_get_array(forcingPool, 'avgSSHGradient', avgSSHGradient)
@@ -3380,7 +3382,9 @@ contains
 !      o2x_o(index_o2x_Faoo_fco2_ocn, n) = surfaceUpwardCO2Flux(i)
 
        if ( trim(config_land_ice_flux_mode) .eq. 'active' ) then
-          o2x_o % rAttr(index_o2x_So_intrt, n) = avgLandIceInterfaceTracers(indexIT,i)
+          o2x_o % rAttr(index_o2x_So_tfrz_isf, n) = landIceFloatingFraction(i) &
+                                                    * avgLandIceInterfaceTracers(indexIT,i)
+          o2x_o % rAttr(index_o2x_So_liflfrac, n) = landIceFloatingFraction(i)
        endif
 
        if (trim(config_glc_thermal_forcing_coupling_mode) == '3d') then

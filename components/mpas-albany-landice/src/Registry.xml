@@ -511,6 +511,14 @@
 			    description="weight used to smooth horizontal extrapolation of ocean data field. Value close to 1 implies more weight of the current cell value versus the averaged value of the neighbouring cells around the cell"
 			    possible_values="any real value between 0 and 1"
 		/>
+		<nml_option name="config_invalid_value_ocn_intr_temp" type="real" default_value="1.0e36" units="unitless"
+				description="value assigned to indicate invalid values for the temperature at the ice-ocean interface"
+				possible_values="Any real value"
+		/>
+        <nml_option name="config_min_floating_frac" type="real" default_value="0.01" units="unitless"
+				description="The minimum floating fraction from the ocean for renormalizing the ice-ocean interface temperature"
+				possible_values="Any real value between 0 and 1"
+        />
 	</nml_record>
 
 	<nml_record name="physical_parameters" in_defaults="true">
