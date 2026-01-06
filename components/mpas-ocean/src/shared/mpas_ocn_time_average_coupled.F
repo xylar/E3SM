@@ -363,6 +363,8 @@ module ocn_time_average_coupled
            do iCell = 1, nCells
               avgLandIceInterfaceTracers(:, iCell) = ( avgLandIceInterfaceTracers(:, iCell) * nAccumulatedCoupled &
                  + landIceInterfaceTracers(:, iCell) ) / ( nAccumulatedCoupled + 1 )
+              ! avgLandIceInterfaceTemperature needs to be in Kelvin, like avgTemperatureSurfaceValue
+              avgLandIceInterfaceTracers(index_temperature, iCell) = avgLandIceInterfaceTracers(index_temperature, iCell) + T0_Kelvin
            end do
            !$omp end do
            !$omp end parallel

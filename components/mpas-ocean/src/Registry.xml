@@ -4076,7 +4076,7 @@
 			 packages="forwardMode;analysisMode"
 		/>
 		<var_array name="avgTracersSurfaceValue" type="real" dimensions="nCells Time" packages="forwardMode;analysisMode">
-			<var name="avgTemperatureSurfaceValue" array_group="surfaceValues" units="C"
+			<var name="avgTemperatureSurfaceValue" array_group="surfaceValues" units="K"
 				 description="Time averaged potential temperature in the uppermost active level as determined by minLevelCell"
 			/>
 			<var name="avgSalinitySurfaceValue" array_group="surfaceValues" units="1.e-3"
@@ -4180,7 +4180,7 @@
 		/>
 		<!-- Output fields for land-ice coupling -->
 		<var_array name="avgLandIceInterfaceTracers" type="real" dimensions="nCells Time" packages="landIceFluxesPKG">
-			<var name="avgLandIceInterfaceTemperature" array_group="landIceInterfaceValues" units="C"
+			<var name="avgLandIceInterfaceTemperature" array_group="landIceInterfaceValues" units="K"
 				description="The time-averaged temperature at the land ice-ocean interface (the local freezing temperature)"
 			/>
 			<var name="avgLandIceInterfaceSalinity" array_group="landIceInterfaceValues" units="1.e-3"
