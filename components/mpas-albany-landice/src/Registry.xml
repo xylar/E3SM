@@ -1647,7 +1647,7 @@ is the value of that variable from the *previous* time level!
                 <var name="bulkFriction" type="real" dimensions="nCells Time" default_value="0.0"
                      description="input value of bulk friction coefficient in debris-bed friction sliding law."
                 />
-                <var name="basalDebrisFactor" type="real" dimensions="nCells Time" units="Pa yr m^-1" default_value="0.0"
+                <var name="basalDebrisFactor" type="real" dimensions="nCells Time" units="kPa yr m^-1" default_value="0.0"
                      description="input value of basal debris factor in debris-bed friction sliding law."
                 />
                 <var name="exx" type="real" dimensions="nCells Time" units="s^-1"
