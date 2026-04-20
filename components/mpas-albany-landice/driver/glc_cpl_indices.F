@@ -141,8 +141,8 @@ contains
     ! how this should be handled in CLM and the ice sheet model.
 
     ! ice shelf-ocean interface temperature from the ocean
-    index_x2g_So_tfrz_isf = mct_avect_indexra(g2x,'So_tfrz_isf',perrwith='quiet')
-    index_x2g_So_liflfrac = mct_avect_indexra(g2x,'So_liflfrac',perrwith='quiet')
+    index_x2g_So_tfrz_isf = mct_avect_indexra(x2g,'So_tfrz_isf',perrwith='quiet')
+    index_x2g_So_liflfrac = mct_avect_indexra(x2g,'So_liflfrac',perrwith='quiet')
 
     call mct_aVect_clean(x2g)
     call mct_aVect_clean(g2x)
