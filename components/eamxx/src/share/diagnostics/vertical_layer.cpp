@@ -39,7 +39,7 @@ VerticalLayerDiagnostic (const ekat::Comm& comm, const ekat::ParameterList& para
 }
 // ========================================================================================
 void VerticalLayerDiagnostic::
-set_grids(const std::shared_ptr<const GridsManager> grids_manager)
+create_requests()
 {
   using namespace ekat::units;
   using namespace ShortFieldTagsNames;
@@ -47,14 +47,14 @@ set_grids(const std::shared_ptr<const GridsManager> grids_manager)
   auto m2 = pow(m,2);
   auto s2 = pow(s,2);
 
-  auto grid  = grids_manager->get_grid("physics");
+  auto grid  = m_grids_manager->get_grid("physics");
   const auto& grid_name = grid->name();
   m_num_cols = grid->get_num_local_dofs(); // Number of columns on this rank
   m_num_levs = grid->get_num_vertical_levels();  // Number of levels per column
 
   const auto scalar2d     = grid->get_2d_scalar_layout();
-  const auto scalar3d_mid = grid->get_3d_scalar_layout(true);
-  const auto scalar3d_int = grid->get_3d_scalar_layout(false);
+  const auto scalar3d_mid = grid->get_3d_scalar_layout(LEV);
+  const auto scalar3d_int = grid->get_3d_scalar_layout(ILEV);
 
   // The fields required for this diagnostic to be computed
   add_field<Required>("T_mid",          scalar3d_mid, K,     grid_name);

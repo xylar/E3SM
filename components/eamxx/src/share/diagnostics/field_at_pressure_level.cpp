@@ -34,7 +34,7 @@ FieldAtPressureLevel (const ekat::Comm& comm, const ekat::ParameterList& params)
 }
 
 void FieldAtPressureLevel::
-set_grids (const std::shared_ptr<const GridsManager> grids_manager)
+create_requests ()
 {
   const auto& gname = m_params.get<std::string>("grid_name");
   add_field<Required>(m_field_name,gname);
@@ -66,32 +66,14 @@ initialize_impl (const RunType /*run_type*/)
       " - field layout: " + layout.to_string() + "\n");
 
   // All good, create the diag output
-  FieldIdentifier d_fid (m_diag_name,layout.clone().strip_dim(tag),fid.get_units(),fid.get_grid_name());
+  auto d_fid = fid.clone(m_diag_name).reset_layout(layout.clone().strip_dim(tag));
   m_diagnostic_output = Field(d_fid);
   m_diagnostic_output.allocate_view();
 
   m_pressure_name = tag==LEV ? "p_mid" : "p_int";
-  m_num_levs = layout.dims().back();
-  auto num_cols = layout.dims().front();
-
-  // Take care of mask tracking for this field, in case it is needed.  This has two steps:
-  //   1.  We need to actually track the masked columns, so we create a 2d (COL only) field.
-  //       NOTE: Here we assume that even a source field of rank 3+ will be masked the same
-  //       across all components so the mask is represented by a column-wise slice.
-  //   2.  We also need to create a helper field that may be used w/ the vertical remapper to set
-  //       the mask.  This field is 3d (COLxLEV) to mimic the type of interpolation that is
-  //       being conducted on the source field.
 
   // Add a field representing the mask as extra data to the diagnostic field.
-  auto nondim = ekat::units::Units::nondimensional();
-  const auto& gname = fid.get_grid_name();
-
-  std::string mask_name = m_diag_name + " mask";
-  FieldLayout mask_layout( {COL}, {num_cols});
-  FieldIdentifier mask_fid (mask_name,mask_layout, nondim, gname);
-  Field diag_mask(mask_fid);
-  diag_mask.allocate_view();
-  m_diagnostic_output.get_header().set_extra_data("mask_field",diag_mask);
+  m_diagnostic_output.create_valid_mask();
   m_diagnostic_output.get_header().set_may_be_filled(true);
 
   using stratts_t = std::map<std::string,std::string>;
@@ -128,7 +110,7 @@ void FieldAtPressureLevel::compute_diagnostic_impl()
   if (rank==2) {
     auto policy = KT::RangePolicy(0,ncols);
     auto diag = m_diagnostic_output.get_view<Real*>();
-    auto mask = m_diagnostic_output.get_header().get_extra_data<Field>("mask_field").get_view<Real*>();
+    auto mask = m_diagnostic_output.get_valid_mask().get_view<int*>();
     auto f_v  = f.get_view<const Real**>();
     Kokkos::parallel_for(policy,KOKKOS_LAMBDA(const int icol) {
       auto x1 = ekat::subview(p_src_v,icol);
@@ -159,7 +141,7 @@ void FieldAtPressureLevel::compute_diagnostic_impl()
     const int ndims = f.get_header().get_identifier().get_layout().get_vector_dim();
     auto policy = KT::TeamPolicy(ncols,ndims);
     auto diag = m_diagnostic_output.get_view<Real**>();
-    auto mask = m_diagnostic_output.get_header().get_extra_data<Field>("mask_field").get_view<Real*>();
+    auto mask = m_diagnostic_output.get_valid_mask().get_view<int**>();
     auto f_v  = f.get_view<const Real***>();
     Kokkos::parallel_for(policy,KOKKOS_LAMBDA(const MemberType& team) {
       int icol = team.league_rank();
@@ -169,10 +151,8 @@ void FieldAtPressureLevel::compute_diagnostic_impl()
       auto last = beg + (nlevs-1);
       Kokkos::parallel_for(Kokkos::TeamVectorRange(team,ndims),[&](const int idim) {
         if (p_tgt<*beg or p_tgt>*last) {
-          diag(icol,idim) = fval;
-          Kokkos::single(Kokkos::PerTeam(team),[&]{
-            mask(icol) = 0;
-          });
+          diag(icol,idim) = fval; // TODO: don't bother setting an arbitrary value
+          mask(icol,idim) = 0;
         } else {
           auto y1 = ekat::subview(f_v,icol,idim);
           auto ub = ekat::upper_bound(beg,end,p_tgt);     
@@ -187,9 +167,7 @@ void FieldAtPressureLevel::compute_diagnostic_impl()
             // General case: interpolate between k1 and k1-1
             diag(icol,idim) = y1(k1-1) + (y1(k1)-y1(k1-1))/(x1(k1) - x1(k1-1)) * (p_tgt-x1(k1-1));
           }
-          Kokkos::single(Kokkos::PerTeam(team),[&]{
-            mask(icol) = 1;
-          });
+          mask(icol,idim) = 1;
         }
       });
     });

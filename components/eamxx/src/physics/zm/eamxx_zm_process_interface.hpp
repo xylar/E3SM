@@ -21,8 +21,8 @@ class ZMDeepConvection : public AtmosphereProcess
   using PC  = scream::physics::Constants<Real>;
 
   using Scalar               = typename ZMF::Scalar;
-  using Spack                = typename ZMF::Spack;
-  using SPackInt             = typename ZMF::SPackInt;
+  using Pack                = typename ZMF::Pack;
+  using IntPack             = typename ZMF::IntPack;
 
   public:
 
@@ -35,8 +35,8 @@ class ZMDeepConvection : public AtmosphereProcess
     // The name of the subcomponent
     std::string name() const override { return "ZM"; }
 
-    // Set the grid
-    void set_grids(const std::shared_ptr<const GridsManager> grids_manager) override;
+    // Create grid-dependent field requests
+    void create_requests() override;
 
 #ifndef KOKKOS_ENABLE_CUDA
   // Cuda requires methods enclosing __device__ lambda's to be public

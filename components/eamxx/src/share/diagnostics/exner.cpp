@@ -13,18 +13,19 @@ ExnerDiagnostic (const ekat::Comm& comm, const ekat::ParameterList& params)
 }
 
 // =========================================================================================
-void ExnerDiagnostic::set_grids(const std::shared_ptr<const GridsManager> grids_manager)
+void ExnerDiagnostic::create_requests()
 {
   using namespace ekat::units;
+  using namespace ShortFieldTagsNames;
 
   auto nondim = Units::nondimensional();
 
-  auto grid  = grids_manager->get_grid("physics");
+  auto grid  = m_grids_manager->get_grid("physics");
   const auto& grid_name = grid->name();
   m_num_cols = grid->get_num_local_dofs(); // Number of columns on this rank
   m_num_levs = grid->get_num_vertical_levels();  // Number of levels per column
 
-  auto scalar3d = grid->get_3d_scalar_layout(true);
+  auto scalar3d = grid->get_3d_scalar_layout(LEV);
 
   // The fields required for this diagnostic to be computed
   add_field<Required>("p_mid", scalar3d, Pa, grid_name);

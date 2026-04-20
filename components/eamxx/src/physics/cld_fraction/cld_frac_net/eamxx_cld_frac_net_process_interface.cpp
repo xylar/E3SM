@@ -27,14 +27,15 @@ CldFracNet::CldFracNet (const ekat::Comm& comm, const ekat::ParameterList& param
   }
 }
 
-void CldFracNet::set_grids(const std::shared_ptr<const GridsManager> grids_manager)
+void CldFracNet::create_requests()
 {
   using namespace ekat::units;
+  using namespace ShortFieldTagsNames;
 
   const auto nondim = Units::nondimensional();
-  const auto grid = grids_manager->get_grid("physics");
+  const auto grid = m_grids_manager->get_grid("physics");
   const auto grid_name = grid->name();
-  const auto layout = grid->get_3d_scalar_layout(true);
+  const auto layout = grid->get_3d_scalar_layout(LEV);
 
   // Input fields
   add_tracer<Required>("qi", grid, kg/kg);

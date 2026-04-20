@@ -44,7 +44,7 @@ void compute_mask (const Field& f, const ST value, Comparison CMP, Field& mask)
   using range_t   = typename KT::RangePolicy;
 
   const auto& layout = f.get_header().get_identifier().get_layout();
-  const auto contiguous = f.get_header().get_alloc_properties().contiguous();
+  const auto lr_ok = f.get_header().get_alloc_properties().allows_layout_right();
 
   int beg[N] = {};
   int end[N];
@@ -53,7 +53,7 @@ void compute_mask (const Field& f, const ST value, Comparison CMP, Field& mask)
   }
 
   auto mv = mask.get_view<int_ND>();
-  if (contiguous) {
+  if (lr_ok) {
     auto v = f.get_view<scalar_ND>();
     if constexpr (N==0) {
       range_t policy(0,1);
@@ -217,8 +217,9 @@ void compute_mask (const Field& f, const ScalarWrapper value, Comparison CMP, Fi
 
 Field compute_mask (const Field& x, const ScalarWrapper value, Comparison CMP) {
   const auto& fid_x = x.get_header().get_identifier();
-  const auto nondim = ekat::units::Units::nondimensional();
-  FieldIdentifier fid(x.name()+"_mask",fid_x.get_layout(),nondim,fid_x.get_grid_name(),DataType::IntType);
+  auto fid = fid_x.clone(x.name()+"_mask")
+                  .reset_units(ekat::units::Units::nondimensional())
+                  .reset_dtype(DataType::IntType);
   Field mask(fid,true);
 
   compute_mask(x,value,CMP,mask);

@@ -27,7 +27,7 @@ HistogramDiag::HistogramDiag(const ekat::Comm &comm, const ekat::ParameterList &
   m_bin_reals.back() = std::numeric_limits<Real>::max();
 }
 
-void HistogramDiag::set_grids(const std::shared_ptr<const GridsManager> grids_manager) {
+void HistogramDiag::create_requests() {
   const auto &field_name = m_params.get<std::string>("field_name");
   const auto &grid_name  = m_params.get<std::string>("grid_name");
   add_field<Required>(field_name, grid_name);
@@ -59,8 +59,7 @@ void HistogramDiag::initialize_impl(const RunType /*run_type*/) {
 
   // allocate field for bin values
   FieldLayout bin_values_layout({CMP}, {num_bins+1}, {"bin"});
-  FieldIdentifier bin_values_id(m_diag_name + "_bin_values", bin_values_layout,
-                                field_id.get_units(), field_id.get_grid_name());
+  auto bin_values_id = field_id.clone(m_diag_name + "_bin_values").reset_layout(bin_values_layout);
   m_bin_values = Field(bin_values_id);
   m_bin_values.allocate_view();
 

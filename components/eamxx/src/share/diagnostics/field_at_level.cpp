@@ -15,7 +15,7 @@ FieldAtLevel::FieldAtLevel (const ekat::Comm& comm, const ekat::ParameterList& p
 }
 
 void FieldAtLevel::
-set_grids (const std::shared_ptr<const GridsManager> grids_manager)
+create_requests ()
 {
   const auto& fname = m_params.get<std::string>("field_name");
   const auto& gname = m_params.get<std::string>("grid_name");
@@ -67,7 +67,7 @@ initialize_impl (const RunType /*run_type*/)
   }
 
   // All good, create the diag output
-  FieldIdentifier d_fid (m_diag_name,layout.clone().strip_dim(tag),fid.get_units(),fid.get_grid_name());
+  auto d_fid = fid.clone(m_diag_name).reset_layout(layout.clone().strip_dim(tag));
   m_diagnostic_output = Field(d_fid);
   m_diagnostic_output.allocate_view();
 

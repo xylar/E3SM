@@ -83,17 +83,18 @@ RRTMGPRadiation (const ekat::Comm& comm, const ekat::ParameterList& params)
   m_ngas = m_gas_names.size();
 }
 
-void RRTMGPRadiation::set_grids(const std::shared_ptr<const GridsManager> grids_manager) {
+void RRTMGPRadiation::create_requests() {
 
   using namespace ekat::units;
   using namespace ekat::prefixes;
+  using namespace ShortFieldTagsNames;
 
   // Declare the set of fields used by rrtmgp
   Units m2(m*m,"m2");
   auto nondim = Units::nondimensional();
   auto micron = micro*m;
 
-  m_grid = grids_manager->get_grid("physics");
+  m_grid = m_grids_manager->get_grid("physics");
   const auto& grid_name = m_grid->name();
   m_ncol = m_grid->get_num_local_dofs();
   m_nlay = m_grid->get_num_vertical_levels();
@@ -122,7 +123,7 @@ void RRTMGPRadiation::set_grids(const std::shared_ptr<const GridsManager> grids_
     m_col_chunk_beg[i+1] = std::min(m_ncol,m_col_chunk_beg[i] + m_col_chunk_size);
   }
   this->log(LogLevel::debug,
-            "[RRTMGP::set_grids] Col chunking stats:\n"
+            "[RRTMGP::create_requests] Col chunking stats:\n"
             "  - Chunk size: " + std::to_string(m_col_chunk_size) + "\n"
             "  - Number of chunks: " + std::to_string(m_num_col_chunks) + "\n");
 
@@ -130,12 +131,12 @@ void RRTMGPRadiation::set_grids(const std::shared_ptr<const GridsManager> grids_
   m_nswgpts = m_params.get<int>("nswgpts",112);
   m_nlwgpts = m_params.get<int>("nlwgpts",128);
   FieldLayout scalar2d = m_grid->get_2d_scalar_layout();
-  FieldLayout scalar3d_mid = m_grid->get_3d_scalar_layout(true);
-  FieldLayout scalar3d_int = m_grid->get_3d_scalar_layout(false);
-  FieldLayout scalar3d_swband = m_grid->get_3d_vector_layout(true,m_nswbands,"swband");
-  FieldLayout scalar3d_lwband = m_grid->get_3d_vector_layout(true,m_nlwbands,"lwband");
-  FieldLayout scalar3d_swgpts = m_grid->get_3d_vector_layout(true,m_nswgpts,"swgpt");
-  FieldLayout scalar3d_lwgpts = m_grid->get_3d_vector_layout(true,m_nlwgpts,"lwgpt");
+  FieldLayout scalar3d_mid = m_grid->get_3d_scalar_layout(LEV);
+  FieldLayout scalar3d_int = m_grid->get_3d_scalar_layout(ILEV);
+  FieldLayout scalar3d_swband = m_grid->get_3d_vector_layout(LEV,m_nswbands,"swband");
+  FieldLayout scalar3d_lwband = m_grid->get_3d_vector_layout(LEV,m_nlwbands,"lwband");
+  FieldLayout scalar3d_swgpts = m_grid->get_3d_vector_layout(LEV,m_nswgpts,"swgpt");
+  FieldLayout scalar3d_lwgpts = m_grid->get_3d_vector_layout(LEV,m_nlwgpts,"lwgpt");
 
   // Set required (input) fields here
   add_field<Required>("p_mid" , scalar3d_mid, Pa, grid_name);
@@ -209,7 +210,7 @@ void RRTMGPRadiation::set_grids(const std::shared_ptr<const GridsManager> grids_
   // 0.67 micron and 10.5 micron optical depth (needed for COSP)
   add_field<Computed>("dtau067"       , scalar3d_mid, nondim, grid_name);
   add_field<Computed>("dtau105"       , scalar3d_mid, nondim, grid_name);
-  add_field<Computed>("sunlit_mask"   , scalar2d    , nondim, grid_name);
+  add_field<Computed>(FieldIdentifier("sunlit_mask", scalar2d, nondim, grid_name, DataType::IntType));
   add_field<Computed>("cldfrac_rad"   , scalar3d_mid, nondim, grid_name);
   // Cloud-top diagnostics following AeroCom recommendation
   add_field<Computed>("T_mid_at_cldtop", scalar2d, K, grid_name);
@@ -288,7 +289,7 @@ void RRTMGPRadiation::set_grids(const std::shared_ptr<const GridsManager> grids_
       m_grid->set_geometry_data(bands);
     }
   }
-}  // RRTMGPRadiation::set_grids
+}  // RRTMGPRadiation::create_requests
 
 size_t RRTMGPRadiation::requested_buffer_size_in_bytes() const
 {
@@ -612,7 +613,7 @@ void RRTMGPRadiation::run_impl (const double dt) {
   // Outputs for COSP
   auto d_dtau067 = get_field_out("dtau067").get_view<Real**>();
   auto d_dtau105 = get_field_out("dtau105").get_view<Real**>();
-  auto d_sunlit = get_field_out("sunlit_mask").get_view<Real*>();
+  auto d_sunlit = get_field_out("sunlit_mask").get_view<int*>();
 
   Kokkos::deep_copy(d_dtau067,0.0);
   Kokkos::deep_copy(d_dtau105,0.0);
@@ -1154,11 +1155,7 @@ void RRTMGPRadiation::run_impl (const double dt) {
           d_dtau067(icol,k) = cld_tau_sw_bnd_k(i,k,idx_067_k);
           d_dtau105(icol,k) = cld_tau_lw_bnd_k(i,k,idx_105_k);
         });
-        if (d_sw_clrsky_flux_dn(icol,0) > 0) {
-            d_sunlit(icol) = 1.0;
-        } else {
-            d_sunlit(icol) = 0.0;
-        }
+        d_sunlit(icol) = d_sw_clrsky_flux_dn(icol,0) > 0;
       });
                    );
     } // loop over chunk

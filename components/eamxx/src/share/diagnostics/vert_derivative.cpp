@@ -9,13 +9,13 @@ namespace scream {
 VertDerivativeDiag::VertDerivativeDiag(const ekat::Comm &comm, const ekat::ParameterList &params)
     : AtmosphereDiagnostic(comm, params) {}
 
-void VertDerivativeDiag::set_grids(const std::shared_ptr<const GridsManager> grids_manager) {
+void VertDerivativeDiag::create_requests() {
   using namespace ShortFieldTagsNames;
   using namespace ekat::units;
 
   const auto &fn = m_params.get<std::string>("field_name");
   const auto &gn = m_params.get<std::string>("grid_name");
-  const auto g   = grids_manager->get_grid(gn);
+  const auto g   = m_grids_manager->get_grid(gn);
 
   add_field<Required>(fn, gn);
 
@@ -27,7 +27,7 @@ void VertDerivativeDiag::set_grids(const std::shared_ptr<const GridsManager> gri
                        m_derivative_method + "\n");
   m_diag_name = fn + "_" + m_derivative_method + "vert_derivative";
 
-  auto scalar3d = g->get_3d_scalar_layout(true);
+  auto scalar3d = g->get_3d_scalar_layout(LEV);
   add_field<Required>("pseudo_density", scalar3d, Pa, gn);
   if (m_derivative_method == "z") {
     add_field<Required>("dz", scalar3d, m, gn);
@@ -61,7 +61,7 @@ void VertDerivativeDiag::initialize_impl(const RunType /*run_type*/) {
     diag_units = fid.get_units() / m;
   }
 
-  FieldIdentifier d_fid(m_diag_name, layout, diag_units, fid.get_grid_name());
+  auto d_fid = fid.clone(m_diag_name).reset_units(diag_units);
   m_diagnostic_output = Field(d_fid);
   m_diagnostic_output.allocate_view();
 }

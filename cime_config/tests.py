@@ -306,6 +306,7 @@ _TESTS = {
             "SMS_D_Ld1.T62_oQU240.GMPAS-IAF.mpaso-harmonic_mean_drag",
             "SMS_D_Ld1.T62_oQU240.GMPAS-IAF.mpaso-upwind_advection",
             "SMS_D_Ld1.T62_oQU240.GMPAS-IAF.mpaso-freshwater_tracers",
+            "SMS_D_Ld1.T62_oQU240.GMPAS-IAF.mpaso-lat_dep_diffusivity",
             "ERS_Ld5_D.T62_oQU240.GMPAS-IAF.mpaso-conservation_check",
             "ERS_Ld5_PS.ne30pg2_r05_IcoswISC30E3r5.CRYO1850-DISMF.mpaso-scaled_dib_dismf",
             "SMS_PS.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850.mpaso-frazil_ice_porosity",
@@ -348,7 +349,7 @@ _TESTS = {
             "NCK.ne4pg2_oQU480_rx1.A",
             "SMS.ne4pg2_oQU480_rx1.A",
             "ERS_Ld5.T62_oQU120.CMPASO-NYF",
-            "ERS.f09_g16_g.MALISIA",
+            "ERS.ne30pg2_r05_IcoswISC30E3r5_gis4to40.MALISIA",
             "ERS_Ld5.TL319_oQU240wLI_ais8to30.MPAS_LISIO_JRA1p5.mpaso-ocn_glcshelf",
             "SMS_P12x2.ne4pg2_oQU480.WCYCL1850NS.allactive-mach_mods",
             "ERS_Ln9.ne4pg2_ne4pg2.F2010-MMF1.eam-mmf_crmout",
@@ -935,6 +936,7 @@ _TESTS = {
             "SMS_Vmoab_Ld1.T62_oQU120.CMPASO-NYF",
             "SMS_Vmoab_Ld1.r05_r05.RMOSGPCC",
             "SMS_Vmoab_Ld1.ne4pg2_ne4pg2.F2010-SCREAMv1",
+            "SMS_Vmoab_Ld1.T62_oQU240.DTESTM",
             "SMS_Ld1.ne4pg2_r05_oQU480.WCYCL1850NS",
             "SMS_Ld1.ne4pg2_oQU480.WCYCL1850NS",
             "SMS_Ld1.ne4pg2_oQU480.F1850",
@@ -944,6 +946,7 @@ _TESTS = {
             "SMS_Ld1.T62_oQU120.CMPASO-NYF",
             "SMS_Ld1.r05_r05.RMOSGPCC",
             "SMS_Ld1.ne4pg2_ne4pg2.F2010-SCREAMv1",
+            "SMS_Ld1.T62_oQU240.DTESTM",
         )
     },
 

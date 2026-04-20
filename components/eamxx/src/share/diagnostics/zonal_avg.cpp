@@ -109,12 +109,12 @@ ZonalAvgDiag::ZonalAvgDiag(const ekat::Comm &comm, const ekat::ParameterList &pa
   m_num_zonal_bins           = std::stoi(num_bins_value);
 }
 
-void ZonalAvgDiag::set_grids(const std::shared_ptr<const GridsManager> grids_manager) {
+void ZonalAvgDiag::create_requests() {
   const auto &field_name = m_params.get<std::string>("field_name");
   const auto &grid_name  = m_params.get<std::string>("grid_name");
 
   add_field<Required>(field_name, grid_name);
-  const GridsManager::grid_ptr_type grid = grids_manager->get_grid(grid_name);
+  const GridsManager::grid_ptr_type grid = m_grids_manager->get_grid(grid_name);
   m_lat                                  = grid->get_geometry_data("lat");
   // area will be scaled in initialize_impl
   m_scaled_area = grid->get_geometry_data("area").clone();
@@ -145,9 +145,8 @@ void ZonalAvgDiag::initialize_impl(const RunType /*run_type*/) {
                        field_layout.to_string() + "\n");
 
   FieldLayout diagnostic_layout =
-      field_layout.clone().strip_dim(COL).prepend_dim({CMP}, {m_num_zonal_bins}, {"bin"});
-  FieldIdentifier diagnostic_id(m_diag_name, diagnostic_layout, field_id.get_units(),
-                                field_id.get_grid_name());
+      field_layout.clone().strip_dim(COL).prepend_dim(CMP, m_num_zonal_bins, "bin");
+  auto diagnostic_id = field_id.clone(m_diag_name).reset_layout(diagnostic_layout);
   m_diagnostic_output = Field(diagnostic_id);
   m_diagnostic_output.allocate_view();
 
@@ -193,7 +192,7 @@ void ZonalAvgDiag::initialize_impl(const RunType /*run_type*/) {
         val = ncols_per_bin_view(bin_i) > val ? ncols_per_bin_view(bin_i) : val;
       },
       Kokkos::Max<Int>(max_ncols_per_bin));
-  FieldLayout bin_to_cols_layout = ncols_per_bin_layout.append_dim({COL}, {1+max_ncols_per_bin});
+  FieldLayout bin_to_cols_layout = ncols_per_bin_layout.append_dim(COL, 1+max_ncols_per_bin);
   FieldIdentifier bin_to_cols_id("columns in each zonal bin",
     bin_to_cols_layout, FieldIdentifier::Units::nondimensional(),
     field_id.get_grid_name(), DataType::IntType);
@@ -223,16 +222,12 @@ void ZonalAvgDiag::initialize_impl(const RunType /*run_type*/) {
   // allocate zonal area
   const FieldIdentifier &area_id = m_scaled_area.get_header().get_identifier();
   FieldLayout zonal_area_layout({CMP}, {m_num_zonal_bins}, {"bin"});
-  FieldIdentifier zonal_area_id("zonal area", zonal_area_layout, area_id.get_units(),
-                                area_id.get_grid_name());
+  auto zonal_area_id = area_id.clone("zonal area").reset_layout(zonal_area_layout);
   Field zonal_area(zonal_area_id);
   zonal_area.allocate_view();
 
   // compute zonal area
-  FieldLayout ones_layout = area_id.get_layout().clone();
-  FieldIdentifier ones_id("ones", ones_layout, area_id.get_units(), area_id.get_grid_name());
-  Field ones(ones_id);
-  ones.allocate_view();
+  auto ones = m_scaled_area.clone("ones");
   ones.deep_copy(1.0);
   compute_zonal_sum(zonal_area, m_scaled_area, ones, m_bin_to_cols, &m_comm);
 

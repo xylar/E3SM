@@ -43,7 +43,7 @@ public:
   }
 
   // Set the grid and input output variables
-  void set_grids(const std::shared_ptr<const GridsManager> grids_manager) override;
+  void create_requests() override;
 
   // management of common atm process memory
   // ON HOST, returns the number of bytes of device memory needed by the above
@@ -122,7 +122,7 @@ private:
   // workspace manager for internal local variables
   mam_coupling::Buffer buffer_;
   // parameters for calcsize
-  mam4::modal_aer_opt::CalcsizeData calsize_data_;
+  mam4::modal_aero_opt::CalcsizeData calcsize_data_;
   int get_len_temporary_views();
   void init_temporary_views();
   int len_temporary_views_{0};

@@ -47,6 +47,14 @@ if (NOT EAMXX_ENABLE_GPU OR Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE OR Kokkos
     eti/zm_output_tend.cpp
     eti/zm_invert_entropy.cpp
     eti/zm_entropy.cpp
+    eti/zm_zm_transport_tracer.cpp
+    eti/zm_zm_transport_momentum.cpp
+    eti/zm_compute_dilute_cape.cpp
+    eti/zm_find_mse_max.cpp
+    eti/zm_compute_dilute_parcel.cpp
+    eti/zm_compute_cape_from_parcel.cpp
+    eti/zm_zm_conv_mcsp_calculate_shear.cpp
+    eti/zm_zm_conv_mcsp_tend.cpp
   ) # ZM ETI SRCS
 endif()
 
@@ -63,6 +71,7 @@ target_include_directories(zm PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/fortran_bridge
   ${CMAKE_CURRENT_BINARY_DIR}/modules
   ${PATH_TO_LEGACY_ZM}
+  ${PATH_TO_LEGACY_ZM}/..
 )
 target_link_libraries(zm eamxx_physics_share scream_share csm_share)
 

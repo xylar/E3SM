@@ -218,9 +218,9 @@ ConditionalSampling::ConditionalSampling(const ekat::Comm &comm, const ekat::Par
       m_input_f + "_where_" + m_condition_f + "_" + m_condition_op + "_" + str_condition_v;
 }
 
-void ConditionalSampling::set_grids(const std::shared_ptr<const GridsManager> grids_manager) {
+void ConditionalSampling::create_requests() {
   const auto &gn = m_params.get<std::string>("grid_name");
-  const auto g   = grids_manager->get_grid("physics");
+  const auto g   = m_grids_manager->get_grid("physics");
 
   // Special case: if the input field is "count", we don't need to add it
   if (m_input_f != "count") {
@@ -242,16 +242,12 @@ void ConditionalSampling::initialize_impl(const RunType /*run_type*/) {
 
   if (m_input_f != "count") {
     auto ifid = get_field_in(m_input_f).get_header().get_identifier();
-    FieldIdentifier d_fid(m_diag_name, ifid.get_layout().clone(), ifid.get_units(),
-                          ifid.get_grid_name());
-    m_diagnostic_output = Field(d_fid);
+    m_diagnostic_output = Field(ifid.clone(m_diag_name));
     m_diagnostic_output.allocate_view();
   } else {
     if (m_condition_f != "lev") {
       auto ifid = get_field_in(m_condition_f).get_header().get_identifier();
-      FieldIdentifier d_fid(m_diag_name, ifid.get_layout().clone(), ifid.get_units(),
-                          ifid.get_grid_name());
-      m_diagnostic_output = Field(d_fid);
+      m_diagnostic_output = Field(ifid.clone(m_diag_name));
       m_diagnostic_output.allocate_view();
     } else {
       using namespace ShortFieldTagsNames;
@@ -264,8 +260,7 @@ void ConditionalSampling::initialize_impl(const RunType /*run_type*/) {
   }
 
   auto ifid = m_diagnostic_output.get_header().get_identifier();
-  FieldIdentifier mask_fid(m_diag_name + "_mask", ifid.get_layout().clone(), ifid.get_units(), ifid.get_grid_name());
-  Field diag_mask(mask_fid);
+  Field diag_mask(ifid.clone(m_diag_name + "_mask"));
   diag_mask.allocate_view();
 
   const auto var_fill_value = constants::fill_value<Real>;
