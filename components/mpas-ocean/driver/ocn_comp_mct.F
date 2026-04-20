@@ -2095,6 +2095,7 @@ contains
                                   riverFluxDICField,  &
                                   riverFluxALKField,  &
                                   riverFluxFeField,   &
+                                  landIceConductiveHeatFluxField, &
                                   landIceFreshwaterFluxField, &
                                   landIceFractionField, &
                                   windSpeed10mField, &
@@ -2154,6 +2155,7 @@ contains
                                                riverFluxDIC,  &
                                                riverFluxALK,  &
                                                riverFluxFe,   &
+                                               landIceConductiveHeatFlux, &
                                                landIceFreshwaterFlux, &
                                                landIceFraction, &
                                                areaCell, &
@@ -2278,6 +2280,7 @@ contains
       call mpas_pool_get_field(forcingPool, 'waveNetOceanZonalWindStress', waveNetOceanZonalWindStressField)
       call mpas_pool_get_field(forcingPool, 'waveNetOceanMeridionalWindStress', waveNetOceanMeridionalWindStressField)
 
+      call mpas_pool_get_field(forcingPool, 'landIceConductiveHeatFlux', landIceConductiveHeatFluxField)
       call mpas_pool_get_field(forcingPool, 'landIceFreshwaterFlux', landIceFreshwaterFluxField)
       call mpas_pool_get_field(forcingPool, 'landIceFraction', landIceFractionField)
       call mpas_pool_get_field(forcingPool, 'landIceInterfaceTracers', landIceInterfaceTracersField)
@@ -2312,6 +2315,7 @@ contains
       iceRunoffFlux => iceRunoffFluxField % array
       removedRiverRunoffFlux => removedRiverRunoffFluxField % array
       removedIceRunoffFlux => removedIceRunoffFluxField % array
+      landIceConductiveHeatFlux => landIceConductiveHeatFluxField % array
       landIceFreshwaterFlux => landIceFreshwaterFluxField % array
       landIceInterfaceTracers => landIceInterfaceTracersField % array
       landIceFraction => landIceFractionField % array
@@ -2583,6 +2587,9 @@ contains
            end if
         endif
 
+        if ( landIceConductiveHeatFluxField % isActive ) then
+           landIceConductiveHeatFlux(i) = x2o_o(index_x2o_Flgg_hflx, n)
+        end if
         if ( landIceFractionField % isActive ) then
            !landIceFraction(i) = x2o_o(index_x2o_Sg_icemask, n)
         end if
@@ -2915,6 +2922,9 @@ contains
       call mpas_dmpar_exch_halo_field(waveNetOceanMeridionalWindStressField)
    end if
 
+   if ( landIceConductiveHeatFluxField % isActive ) then
+      call mpas_dmpar_exch_halo_field(landIceConductiveHeatFluxField)
+   end if
    if ( landIceFreshwaterFluxField % isActive ) then
       call mpas_dmpar_exch_halo_field(landIceFreshwaterFluxField)
    end if

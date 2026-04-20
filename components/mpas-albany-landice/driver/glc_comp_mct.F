@@ -1530,6 +1530,7 @@ contains
 
    real (kind=RKIND), dimension(:), pointer :: upperSurface
    real (kind=RKIND), dimension(:), pointer :: thickness
+   real (kind=RKIND), dimension(:), pointer :: basalConductiveFlux
    real (kind=RKIND), dimension(:), pointer :: avgBareIceAblationApplied
    real (kind=RKIND), dimension(:), pointer :: avgCalvingFlux
    real (kind=RKIND), dimension(:), pointer :: avgFaceMeltFlux
@@ -1557,6 +1558,7 @@ contains
 
          call mpas_pool_get_array(geometryPool, 'upperSurface', upperSurface)
          call mpas_pool_get_array(geometryPool, 'thickness', Thickness, timeLevel = 1)
+         call mpas_pool_get_array(thermalPool, 'basalConductiveFlux', basalConductiveFlux)
 
          call mpas_pool_get_array(timeAveragingPool, 'avgBareIceAblationApplied', avgBareIceAblationApplied)
          call mpas_pool_get_array(timeAveragingPool, 'avgCalvingFlux', avgCalvingFlux)
@@ -1582,6 +1584,7 @@ contains
                g2x_g % rAttr(index_g2x_Fogg_rofi,n) = g2x_g % rAttr(index_g2x_Fogg_rofi,n) - avgFloatingBMBFlux(i)
             endif
 
+            g2x_g % rAttr(index_g2x_Flgg_hflx, n) = basalConductiveFlux(i)
             g2x_g % rAttr(index_g2x_Sg_topo, n) = max(0.0, upperSurface(i)) !updated to avoid warning for values below sea level
             ! layerThickness is not populated on init, so calculating like this instead:
             g2x_g % rAttr(index_g2x_Sg_lithop, n) = Thickness(i)*SHR_CONST_RHOICE*SHR_CONST_G

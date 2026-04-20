@@ -147,6 +147,7 @@ module mpaso_cpl_indices
 
   ! drv -> glc and internal drv fields
 
+  integer :: index_x2o_Flgg_hflx
   integer :: index_x2o_Sg_lithop
   integer :: index_x2o_Sg_icemask
   integer :: index_x2o_Sg_icemask_grounded
@@ -335,6 +336,7 @@ contains
     index_x2o_Fioi_fed2     = mct_avect_indexra(x2o,'Fioi_fed2',perrWith='quiet')
     index_x2o_Fioi_dust1    = mct_avect_indexra(x2o,'Fioi_dust1',perrWith='quiet')
 
+    index_x2o_Flgg_hflx  = mct_avect_indexra(x2o,'Flgg_hflx')
     index_x2o_Sg_lithop  = mct_avect_indexra(x2o,'Sg_lithop')
     index_x2o_Sg_icemask = mct_avect_indexra(x2o,'Sg_icemask')
     index_x2o_Sg_icemask_grounded = mct_avect_indexra(x2o,'Sg_icemask_grounded')
