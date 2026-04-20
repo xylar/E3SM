@@ -221,6 +221,7 @@ module seq_flds_mod
   character(CXX) :: seq_flds_x2g_states
   character(CXX) :: seq_flds_x2g_states_from_lnd
   character(CXX) :: seq_flds_x2g_shelf_states_from_ocn
+  character(CXX) :: seq_flds_x2g_shelf_fluxes_from_ocn
   character(CXX) :: seq_flds_x2g_tf_states_from_ocn
   character(CXX) :: seq_flds_x2g_fluxes
   character(CXX) :: seq_flds_x2g_fluxes_from_lnd
@@ -364,6 +365,7 @@ contains
     character(CXX) :: x2g_states = ''
     character(CXX) :: x2g_states_from_lnd = ''
     character(CXX) :: x2g_shelf_states_from_ocn = ''
+    character(CXX) :: x2g_shelf_fluxes_from_ocn = ''
     character(CXX) :: x2g_tf_states_from_ocn = ''
     character(CXX) :: x2g_fluxes = ''
     character(CXX) :: x2g_fluxes_from_lnd = ''
@@ -1646,6 +1648,8 @@ contains
 
        ! Ocean Land ice freeze potential
        call seq_flds_add(o2x_fluxes,"Foxo_q_li")
+       call seq_flds_add(x2g_fluxes,"Foxo_q_li")
+       call seq_flds_add(x2g_shelf_fluxes_from_ocn,"Foxo_q_li")
        longname = 'Ocean land ice freeze potential'
        stdname  = 'ice_shelf_cavity_ice_heat_flux'
        units    = 'W m-2'
@@ -1655,6 +1659,7 @@ contains
        ! Ocean land ice frazil production
        call seq_flds_add(o2x_fluxes,"Foxo_frazil_li")
        call seq_flds_add(x2g_fluxes,"Foxo_frazil_li")
+       call seq_flds_add(x2g_shelf_fluxes_from_ocn,"Foxo_frazil_li")
        longname = 'Ocean land ice frazil production'
        stdname  = 'ocean_land_ice_frazil_ice_production'
        units    = 'kg m-2 s-1'
@@ -1664,6 +1669,7 @@ contains
        ! Water flux from ice shelf melt
        call seq_flds_add(o2x_fluxes,"Foxo_ismw")
        call seq_flds_add(x2g_fluxes,"Foxo_ismw")
+       call seq_flds_add(x2g_shelf_fluxes_from_ocn,"Foxo_ismw")
        longname = 'Water flux due to basal melting of ice shelves'
        stdname  = 'basal_iceshelf_melt_flux'
        units    = 'kg m-2 s-1'
@@ -1672,6 +1678,8 @@ contains
 
        ! Heat flux from ice shelf melt
        call seq_flds_add(o2x_fluxes,"Foxo_ismh")
+       call seq_flds_add(x2g_fluxes,"Foxo_ismh")
+       call seq_flds_add(x2g_shelf_fluxes_from_ocn,"Foxo_ismh")
        longname = 'Heat flux due to basal melting of ice shelves'
        stdname  = 'basal_iceshelf_heat_flux'
        units    = 'W m-2'
@@ -4157,6 +4165,7 @@ contains
     seq_flds_x2g_states = trim(x2g_states)
     seq_flds_x2g_states_from_lnd = trim(x2g_states_from_lnd)
     seq_flds_x2g_shelf_states_from_ocn = trim(x2g_shelf_states_from_ocn)
+    seq_flds_x2g_shelf_fluxes_from_ocn = trim(x2g_shelf_fluxes_from_ocn)
     seq_flds_x2g_tf_states_from_ocn = trim(x2g_tf_states_from_ocn)
     seq_flds_xao_states = trim(xao_states)
     seq_flds_xao_albedo = trim(xao_albedo)
@@ -4231,6 +4240,7 @@ contains
        write(logunit,*) subname//': seq_flds_x2g_states_from_lnd= ',trim(seq_flds_x2g_states_from_lnd)
        write(logunit,*) subname//': seq_flds_l2x_states_to_glc= ',trim(seq_flds_l2x_states_to_glc)
        write(logunit,*) subname//': seq_flds_x2g_shelf_states_from_ocn= ',trim(seq_flds_x2g_shelf_states_from_ocn)
+       write(logunit,*) subname//': seq_flds_x2g_shelf_fluxes_from_ocn= ',trim(seq_flds_x2g_shelf_fluxes_from_ocn)
        write(logunit,*) subname//': seq_flds_x2g_tf_states_from_ocn= ',trim(seq_flds_x2g_tf_states_from_ocn)
        write(logunit,*) subname//': seq_flds_x2g_fluxes= ',trim(seq_flds_x2g_fluxes)
        write(logunit,*) subname//': seq_flds_x2g_fluxes_from_lnd= ',trim(seq_flds_x2g_fluxes_from_lnd)

@@ -563,7 +563,8 @@ contains
     !-----------------------------------------------------------------------
 
     integer       :: num_flux_fields
-    integer       :: num_state_fields
+    integer       :: num_shelf_state_fields
+    integer       :: num_tf_state_fields
     integer       :: nflds
     integer       :: i,n
     integer       :: mrgstr_index
@@ -582,18 +583,35 @@ contains
     call seq_comm_getdata(CPLID, iamroot=iamroot)
     lsize = mct_aVect_lsize(x2g_g)
 
-    !num_flux_fields = shr_string_listGetNum(trim(seq_flds_x2g_fluxes_from_ocn))
-    num_flux_fields = 0
-    num_state_fields = shr_string_listGetNum(trim(seq_flds_x2g_tf_states_from_ocn))
+    num_flux_fields = shr_string_listGetNum(trim(seq_flds_x2g_shelf_fluxes_from_ocn))
+    num_shelf_state_fields = shr_string_listGetNum(trim(seq_flds_x2g_shelf_states_from_ocn))
+    num_tf_state_fields = shr_string_listGetNum(trim(seq_flds_x2g_tf_states_from_ocn))
 
     if (first_time) then
-       nflds = num_flux_fields + num_state_fields
+       nflds = num_flux_fields + num_shelf_state_fields + num_tf_state_fields
        allocate(mrgstr(nflds))
     end if
 
     mrgstr_index = 1
 
-    do i = 1, num_state_fields
+    do i = 1, num_shelf_state_fields
+       call seq_flds_getField(field, i, seq_flds_x2g_shelf_states_from_ocn)
+       index_o2x = mct_aVect_indexRA(o2x_g, trim(field))
+       index_x2g = mct_aVect_indexRA(x2g_g, trim(field))
+
+       if (first_time) then
+          mrgstr(mrgstr_index) = subname//'x2g%'//trim(field)//' =' // &
+               ' = o2x%'//trim(field)
+       end if
+
+       do n = 1, lsize
+          x2g_g%rAttr(index_x2g,n) = o2x_g%rAttr(index_o2x,n)
+       end do
+
+       mrgstr_index = mrgstr_index + 1
+    enddo
+
+    do i = 1, num_tf_state_fields
        call seq_flds_getField(field, i, seq_flds_x2g_tf_states_from_ocn)
        index_o2x = mct_aVect_indexRA(o2x_g, trim(field))
        index_x2g = mct_aVect_indexRA(x2g_g, trim(field))
@@ -610,38 +628,22 @@ contains
        mrgstr_index = mrgstr_index + 1
     enddo
 
-    !index_lfrac = mct_aVect_indexRA(fractions_g,"lfrac")
-    !do i = 1, num_flux_fields
+    do i = 1, num_flux_fields
+       call seq_flds_getField(field, i, seq_flds_x2g_shelf_fluxes_from_ocn)
+       index_o2x = mct_aVect_indexRA(o2x_g, trim(field))
+       index_x2g = mct_aVect_indexRA(x2g_g, trim(field))
 
-    !   call seq_flds_getField(field, i, seq_flds_x2g_fluxes_from_lnd)
-    !   index_l2x = mct_aVect_indexRA(l2x_g, trim(field))
-    !   index_x2g = mct_aVect_indexRA(x2g_g, trim(field))
+       if (first_time) then
+          mrgstr(mrgstr_index) = subname//'x2g%'//trim(field)//' =' // &
+               ' = o2x%'//trim(field)
+       end if
 
-    !   if (trim(field) == qice_fieldname) then
+       do n = 1, lsize
+          x2g_g%rAttr(index_x2g,n) = o2x_g%rAttr(index_o2x,n)
+       end do
 
-    !      if (first_time) then
-    !         mrgstr(mrgstr_index) = subname//'x2g%'//trim(field)//' =' // &
-    !              ' = l2x%'//trim(field)
-    !      end if
-
-    !      ! treat qice as if it were a state variable, with a simple copy.
-    !      do n = 1, lsize
-    !         x2g_g%rAttr(index_x2g,n) = l2x_g%rAttr(index_l2x,n)
-    !      end do
-
-    !   else
-    !      write(logunit,*) subname,' ERROR: Flux fields other than ', &
-    !           qice_fieldname, ' currently are not handled in lnd2glc remapping.'
-    !      write(logunit,*) '(Attempt to handle flux field <', trim(field), '>.)'
-    !      write(logunit,*) 'Substantial thought is needed to determine how to remap other fluxes'
-    !      write(logunit,*) 'in a smooth, conservative manner.'
-    !      call shr_sys_abort(subname//&
-    !           ' ERROR: Flux fields other than qice currently are not handled in lnd2glc remapping.')
-    !   endif  ! qice_fieldname
-
-    !   mrgstr_index = mrgstr_index + 1
-
-    !end do
+       mrgstr_index = mrgstr_index + 1
+    end do
 
     if (first_time) then
        if (iamroot) then
@@ -830,6 +832,8 @@ contains
       if (ocn_c2_glcshelf) then
          call seq_map_map(mapper_So2g_shelf, o2x_ox, o2x_gx(eoi), &
                        fldlist=seq_flds_x2g_shelf_states_from_ocn,norm=.true.)
+         call seq_map_map(mapper_Fo2g_shelf, o2x_ox, o2x_gx(eoi), &
+                       fldlist=seq_flds_x2g_shelf_fluxes_from_ocn,norm=.true.)
       end if
     enddo
 
