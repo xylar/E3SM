@@ -597,6 +597,7 @@ contains
 
             if (config_use_frazil_ice_formation) then
                do iCell = 1, nCellsSolve
+                  ! Frazil latent heat remains internal to MPAS-Ocean.
                   ! Frazil ice mass is negative. Negative coefficient makes heat
                   ! flux positive, because freezing ice releases heat.
                   sumArray(10) = sumArray(10) - areaCell(iCell) * config_frazil_heat_of_fusion &
@@ -606,6 +607,7 @@ contains
 
             if (landIceFreshwaterFluxesOn) then
                do iCell = 1, nCellsSolve
+                  ! Export only the non-latent interfacial shelf heat exchange here.
                   sumArray(17) = sumArray(17) + areaCell(iCell) * landIceHeatFlux(iCell)
                enddo
             end if
@@ -614,6 +616,7 @@ contains
                call mpas_pool_get_array(statePool, 'accumulatedLandIceFrazilMass', accumulatedLandIceFrazilMassOld, 1)
                call mpas_pool_get_array(statePool, 'accumulatedLandIceFrazilMass', accumulatedLandIceFrazilMassNew, 2)
                do iCell = 1, nCellsSolve
+                  ! Under-land-ice frazil latent heat also remains internal to MPAS-Ocean.
                   ! Frazil ice mass is negative. Negative coefficient makes heat
                   ! flux positive, because freezing ice releases heat.
                   sumArray(18) = sumArray(18) - areaCell(iCell) * config_frazil_heat_of_fusion &
@@ -765,10 +768,10 @@ v=accumulatedMeltingIceRunoffHeatFlux+accumulatedRemovedIceRunoffHeatFlux
 v=accumulatedSensibleHeatFlux        ; write(m,"('sensibleHeatFlux         ',es16.8,' x2o_Foxx_sen    hsen            ',f16.8)") v,v/A; call mpas_log_write(m); s=s+v
 v=accumulatedIcebergHeatFlux         ; write(m,"('icebergHeatFlux          ',es16.8,' x2o_Fioi_bergh  hberg           ',f16.8)") v,v/A; call mpas_log_write(m); s=s+v
             if (landIceFreshwaterFluxesOn) then
-v=accumulatedLandIceHeatFlux         ; write(m,"('landIceHeatFlux          ',es16.8,'                                 ',f16.8)") v,v/A; call mpas_log_write(m); s=s+v
+v=accumulatedLandIceHeatFlux         ; write(m,"('landIceHeatFlux (non-lat)',es16.8,'                                 ',f16.8)") v,v/A; call mpas_log_write(m); s=s+v
             end if
             if (config_use_frazil_ice_formation .and. config_frazil_under_land_ice) then
-v=accumulatedLandIceFrazilHeatFlux   ; write(m,"('   landIceFrazilHeatFlux ',es16.8,' (already in hfreeze, do not sum                )',f16.8)") v,v/A; call mpas_log_write(m); ! no sum: s=s+v
+v=accumulatedLandIceFrazilHeatFlux   ; write(m,"('   landIceFrazilHeatFlux ',es16.8,' (latent, ocean-internal; do not sum            )',f16.8)") v,v/A; call mpas_log_write(m); ! no sum: s=s+v
             end if
                                        write(m,"('SUM EXPLICIT HEAT FLUXES ',es16.8,'                                 ',f16.8)") s, s/A; call mpas_log_write(m)
             explicitHeatFluxSum = s
@@ -2562,4 +2565,3 @@ end if
 end module ocn_conservation_check
 
 ! vim: foldmethod=marker
-

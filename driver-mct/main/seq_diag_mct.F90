@@ -82,17 +82,6 @@ module seq_diag_mct
   !----------------------------------------------------------------------------
 
   !----- local constants -----
-  real(r8),parameter :: HFLXtoWFLX = & ! water flux implied by latent heat of fusion
-       &  - (shr_const_ocn_ref_sal-shr_const_ice_ref_sal) / &
-       &    (shr_const_ocn_ref_sal*shr_const_latice)
-
-  real(r8),parameter :: SFLXtoWFLX = & ! water flux implied by salt flux
-                                ! WFLX (kg/m^2s) = -SFLX (kg/m^2s)
-                                !                  / ocn_ref_sal (psu) (34.7g/kg)
-                                !		   / 1.e-3 kg/g
-       -1._r8/(shr_const_ocn_ref_sal*1.e-3_r8)
-
-
   !--- C for component ---
   !--- "r" is recieve in the coupler, "s" is send from the coupler
 
@@ -141,14 +130,14 @@ module seq_diag_mct
   integer(in),parameter :: f_hlatf     = 8     ! heat : latent, fusion, snow
   integer(in),parameter :: f_hioff     = 9     ! heat : latent, fusion, frozen runoff
   integer(in),parameter :: f_hsen      =10     ! heat : sensible
-  integer(in),parameter :: f_hpolar    =11     ! heat : AIS imbalance
+  integer(in),parameter :: f_hpolar    =11     ! heat : non-latent shelf exchange
   integer(in),parameter :: f_hh2ot     =12     ! heat : water temperature
   integer(in),parameter :: f_hgsmb     =13     ! heat : Greenland ice sheet surface mass balance
   integer(in),parameter :: f_wfrz      =14     ! water: freezing
   integer(in),parameter :: f_wmelt     =15     ! water: melting
   integer(in),parameter :: f_wrain     =16     ! water: precip, liquid
   integer(in),parameter :: f_wsnow     =17     ! water: precip, frozen
-  integer(in),parameter :: f_wpolar    =18     ! water: AIS imbalance
+  integer(in),parameter :: f_wpolar    =18     ! water: frozen-freshwater shelf exchange
   integer(in),parameter :: f_wgsmb     =19     ! water: Greenland ice sheet surface mass balance
   integer(in),parameter :: f_wevap     =20     ! water: evaporation
   integer(in),parameter :: f_wroff     =21     ! water: runoff/flood
@@ -1503,6 +1492,8 @@ contains
           nf = f_hfrz;  budg_dataL(nf,ic,ip) = budg_dataL(nf,ic,ip) + (ca_o+ca_i)*max(0.0_r8,o2x_o%rAttr(index_o2x_Fioo_q,n))
           nf = f_hh2ot; budg_dataL(nf,ic,ip) = budg_dataL(nf,ic,ip) + (ca_o+ca_i)*o2x_o%rAttr(index_o2x_Faoo_h2otemp,n)
           if (flds_polar) then
+             ! Shelf coupling budgets track frozen-freshwater mass exchange in wpolar
+             ! and only non-latent shelf heat exchange in hpolar.
              nf = f_wpolar;budg_dataL(nf,ic,ip) = budg_dataL(nf,ic,ip) - ca_c*o2x_o%rAttr(index_o2x_Foxo_frazil_li,n)
              nf = f_wpolar;budg_dataL(nf,ic,ip) = budg_dataL(nf,ic,ip) + ca_c*o2x_o%rAttr(index_o2x_Foxo_ismw,n)
              nf = f_wpolar;budg_dataL(nf,ic,ip) = budg_dataL(nf,ic,ip) - (ca_o+ca_i)*o2x_o%rAttr(index_o2x_Foxo_rrofl,n)
