@@ -753,7 +753,7 @@ module li_thermal
            dTtop, dTbot,             & ! temperature differences
            denth_top, denth_bot,     & ! enthalpy differences
            columnHeatDissipation,    & ! integrated heat dissipation in column
-           appliedBasalOceanHeatFlux, & ! ocean heat flux available after removing the conductive term
+           appliedBasalOceanHeatFlux, & ! imported ocean heat flux applied to floating ice
            maxtemp, mintemp,         & ! max and min temperatures in column
            initialEnergy,            & ! initial energy in ice column (J m^{-2})
            finalEnergy,              & ! final energy in ice column (J m^{-2})
@@ -957,9 +957,8 @@ module li_thermal
                   surfaceTemperature(iCell) = min(0.0_RKIND, surfaceAirTemperature(iCell))
 
                   ! For floating ice, keep the thermal solve on an imported ocean-temperature boundary.
-                  ! The merged ocean heat flux is kept separate from geothermal forcing; after the solve,
-                  ! basalOceanHeatFlux - basalConductiveFlux is the non-conductive ocean heat available
-                  ! for floating melt/freeze bookkeeping.
+                  ! The merged ocean heat flux remains separate from geothermal forcing and is applied
+                  ! directly in floating melt/freeze bookkeeping.
                   if (li_mask_is_floating_ice(cellMask(iCell))) then
                      if (iceOceanInterfaceTemperature(iCell) < 0.5_RKIND * config_invalid_value_ocn_intr_temp) then
                         basalTemperature(iCell) = iceOceanInterfaceTemperature(iCell) - kelvin_to_celsius
@@ -1218,7 +1217,7 @@ module li_thermal
                   columnHeatDissipation = columnHeatDissipation * thickness(iCell)*rhoi*cp_ice
                   appliedBasalOceanHeatFlux = 0.0_RKIND
                   if (li_mask_is_floating_ice(cellMask(iCell))) then
-                     appliedBasalOceanHeatFlux = basalOceanHeatFlux(iCell) - basalConductiveFlux(iCell)
+                     appliedBasalOceanHeatFlux = basalOceanHeatFlux(iCell)
                   endif
 
                   if (verboseColumn) then
@@ -1259,7 +1258,7 @@ module li_thermal
                         if (li_mask_is_floating_ice(cellMask(iCell))) then
                            call mpas_log_write('imported ocean basal heat flux (positive down) =$r', &
                               realArgs=(/basalOceanHeatFlux(iCell)/))
-                           call mpas_log_write('applied ocean heat after removing conductive term =$r', &
+                           call mpas_log_write('applied ocean basal heat flux =$r', &
                               realArgs=(/appliedBasalOceanHeatFlux/))
                         endif
                         call mpas_log_write('flux for bottom melting =$r', &
