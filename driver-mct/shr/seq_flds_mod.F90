@@ -1646,12 +1646,12 @@ contains
 
     if (flds_polar) then
 
-       ! Ocean Land ice freeze potential
+       ! Non-latent frazil enthalpy flux exported from ocean to land ice
        call seq_flds_add(o2x_fluxes,"Foxo_q_li")
        call seq_flds_add(x2g_fluxes,"Foxo_q_li")
        call seq_flds_add(x2g_shelf_fluxes_from_ocn,"Foxo_q_li")
-       longname = 'Ocean land ice freeze potential'
-       stdname  = 'ice_shelf_cavity_ice_heat_flux'
+       longname = 'Non-latent frazil enthalpy flux at the land-ice interface'
+       stdname  = 'ocean_land_ice_frazil_enthalpy_flux'
        units    = 'W m-2'
        attname  = 'Foxo_q_li'
        call metadata_set(attname, longname, stdname, units)
@@ -1676,12 +1676,12 @@ contains
        attname  = 'Foxo_ismw'
        call metadata_set(attname, longname, stdname, units)
 
-       ! Heat flux from ice shelf melt
+       ! Non-latent heat flux from ice shelf melt/freeze
        call seq_flds_add(o2x_fluxes,"Foxo_ismh")
        call seq_flds_add(x2g_fluxes,"Foxo_ismh")
        call seq_flds_add(x2g_shelf_fluxes_from_ocn,"Foxo_ismh")
-       longname = 'Heat flux due to basal melting of ice shelves'
-       stdname  = 'basal_iceshelf_heat_flux'
+       longname = 'Non-latent interfacial heat flux due to basal melting or freezing of ice shelves'
+       stdname  = 'basal_iceshelf_non_latent_heat_flux'
        units    = 'W m-2'
        attname  = 'Foxo_ismh'
        call metadata_set(attname, longname, stdname, units)

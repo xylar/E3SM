@@ -3120,7 +3120,7 @@ contains
                                                  avgThermalForcingAtZLevelsMask, &
                                                  avgLandIceInterfaceTracers
 
-   real (kind=RKIND) :: surfaceFreezingTemp
+   real (kind=RKIND) :: surfaceFreezingTemp, landIceInterfaceTemperatureC
 
    logical, pointer :: frazilIceActive,          &
                        config_remove_ais_river_runoff, &
@@ -3344,7 +3344,15 @@ contains
              o2x_o % rAttr(index_o2x_Fioo_q, n)  = 0.0_RKIND
              o2x_o % rAttr(index_o2x_Fioo_frazil, n) = 0.0_RKIND
              if (trim(config_land_ice_flux_mode) == 'active' .or. trim(config_land_ice_flux_mode) == 'data') then
-                o2x_o % rAttr(index_o2x_Foxo_q_li, n) = accumulatedFrazilIceMass(i) * config_frazil_heat_of_fusion / ocn_cpl_dt
+                if (trim(config_land_ice_flux_mode) == 'active') then
+                   ! Export the frazil enthalpy carried with the frozen freshwater transferred to MALI.
+                   ! The latent heat associated with frazil formation stays in MPAS-Ocean.
+                   landIceInterfaceTemperatureC = avgLandIceInterfaceTracers(indexIT, i) - T0_Kelvin
+                   o2x_o % rAttr(index_o2x_Foxo_q_li, n) = -accumulatedFrazilIceMass(i) * cp_sw &
+                                                           * landIceInterfaceTemperatureC / ocn_cpl_dt
+                else
+                   o2x_o % rAttr(index_o2x_Foxo_q_li, n) = 0.0_RKIND
+                endif
                 o2x_o % rAttr(index_o2x_Foxo_frazil_li, n) = accumulatedFrazilIceMass(i) / ocn_cpl_dt
              endif
 
