@@ -3110,7 +3110,7 @@ contains
                                                avgLandIceFreshwaterFlux, &
                                                avgRemovedRiverRunoffFlux, &
                                                avgRemovedIceRunoffFlux, &
-                                               avgLandIceHeatFlux, &
+                                               avgLandIceCouplingHeatFlux, &
                                                avgRemovedIceRunoffHeatFlux
 
    real (kind=RKIND), dimension(:,:), pointer :: avgTracersSurfaceValue, avgSurfaceVelocity, &
@@ -3220,7 +3220,7 @@ contains
      ! Cryo fields
      if (trim(config_land_ice_flux_mode) == 'active' .or. trim(config_land_ice_flux_mode) == 'data') then
         call mpas_pool_get_array(forcingPool, 'avgLandIceFreshwaterFlux', avgLandIceFreshwaterFlux)
-        call mpas_pool_get_array(forcingPool, 'avgLandIceHeatFlux', avgLandIceHeatFlux)
+        call mpas_pool_get_array(forcingPool, 'avgLandIceCouplingHeatFlux', avgLandIceCouplingHeatFlux)
      endif
      if (config_remove_ais_river_runoff) then
         call mpas_pool_get_array(forcingPool, 'avgRemovedRiverRunoffFlux', avgRemovedRiverRunoffFlux)
@@ -3293,7 +3293,7 @@ contains
        ! Cryo fields
        if (trim(config_land_ice_flux_mode) == 'active' .or. trim(config_land_ice_flux_mode) == 'data') then
           o2x_o % rAttr(index_o2x_Foxo_ismw, n)  = avgLandIceFreshwaterFlux(i)
-          o2x_o % rAttr(index_o2x_Foxo_ismh, n)  = avgLandIceHeatFlux(i)
+          o2x_o % rAttr(index_o2x_Foxo_ismh, n)  = avgLandIceCouplingHeatFlux(i)
        endif
        if (config_remove_ais_river_runoff) then
           o2x_o(index_o2x_Foxo_rrofl, n) = avgRemovedRiverRunoffFlux(i)

@@ -4152,6 +4152,9 @@
 		<var name="avgLandIceHeatFlux" type="real" dimensions="nCells Time" units="W m^-2"
 			 description="Time-averaged sum of heat fluxes associated with ice shelf basal melt fluxes cell centers sent to coupler. Positive into the ocean."
 		/>
+		<var name="avgLandIceCouplingHeatFlux" type="real" dimensions="nCells Time" units="W m^-2"
+			 description="Time-averaged glacier-facing heat flux exported to land ice through the coupler. Positive into the ocean."
+		/>
 		<var name="avgRemovedRiverRunoffFlux" type="real" dimensions="nCells Time" units="kg m^-2 s^-1"
 			 description="Time-averaged sum of freshwater fluxes associated with removed liquid runoff fluxes cell centers sent to coupler. Positive into the ocean."
 		/>
@@ -4214,12 +4217,16 @@
 			packages="landIceFluxesPKG;dataLandIceFluxesPKG"
 		/>
 		<var name="landIceHeatFlux"  type="real" dimensions="nCells Time" units="W m^-2"
-			description="Flux of heat into the ocean at land ice-ocean interface. Positive into ocean."
+			description="Ocean-facing non-latent heat flux into the ocean at the land ice-ocean interface. Positive into ocean."
+			packages="landIceFluxesPKG;dataLandIceFluxesPKG"
+		/>
+		<var name="landIceCouplingHeatFlux"  type="real" dimensions="nCells Time" units="W m^-2"
+			description="Glacier-facing heat flux exported to land ice through the coupler. Positive into ocean."
 			packages="landIceFluxesPKG;dataLandIceFluxesPKG"
 		/>
 		<!-- Output fields from standalone land-ice flux computaiton -->
 		<var name="heatFluxToLandIce"  type="real" dimensions="nCells Time" units="W m^-2"
-			description="Flux of heat out of ice at land ice-ocean interface. Positive into ocean."
+			description="Full ice-side heat flux used in MPAS-Ocean land-ice heat accounting. Positive into ocean."
 			packages="landIceFluxesPKG"
 		/>
 		<!-- Output fields for land-ice coupling -->

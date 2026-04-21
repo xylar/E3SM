@@ -391,6 +391,7 @@ contains
       integer, pointer :: nCells
 
       real (kind=RKIND), dimension(:), pointer :: landIceHeatFlux, &
+                                                  landIceCouplingHeatFlux, &
                                                   dataLandIceHeatFlux
 
       real (kind=RKIND), pointer :: runningMeanRemovedIceRunoff, &
@@ -406,6 +407,7 @@ contains
       call mpas_pool_get_dimension(meshPool, 'nCells', nCells)
 
       call mpas_pool_get_array(forcingPool, 'landIceHeatFlux', landIceHeatFlux)
+      call mpas_pool_get_array(forcingPool, 'landIceCouplingHeatFlux', landIceCouplingHeatFlux)
 
       if ( landIceDataOn ) then
 
@@ -423,6 +425,7 @@ contains
          !$omp do schedule(runtime)
          do iCell = 1, nCells
             landIceHeatFlux(iCell) = scaling * dataLandIceHeatFlux(iCell)
+            landIceCouplingHeatFlux(iCell) = landIceHeatFlux(iCell)
          end do
          !$omp end do
          !$omp end parallel
@@ -498,7 +501,8 @@ contains
                                                   landIceSurfaceTemperature, &
                                                   landIceFreshwaterFlux, &
                                                   landIceConductiveHeatFlux, &
-                                                  landIceHeatFlux, heatFluxToLandIce
+                                                  landIceHeatFlux, landIceCouplingHeatFlux, &
+                                                  heatFluxToLandIce
 
       real (kind=RKIND), dimension(:), pointer :: frazilIceFreshwaterFlux, landIceFreshwaterFluxTotal
 
@@ -528,9 +532,11 @@ contains
       call mpas_pool_get_array(forcingPool, 'frazilIceFreshwaterFlux', frazilIceFreshwaterFlux)
       call mpas_pool_get_array(forcingPool, 'landIceFreshwaterFluxTotal', landIceFreshwaterFluxTotal)
       call mpas_pool_get_array(forcingPool, 'landIceFloatingMask', landIceFloatingMask)
+      call mpas_pool_get_array(forcingPool, 'landIceCouplingHeatFlux', landIceCouplingHeatFlux)
       call mpas_pool_get_array(forcingPool, 'heatFluxToLandIce', heatFluxToLandIce)
 
       nCells = nCellsArray( size(nCellsArray) )
+      landIceCouplingHeatFlux(:) = 0.0_RKIND
 
       if (landIceFluxesOn .and. .not. landIceDataOn) then
 
@@ -577,6 +583,7 @@ contains
                                  * (landIceInterfaceTracers(indexIT,iCell)-landIceBoundaryLayerTracers(indexBLT,iCell)))
                landIceHeatFlux(iCell) = landIceFloatingFraction(iCell)*heatFlux
 
+               landIceCouplingHeatFlux(iCell) = 0.0_RKIND
                heatFluxToLandIce(iCell) = 0.0_RKIND
 
             end do
@@ -599,6 +606,7 @@ contains
                   landIceInterfaceTracers(indexIS,:), &
                   landIceFreshwaterFlux, &
                   landIceHeatFlux, &
+                  landIceCouplingHeatFlux, &
                   heatFluxToLandIce, &
                   nCells, &
                   err)
@@ -636,6 +644,7 @@ contains
                   landIceInterfaceTracers(indexIT,iCell) = freezeInterfaceTemperature(iCell)
                   landIceFreshwaterFlux(iCell) = freezeFreshwaterFlux(iCell)
                   landIceHeatFlux(iCell) = freezeHeatFlux(iCell)
+                  landIceCouplingHeatFlux(iCell) = freezeIceHeatFlux(iCell)
                   heatFluxToLandIce(iCell) = freezeIceHeatFlux(iCell)
                end do
             else ! not using Holland and Jenkins advection/diffusion
@@ -652,6 +661,7 @@ contains
                   landIceInterfaceTracers(indexIS,:), &
                   landIceFreshwaterFlux, &
                   landIceHeatFlux, &
+                  landIceCouplingHeatFlux, &
                   heatFluxToLandIce, &
                   nCells, &
                   err)
@@ -668,6 +678,7 @@ contains
 
                landIceFreshwaterFlux(iCell) = landIceFloatingFraction(iCell)*landIceFreshwaterFlux(iCell)
                landIceHeatFlux(iCell) = landIceFloatingFraction(iCell)*landIceHeatFlux(iCell)
+               landIceCouplingHeatFlux(iCell) = landIceFloatingFraction(iCell)*landIceCouplingHeatFlux(iCell)
                heatFluxToLandIce(iCell) = landIceFloatingFraction(iCell)*heatFluxToLandIce(iCell)
             end do
 
@@ -1036,6 +1047,7 @@ contains
     outInterfaceSalinity, &
     outFreshwaterFlux, &
     outOceanHeatFlux, &
+    outCouplingHeatFlux, &
     outIceHeatFlux, &
     nCells, &
     err) !{{{
@@ -1070,6 +1082,7 @@ contains
       outInterfaceSalinity, &    !< Output: ocean salinity at the interface
       outFreshwaterFlux, &   !< Output: ocean thickness flux (melt rate)
       outOceanHeatFlux, & !< Output: the temperature flux into the ocean
+      outCouplingHeatFlux, & !< Output: the glacier-facing coupled heat flux
       outIceHeatFlux      !< Output: the temperature flux into the ice
 
     integer, intent(out) :: err !< Output: Error flag
@@ -1143,7 +1156,10 @@ contains
       !      the reference point in the ice (either the surface or the middle of the bottom layer)
       !      and the interface
       ! NB: sign convention is the same as outOceanHeatFlux, positive into the ocean
-      outIceHeatFlux(iCell) = outAdvectiveHeatFlux(iCell) + landIceConductiveHeatFlux(iCell)
+      ! Export only the advective part to land ice through the coupler; keep the
+      ! full ice-side term for MPAS-Ocean internal energy accounting.
+      outCouplingHeatFlux(iCell) = outAdvectiveHeatFlux(iCell)
+      outIceHeatFlux(iCell) = outCouplingHeatFlux(iCell) + landIceConductiveHeatFlux(iCell)
     end do
     !$omp end do
     !$omp end parallel

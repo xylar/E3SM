@@ -58,7 +58,8 @@ module ocn_time_average_coupled
         real (kind=RKIND), dimension(:), pointer :: avgTotalFreshWaterTemperatureFlux, &
                                                     avgLandIceFreshwaterFlux, &
                                                     avgRemovedRiverRunoffFlux, avgRemovedIceRunoffFlux, &
-                                                    avgLandIceHeatFlux, avgRemovedIceRunoffHeatFlux
+                                                    avgLandIceHeatFlux, avgLandIceCouplingHeatFlux, &
+                                                    avgRemovedIceRunoffHeatFlux
 
         real (kind=RKIND), dimension(:,:), pointer :: avgThermalForcingAtZLevels
         real (kind=RKIND), dimension(:,:), pointer :: avgThermalForcingAtZLevelsMask
@@ -124,12 +125,14 @@ module ocn_time_average_coupled
         if(trim(config_land_ice_flux_mode) == 'active' .or. trim(config_land_ice_flux_mode) == 'data') then
            call mpas_pool_get_array(forcingPool, 'avgLandIceFreshwaterFlux', avgLandIceFreshwaterFlux)
            call mpas_pool_get_array(forcingPool, 'avgLandIceHeatFlux', avgLandIceHeatFlux)
+           call mpas_pool_get_array(forcingPool, 'avgLandIceCouplingHeatFlux', avgLandIceCouplingHeatFlux)
 
            !$omp parallel
            !$omp do schedule(runtime)
            do iCell = 1, nCells
               avgLandIceFreshwaterFlux(iCell) = 0.0_RKIND
               avgLandIceHeatFlux(iCell) = 0.0_RKIND
+              avgLandIceCouplingHeatFlux(iCell) = 0.0_RKIND
            end do
            !$omp end do
            !$omp end parallel
@@ -278,6 +281,7 @@ module ocn_time_average_coupled
         real (kind=RKIND), dimension(:), pointer :: totalFreshWaterTemperatureFlux, avgTotalFreshWaterTemperatureFlux, &
                                                     landIceFreshwaterFlux, avgLandIceFreshwaterFlux, &
                                                     landIceHeatFlux, avgLandIceHeatFlux, &
+                                                    landIceCouplingHeatFlux, avgLandIceCouplingHeatFlux, &
                                                     removedRiverRunoffFlux, avgRemovedRiverRunoffFlux, &
                                                     removedIceRunoffFlux, avgRemovedIceRunoffFlux, &
                                                     avgRemovedIceRunoffHeatFlux
@@ -378,6 +382,8 @@ module ocn_time_average_coupled
            call mpas_pool_get_array(forcingPool, 'landIceFreshwaterFlux', landIceFreshwaterFlux)
            call mpas_pool_get_array(forcingPool, 'avgLandIceHeatFlux', avgLandIceHeatFlux)
            call mpas_pool_get_array(forcingPool, 'landIceHeatFlux', landIceHeatFlux)
+           call mpas_pool_get_array(forcingPool, 'avgLandIceCouplingHeatFlux', avgLandIceCouplingHeatFlux)
+           call mpas_pool_get_array(forcingPool, 'landIceCouplingHeatFlux', landIceCouplingHeatFlux)
 
            !$omp parallel
            !$omp do schedule(runtime)
@@ -386,6 +392,8 @@ module ocn_time_average_coupled
                                               + landIceFreshwaterFlux(iCell) ) / ( nAccumulatedCoupled + 1)
               avgLandIceHeatFlux(iCell) = ( avgLandIceHeatFlux(iCell) * nAccumulatedCoupled &
                                         + landIceHeatFlux(iCell) ) / ( nAccumulatedCoupled + 1)
+              avgLandIceCouplingHeatFlux(iCell) = ( avgLandIceCouplingHeatFlux(iCell) * nAccumulatedCoupled &
+                                                + landIceCouplingHeatFlux(iCell) ) / ( nAccumulatedCoupled + 1)
            end do
            !$omp end do
            !$omp end parallel
