@@ -164,7 +164,8 @@ module li_thermal
            surfaceAirTemperature,    & ! surface air temperature (K)
            surfaceTemperature,       & ! surface ice temperature (K)
            basalTemperature,         & ! basal ice temperature (K)
-           iceOceanInterfaceTemperature ! ice-ocean interface temperature (K)
+           iceOceanInterfaceTemperature, & ! ice-ocean interface temperature (K)
+           basalOceanHeatFlux          ! ocean-driven basal heat flux for floating ice (W m^{-2}, positive down)
 
       real (kind=RKIND), dimension(:), pointer :: &
            basalHeatFlux               ! basal heat flux into the ice (W m^{-2}, positive upward)
@@ -250,6 +251,7 @@ module li_thermal
          call mpas_pool_get_array(thermalPool, 'surfaceAirTemperature', surfaceAirTemperature)
          call mpas_pool_get_array(thermalPool, 'surfaceTemperature', surfaceTemperature)
          call mpas_pool_get_array(thermalPool, 'basalTemperature',   basalTemperature)
+         call mpas_pool_get_array(thermalPool, 'basalOceanHeatFlux', basalOceanHeatFlux)
          call mpas_pool_get_array(thermalPool, 'basalHeatFlux', basalHeatFlux)
 
          if (config_print_thermal_info) then
@@ -277,6 +279,8 @@ module li_thermal
             if (config_print_thermal_info) &
                call mpas_log_write('Initialize basal heat flux: $r', realArgs=(/config_basal_heat_flux_value/))
          endif
+
+         basalOceanHeatFlux(:) = 0.0_RKIND
 
          ! Precompute some grid quantities used in the vertical temperature solve
 
@@ -711,7 +715,9 @@ module li_thermal
       real (kind=RKIND), dimension(:), pointer :: &
            surfaceTemperature,       & ! surface ice temperature (K)
            basalTemperature,         & ! basal ice temperature (K)
+           iceOceanInterfaceTemperature, & ! ice-ocean interface temperature (K)
            surfaceAirTemperature,    & ! surface air temperature (K)
+           basalOceanHeatFlux,       & ! ocean-driven basal heat flux for floating ice (W m^{-2}, positive down)
            basalHeatFlux,            & ! basal heat flux into the ice (W m^{-2}, positive upward)
            basalFrictionFlux,        & ! basal frictional flux into the ice (W m^{-2})
            surfaceConductiveFlux,    & ! conductive heat flux at the upper surface (W m^{-2}, positive down)
@@ -747,6 +753,7 @@ module li_thermal
            dTtop, dTbot,             & ! temperature differences
            denth_top, denth_bot,     & ! enthalpy differences
            columnHeatDissipation,    & ! integrated heat dissipation in column
+           appliedBasalOceanHeatFlux, & ! ocean heat flux available after removing the conductive term
            maxtemp, mintemp,         & ! max and min temperatures in column
            initialEnergy,            & ! initial energy in ice column (J m^{-2})
            finalEnergy,              & ! final energy in ice column (J m^{-2})
@@ -840,6 +847,7 @@ module li_thermal
          call mpas_pool_get_array(thermalPool, 'surfaceAirTemperature', surfaceAirTemperature)
          call mpas_pool_get_array(thermalPool, 'surfaceConductiveFlux', surfaceConductiveFlux)
          call mpas_pool_get_array(thermalPool, 'basalConductiveFlux', basalConductiveFlux)
+         call mpas_pool_get_array(thermalPool, 'basalOceanHeatFlux', basalOceanHeatFlux)
          call mpas_pool_get_array(thermalPool, 'basalHeatFlux', basalHeatFlux)
          call mpas_pool_get_array(thermalPool, 'basalFrictionFlux', basalFrictionFlux)
          call mpas_pool_get_array(thermalPool, 'heatDissipation', heatDissipation)
@@ -948,8 +956,10 @@ module li_thermal
 
                   surfaceTemperature(iCell) = min(0.0_RKIND, surfaceAirTemperature(iCell))
 
-                  ! For floating ice, set the basal temperature to the freezing temperature of seawater.
-                  ! Values based on Ocean Water Freezing Point Calculator with S = 35 PSU
+                  ! For floating ice, keep the thermal solve on an imported ocean-temperature boundary.
+                  ! The merged ocean heat flux is kept separate from geothermal forcing; after the solve,
+                  ! basalOceanHeatFlux - basalConductiveFlux is the non-conductive ocean heat available
+                  ! for floating melt/freeze bookkeeping.
                   if (li_mask_is_floating_ice(cellMask(iCell))) then
                      if (iceOceanInterfaceTemperature(iCell) < 0.5_RKIND * config_invalid_value_ocn_intr_temp) then
                         basalTemperature(iCell) = iceOceanInterfaceTemperature(iCell) - kelvin_to_celsius
@@ -1206,6 +1216,10 @@ module li_thermal
                                            + heatDissipation(k,iCell) * (layerInterfaceSigma(k+1) - layerInterfaceSigma(k))
                   enddo
                   columnHeatDissipation = columnHeatDissipation * thickness(iCell)*rhoi*cp_ice
+                  appliedBasalOceanHeatFlux = 0.0_RKIND
+                  if (li_mask_is_floating_ice(cellMask(iCell))) then
+                     appliedBasalOceanHeatFlux = basalOceanHeatFlux(iCell) - basalConductiveFlux(iCell)
+                  endif
 
                   if (verboseColumn) then
                      call mpas_log_write(' ')
@@ -1242,6 +1256,12 @@ module li_thermal
                         call mpas_log_write('Basal fluxes:')
                         call mpas_log_write('frictional =$r', realArgs=(/basalFrictionFlux(iCell)/))
                         call mpas_log_write('geothermal =$r', realArgs=(/basalHeatFlux(iCell)/))
+                        if (li_mask_is_floating_ice(cellMask(iCell))) then
+                           call mpas_log_write('imported ocean basal heat flux (positive down) =$r', &
+                              realArgs=(/basalOceanHeatFlux(iCell)/))
+                           call mpas_log_write('applied ocean heat after removing conductive term =$r', &
+                              realArgs=(/appliedBasalOceanHeatFlux/))
+                        endif
                         call mpas_log_write('flux for bottom melting =$r', &
                            realArgs=(/basalFrictionFlux(iCell) + basalHeatFlux(iCell) + basalConductiveFlux(iCell)/))
                      endif   ! verboseColumn
