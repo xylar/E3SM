@@ -1410,7 +1410,7 @@ contains
    real (kind=RKIND), dimension(:), pointer :: sfcMassBal,&
                                                floatingBasalMassBal,&
                                                surfaceTemperature,&
-                                               basalOceanHeatflx,&
+                                               basalOceanHeatFlux,&
                                                iceOceanInterfaceTemperature
 
    real (kind=RKIND), dimension(:,:), pointer :: ismip6shelfMelt_3dThermalForcing
@@ -1446,9 +1446,9 @@ contains
          call mpas_pool_get_array(geometryPool, 'sfcMassBal', sfcMassBal)
          call mpas_pool_get_array(geometryPool, 'floatingBasalMassBal',floatingBasalMassBal)
          call mpas_pool_get_array(thermalPool, 'surfaceTemperature',surfaceTemperature)
+         call mpas_pool_get_array(thermalPool, 'basalOceanHeatFlux', basalOceanHeatFlux)
          call mpas_pool_get_array(geometryPool, 'ismip6shelfMelt_3dThermalForcing', ismip6shelfMelt_3dThermalForcing)
          call mpas_pool_get_array(extrapOceanDataPool, 'orig3dOceanMask', orig3dOceanMask)
-!         call mpas_pool_get_array(thermalPool, 'basalOceanHeatflx',basalOceanHeatflx)
          call mpas_pool_get_array(thermalPool, 'iceOceanInterfaceTemperature', iceOceanInterfaceTemperature)
 
          if (nISMIP6OceanLayers > 0) then
@@ -1482,9 +1482,7 @@ contains
                   endif
                enddo
             endif
-!            surfaceTemperature(i) = x2g_g % rAttr(index_x2g_Sl_tsrf, n)
-!JW            basalOceanHeatflx(i) = x2g_g % rAttr(index_x2g_Fogo_qiceh, n)
-!            basalOceanHeatflx(i) = x2g_g % rAttr(index_x2g_Fogx_qicehi, n)
+            basalOceanHeatFlux(i) = -x2g_g % rAttr(index_x2g_Fogx_qicehi, n)
             fractionalMaskVal = x2g_g % rAttr(index_x2g_So_liflfrac, n)
             if (fractionalMaskVal > config_min_floating_frac) then
                iceOceanInterfaceTemperature(i) = x2g_g % rAttr(index_x2g_So_tfrz_isf, n) &

@@ -570,6 +570,9 @@ contains
     integer       :: mrgstr_index
     integer       :: index_o2x
     integer       :: index_x2g
+    integer       :: index_x2g_Fogx_qicehi
+    integer       :: index_x2g_Foxo_ismh
+    integer       :: index_x2g_Foxo_q_li
     integer       :: index_ofrac
     integer       :: lsize
     logical       :: iamroot
@@ -586,9 +589,12 @@ contains
     num_flux_fields = shr_string_listGetNum(trim(seq_flds_x2g_shelf_fluxes_from_ocn))
     num_shelf_state_fields = shr_string_listGetNum(trim(seq_flds_x2g_shelf_states_from_ocn))
     num_tf_state_fields = shr_string_listGetNum(trim(seq_flds_x2g_tf_states_from_ocn))
+    index_x2g_Fogx_qicehi = mct_aVect_indexRA(x2g_g, 'Fogx_qicehi')
+    index_x2g_Foxo_ismh = mct_aVect_indexRA(x2g_g, 'Foxo_ismh', perrWith='quiet')
+    index_x2g_Foxo_q_li = mct_aVect_indexRA(x2g_g, 'Foxo_q_li', perrWith='quiet')
 
     if (first_time) then
-       nflds = num_flux_fields + num_shelf_state_fields + num_tf_state_fields
+       nflds = num_flux_fields + num_shelf_state_fields + num_tf_state_fields + 1
        allocate(mrgstr(nflds))
     end if
 
@@ -644,6 +650,19 @@ contains
 
        mrgstr_index = mrgstr_index + 1
     end do
+
+    if (index_x2g_Fogx_qicehi > 0 .and. index_x2g_Foxo_ismh > 0 .and. index_x2g_Foxo_q_li > 0) then
+       if (first_time) then
+          mrgstr(mrgstr_index) = subname//'x2g%Fogx_qicehi = x2g%Foxo_ismh + x2g%Foxo_q_li'
+       end if
+
+       do n = 1, lsize
+          x2g_g%rAttr(index_x2g_Fogx_qicehi, n) = x2g_g%rAttr(index_x2g_Foxo_ismh, n) + &
+                                                  x2g_g%rAttr(index_x2g_Foxo_q_li, n)
+       end do
+
+       mrgstr_index = mrgstr_index + 1
+    endif
 
     if (first_time) then
        if (iamroot) then

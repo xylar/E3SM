@@ -1780,6 +1780,9 @@ is the value of that variable from the *previous* time level!
                 <var name="basalHeatFlux" type="real" dimensions="nCells Time" units="W m^-2" default_value="0.06"
                      description="basal heat flux into the ice (positive upward)"
                 />
+                <var name="basalOceanHeatFlux" type="real" dimensions="nCells Time" units="W m^-2"
+                     description="ocean-driven basal heat flux under floating ice (positive downward)"
+                />
                 <var name="basalFrictionFlux" type="real" dimensions="nCells Time" units="W m^-2"
                      description="basal frictional heat flux into the ice (positive upward)"
                 />
