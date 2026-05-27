@@ -45,7 +45,7 @@ field names or dimensions in Omega source code.
 ### 2.2 Requirement: Runtime dimension discovery
 
 For each dynamic field, Omega must inspect the input file to determine the field's dimensions
-and native data type. Secondary dimensions (e.g., NRegions, NTransects) that are not standard
+and native data type. Secondary dimensions (e.g., NMocBasins) that are not standard
 Omega mesh dimensions are registered in the global MetaDim system so that downstream output
 streams can reference them.
 
@@ -63,7 +63,7 @@ When a secondary dimension name is encountered during reading:
 - If a MetaDim with that name exists and the size matches: reuse it (silent deduplication).
 - If a MetaDim with that name exists but the size differs: exit with a hard error.
 
-Input files should use unique, descriptive dimension names (e.g., `nMOCBasins`) to avoid
+Input files should use unique, descriptive dimension names (e.g., `NMocBasins`) to avoid
 unintended collisions between unrelated streams.
 
 ### 2.5 Requirement: Field name collision is a hard error
@@ -89,7 +89,7 @@ R4 fields from the file are also stored as R8.
 
 The mesh dimension of each dynamic field follows the standard Omega parallel decomposition:
 each MPI task holds only the local portion of cells, edges, or vertices. The secondary
-dimension (NRegions, NTransects) is not distributed — every task holds all values across the
+dimension (e.g. NMocBasins) is not distributed — every task holds all values across the
 secondary dimension. SCORPIO decompositions for the mesh dimension are reused from the
 existing IOEnv; 2D dynamic fields with a secondary dimension require dynamically created
 decompositions (see Section 3).
@@ -109,8 +109,8 @@ resolve their dependencies).
 
 ### 2.11 Desired: String name arrays (deferred)
 
-Support for reading associated string name arrays (e.g., `regionNames(nRegions, StrLen)`,
-`transectNames(nTransects, StrLen)`) is deferred to a future design iteration. When added,
+Support for reading associated string name arrays (e.g., `regionNames(NMocBasins, StrLen)`,
+`transectNames(NMocBasins, StrLen)`) is deferred to a future design iteration. When added,
 name arrays would be registered as fields or as metadata attributes on the corresponding
 numeric field.
 
