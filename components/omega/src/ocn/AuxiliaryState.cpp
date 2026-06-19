@@ -99,6 +99,10 @@ void AuxiliaryState::computeMomVertAux(const OceanState *State,
 
    EosInstance->computeDepthMeanSpecificVolume(PseudoThickCell);
 
+   // compute Brunt-Vaisala freqency squared
+   EosInstance->computeBruntVaisalaFreqSq(ConservTemp, AbsSalinity, PressureMid,
+                                          EosInstance->SpecVol);
+
    // compute target thickness
    VCoord->computeTargetThickness();
 
