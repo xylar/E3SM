@@ -12,7 +12,10 @@ methods. The class follows the same factory pattern used by other Omega modules.
 An enumeration of the available pressure gradient schemes is defined in `PGrad.h`:
 
 ```c++
-enum class PressureGradType { Centered, HighOrder1, HighOrder2 };
+enum class PressureGradType {
+   Centered,    // existing 2nd-order Montgomery scheme
+   FiniteVolume // high-order finite-volume analytic-integration scheme
+};
 ```
 
 This is used to select which pressure gradient method is applied at runtime.
@@ -147,7 +150,7 @@ PressureGrad:
 
 Valid options for `PressureGradType` are:
 - `'centered'` or `'Centered'`: centered difference approximation (default)
-- `'HighOrder1'`: first high-order method (placeholder, future implementation)
+- `'FiniteVolume'`: high-order finite-volume analytic-integration scheme
 
 If an unrecognized value is provided, the implementation falls back to the centered
 scheme and logs an informational message.

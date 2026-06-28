@@ -99,12 +99,15 @@ PressureGrad::PressureGrad(
    if (PGradTypeStr == "centered" || PGradTypeStr == "Centered") {
       PressureGradChoice          = PressureGradType::Centered;
       this->CenteredPGrad.Enabled = true;
-   } else if (PGradTypeStr == "HighOrder1") {
-      PressureGradChoice           = PressureGradType::HighOrder1;
+   } else if (PGradTypeStr == "FiniteVolume" ||
+              PGradTypeStr == "finitevolume") {
+      PressureGradChoice           = PressureGradType::FiniteVolume;
       this->HighOrderPGrad.Enabled = true;
    } else {
       LOG_INFO(
           "PGrad: Unknown PressureGradType in config, defaulting to centered");
+      PressureGradChoice          = PressureGradType::Centered;
+      this->CenteredPGrad.Enabled = true;
    }
 
    // Temporary: initialization of tidal potential and SAL

@@ -19,7 +19,11 @@
 
 namespace OMEGA {
 
-enum class PressureGradType { Centered, HighOrder1, HighOrder2 };
+enum class PressureGradType {
+   Centered,    // existing 2nd-order Montgomery scheme
+   FiniteVolume // high-order finite-volume analytic-integration scheme
+   // , <FutureVariant>   // e.g. a 6th-order option, added when implemented
+};
 
 // Centered pressure gradient functor
 class PressureGradCentered {
