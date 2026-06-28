@@ -706,6 +706,198 @@ void testBruntVaisalaFreqSqTeos10() {
    return;
 }
 
+/// Test specific-volume first derivatives from computeSpecVolAndDerivs.
+///  - TEOS-10: compared against gsw_specvol_first_derivatives (analytic
+///    derivatives of the same 75-term polynomial; gsw returns v_p per Pa).
+///  - Linear:  compared against central finite differences of computeSpecVol.
+///  - Constant: all derivatives identically zero.
+/// Also confirms SpecVol from computeSpecVolAndDerivs is bit-for-bit identical
+/// to computeSpecVol.
+void testEosSpecVolDerivs() {
+   const auto Mesh     = HorzMesh::getDefault();
+   const auto VCoord   = VertCoord::getDefault();
+   VCoord->NVertLayers = NVertLayers;
+   I4 NCellsSize       = Mesh->NCellsSize;
+   Eos *TestEos        = Eos::getInstance();
+
+   Array2DReal SArray("SArray", NCellsSize, NVertLayers);
+   Array2DReal TArray("TArray", NCellsSize, NVertLayers);
+   Array2DReal PArray("PArray", NCellsSize, NVertLayers);
+   deepCopy(SArray, Sa);
+   deepCopy(TArray, Ct);
+   deepCopy(PArray, P);
+
+   const auto &MinLayerCell = VCoord->MinLayerCell;
+   const auto &MaxLayerCell = VCoord->MaxLayerCell;
+
+   const Real RTolD = 1e-7;
+
+   // ------------------ TEOS-10 vs GSW analytic derivatives ------------------
+   TestEos->EosChoice = EosType::Teos10Eos;
+   Array2DReal SpecVolRef("SpecVolRef", NCellsSize, NVertLayers);
+   deepCopy(TestEos->SpecVol, 0.0);
+   TestEos->computeSpecVol(TArray, SArray, PArray);
+   deepCopy(SpecVolRef, TestEos->SpecVol);
+
+   TestEos->computeSpecVolAndDerivs(TArray, SArray, PArray);
+
+   double VSA, VCT, VP;
+   gsw_specvol_first_derivatives(Sa, Ct, P * Pa2Db, &VSA, &VCT, &VP);
+   const Real ExpDTheta = VCT; // m^3 kg^-1 degC^-1
+   const Real ExpDSalt  = VSA; // m^3 kg^-1 (g/kg)^-1
+   const Real ExpDPress = VP;  // m^3 kg^-1 Pa^-1
+
+   {
+      OMEGA_SCOPE(SpecVol, TestEos->SpecVol);
+      OMEGA_SCOPE(SpecVolRefL, SpecVolRef);
+      OMEGA_SCOPE(DThetaL, TestEos->SpecVolDThetaCons);
+      OMEGA_SCOPE(DSaltL, TestEos->SpecVolDSalt);
+      OMEGA_SCOPE(DPressL, TestEos->SpecVolDPressure);
+      int NumMismatches = 0;
+      parallelReduceOuter(
+          "CheckEosDerivs-Teos", {Mesh->NCellsAll},
+          KOKKOS_LAMBDA(int ICell, const TeamMember &Team, int &OuterCount) {
+             int Cnt;
+             const int KMin   = MinLayerCell(ICell);
+             const int KMax   = MaxLayerCell(ICell);
+             const int KRange = vertRange(KMin, KMax);
+             parallelReduceInner(
+                 Team, KRange,
+                 INNER_LAMBDA(int KOff, int &InnerCount) {
+                    const int K = KMin + KOff;
+                    if (!isApprox(SpecVol(ICell, K), SpecVolRefL(ICell, K),
+                                  1e-12))
+                       InnerCount++;
+                    if (!isApprox(DThetaL(ICell, K), ExpDTheta, RTolD))
+                       InnerCount++;
+                    if (!isApprox(DSaltL(ICell, K), ExpDSalt, RTolD))
+                       InnerCount++;
+                    if (!isApprox(DPressL(ICell, K), ExpDPress, RTolD))
+                       InnerCount++;
+                 },
+                 Cnt);
+             Kokkos::single(PerTeam(Team), [&]() { OuterCount += Cnt; });
+          },
+          NumMismatches);
+      if (NumMismatches != 0)
+         ABORT_ERROR("EosTest: TEOS-10 SpecVol derivative FAIL with {} bad "
+                     "values (expected dTheta={}, dSalt={}, dPress={})",
+                     NumMismatches, ExpDTheta, ExpDSalt, ExpDPress);
+   }
+
+   // ------------------ Linear vs finite differences -------------------------
+   TestEos->EosChoice = EosType::LinearEos;
+   deepCopy(TArray, Ct);
+   deepCopy(SArray, Sa);
+   TestEos->computeSpecVolAndDerivs(TArray, SArray, PArray);
+
+   const Real DCt = 1.0e-3;
+   const Real DSa = 1.0e-3;
+   Array2DReal SvTp("SvTp", NCellsSize, NVertLayers);
+   Array2DReal SvTm("SvTm", NCellsSize, NVertLayers);
+   Array2DReal SvSp("SvSp", NCellsSize, NVertLayers);
+   Array2DReal SvSm("SvSm", NCellsSize, NVertLayers);
+   deepCopy(TArray, Ct + DCt);
+   TestEos->computeSpecVol(TArray, SArray, PArray);
+   deepCopy(SvTp, TestEos->SpecVol);
+   deepCopy(TArray, Ct - DCt);
+   TestEos->computeSpecVol(TArray, SArray, PArray);
+   deepCopy(SvTm, TestEos->SpecVol);
+   deepCopy(TArray, Ct);
+   deepCopy(SArray, Sa + DSa);
+   TestEos->computeSpecVol(TArray, SArray, PArray);
+   deepCopy(SvSp, TestEos->SpecVol);
+   deepCopy(SArray, Sa - DSa);
+   TestEos->computeSpecVol(TArray, SArray, PArray);
+   deepCopy(SvSm, TestEos->SpecVol);
+   deepCopy(SArray, Sa);
+
+   {
+      OMEGA_SCOPE(DThetaL, TestEos->SpecVolDThetaCons);
+      OMEGA_SCOPE(DSaltL, TestEos->SpecVolDSalt);
+      OMEGA_SCOPE(DPressL, TestEos->SpecVolDPressure);
+      OMEGA_SCOPE(SvTpL, SvTp);
+      OMEGA_SCOPE(SvTmL, SvTm);
+      OMEGA_SCOPE(SvSpL, SvSp);
+      OMEGA_SCOPE(SvSmL, SvSm);
+      int NumMismatches = 0;
+      parallelReduceOuter(
+          "CheckEosDerivs-Linear", {Mesh->NCellsAll},
+          KOKKOS_LAMBDA(int ICell, const TeamMember &Team, int &OuterCount) {
+             int Cnt;
+             const int KMin   = MinLayerCell(ICell);
+             const int KMax   = MaxLayerCell(ICell);
+             const int KRange = vertRange(KMin, KMax);
+             parallelReduceInner(
+                 Team, KRange,
+                 INNER_LAMBDA(int KOff, int &InnerCount) {
+                    const int K = KMin + KOff;
+                    const Real FdTheta =
+                        (SvTpL(ICell, K) - SvTmL(ICell, K)) / (2.0_Real * DCt);
+                    const Real FdSalt =
+                        (SvSpL(ICell, K) - SvSmL(ICell, K)) / (2.0_Real * DSa);
+                    if (!isApprox(DThetaL(ICell, K), FdTheta, 1e-5, 1e-15))
+                       InnerCount++;
+                    if (!isApprox(DSaltL(ICell, K), FdSalt, 1e-5, 1e-15))
+                       InnerCount++;
+                    if (!isApprox(DPressL(ICell, K), 0.0_Real, 0.0, 1e-30))
+                       InnerCount++;
+                 },
+                 Cnt);
+             Kokkos::single(PerTeam(Team), [&]() { OuterCount += Cnt; });
+          },
+          NumMismatches);
+      if (NumMismatches != 0)
+         ABORT_ERROR(
+             "EosTest: Linear SpecVol derivative FAIL with {} bad values",
+             NumMismatches);
+   }
+
+   // ------------------ Constant: all derivatives zero -----------------------
+   TestEos->EosChoice = EosType::ConstantEos;
+   deepCopy(TArray, Ct);
+   deepCopy(SArray, Sa);
+   TestEos->computeSpecVolAndDerivs(TArray, SArray, PArray);
+   {
+      OMEGA_SCOPE(SpecVol, TestEos->SpecVol);
+      OMEGA_SCOPE(DThetaL, TestEos->SpecVolDThetaCons);
+      OMEGA_SCOPE(DSaltL, TestEos->SpecVolDSalt);
+      OMEGA_SCOPE(DPressL, TestEos->SpecVolDPressure);
+      const Real ConstSv = ConstantExpValue;
+      int NumMismatches  = 0;
+      parallelReduceOuter(
+          "CheckEosDerivs-Constant", {Mesh->NCellsAll},
+          KOKKOS_LAMBDA(int ICell, const TeamMember &Team, int &OuterCount) {
+             int Cnt;
+             const int KMin   = MinLayerCell(ICell);
+             const int KMax   = MaxLayerCell(ICell);
+             const int KRange = vertRange(KMin, KMax);
+             parallelReduceInner(
+                 Team, KRange,
+                 INNER_LAMBDA(int KOff, int &InnerCount) {
+                    const int K = KMin + KOff;
+                    if (!isApprox(SpecVol(ICell, K), ConstSv, 1e-12))
+                       InnerCount++;
+                    if (!isApprox(DThetaL(ICell, K), 0.0_Real, 0.0, 1e-30))
+                       InnerCount++;
+                    if (!isApprox(DSaltL(ICell, K), 0.0_Real, 0.0, 1e-30))
+                       InnerCount++;
+                    if (!isApprox(DPressL(ICell, K), 0.0_Real, 0.0, 1e-30))
+                       InnerCount++;
+                 },
+                 Cnt);
+             Kokkos::single(PerTeam(Team), [&]() { OuterCount += Cnt; });
+          },
+          NumMismatches);
+      if (NumMismatches != 0)
+         ABORT_ERROR("EosTest: Constant SpecVol derivative FAIL with {} bad "
+                     "values",
+                     NumMismatches);
+   }
+
+   return;
+}
+
 /// Finalize and clean up all test infrastructure
 void finalizeEosTest() {
    Eos::destroyInstance();
@@ -848,6 +1040,7 @@ void eosTest(const std::string &MeshFile = "OmegaMesh.nc") {
    testEosTeos10();
    testEosTeos10Displaced();
    testBruntVaisalaFreqSqTeos10();
+   testEosSpecVolDerivs();
 
    finalizeEosTest();
 

@@ -49,6 +49,13 @@ Eos::Eos(const std::string &Name, ///< [in] Name for eos object
    BruntVaisalaFreqSq = Array2DReal("BruntVaisalaFreqSq", Mesh->NCellsSize,
                                     VCoord->NVertLayersP1);
 
+   SpecVolDThetaCons =
+       Array2DReal("SpecVolDThetaCons", Mesh->NCellsSize, VCoord->NVertLayers);
+   SpecVolDSalt =
+       Array2DReal("SpecVolDSalt", Mesh->NCellsSize, VCoord->NVertLayers);
+   SpecVolDPressure =
+       Array2DReal("SpecVolDPressure", Mesh->NCellsSize, VCoord->NVertLayers);
+
    deepCopy(SpecVol, 1.0_Real / RhoSw);
    deepCopy(SpecVolDisplaced, 1.0_Real / RhoSw);
 
@@ -188,6 +195,74 @@ void Eos::computeSpecVol(const Array2DReal &ConservTemp,
                  Team, KRange, INNER_LAMBDA(int KChunk) {
                     LocComputeSpecVolConstant(LocSpecVol, ICell, KChunk,
                                               ConservTemp, AbsSalinity);
+                 });
+          });
+   }
+}
+
+/// Compute specific volume and its first derivatives for all cells/layers
+void Eos::computeSpecVolAndDerivs(const Array2DReal &ConservTemp,
+                                  const Array2DReal &AbsSalinity,
+                                  const Array2DReal &Pressure) {
+   OMEGA_SCOPE(LocSpecVol, SpecVol);
+   OMEGA_SCOPE(LocDThetaCons, SpecVolDThetaCons);
+   OMEGA_SCOPE(LocDSalt, SpecVolDSalt);
+   OMEGA_SCOPE(LocDPressure, SpecVolDPressure);
+   OMEGA_SCOPE(LocComputeSpecVolLinear, ComputeSpecVolLinear);
+   OMEGA_SCOPE(LocComputeSpecVolTeos10, ComputeSpecVolTeos10);
+   OMEGA_SCOPE(LocComputeSpecVolConstant, ComputeSpecVolConstant);
+   OMEGA_SCOPE(MinLayerCell, VCoord->MinLayerCell);
+   OMEGA_SCOPE(MaxLayerCell, VCoord->MaxLayerCell);
+
+   deepCopy(LocSpecVol, 0);
+   deepCopy(LocDThetaCons, 0);
+   deepCopy(LocDSalt, 0);
+   deepCopy(LocDPressure, 0);
+
+   /// Dispatch to the correct EOS calculation
+   if (EosChoice == EosType::LinearEos) {
+      parallelForOuter(
+          "eos-linear-derivs", {Mesh->NCellsAll},
+          KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
+             const int KMin   = MinLayerCell(ICell);
+             const int KMax   = MaxLayerCell(ICell);
+             const int KRange = vertRangeChunked(KMin, KMax);
+
+             parallelForInner(
+                 Team, KRange, INNER_LAMBDA(int KChunk) {
+                    LocComputeSpecVolLinear.specVolAndDerivs(
+                        LocSpecVol, LocDThetaCons, LocDSalt, LocDPressure,
+                        ICell, KChunk, ConservTemp, AbsSalinity, Pressure);
+                 });
+          });
+   } else if (EosChoice == EosType::Teos10Eos) {
+      parallelForOuter(
+          "eos-teos10-derivs", {Mesh->NCellsAll},
+          KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
+             const int KMin   = MinLayerCell(ICell);
+             const int KMax   = MaxLayerCell(ICell);
+             const int KRange = vertRangeChunked(KMin, KMax);
+
+             parallelForInner(
+                 Team, KRange, INNER_LAMBDA(int KChunk) {
+                    LocComputeSpecVolTeos10.specVolAndDerivs(
+                        LocSpecVol, LocDThetaCons, LocDSalt, LocDPressure,
+                        ICell, KChunk, ConservTemp, AbsSalinity, Pressure);
+                 });
+          });
+   } else if (EosChoice == EosType::ConstantEos) {
+      parallelForOuter(
+          "eos-constant-derivs", {Mesh->NCellsAll},
+          KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
+             const int KMin   = MinLayerCell(ICell);
+             const int KMax   = MaxLayerCell(ICell);
+             const int KRange = vertRangeChunked(KMin, KMax);
+
+             parallelForInner(
+                 Team, KRange, INNER_LAMBDA(int KChunk) {
+                    LocComputeSpecVolConstant.specVolAndDerivs(
+                        LocSpecVol, LocDThetaCons, LocDSalt, LocDPressure,
+                        ICell, KChunk, ConservTemp, AbsSalinity, Pressure);
                  });
           });
    }
