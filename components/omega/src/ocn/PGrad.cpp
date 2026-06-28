@@ -163,12 +163,13 @@ PressureGrad *PressureGrad::get(const std::string &Name ///< [in] Name of
 
 //------------------------------------------------------------------------------
 // Compute pressure gradient tendencies and add into Tend array
-void PressureGrad::computePressureGrad(Array2DReal &Tend,
-                                       const Array2DReal &PressureMid,
-                                       const Array2DReal &PressureInterface,
-                                       const Array2DReal &SpecVol,
-                                       const Array2DReal &GeomZInterface,
-                                       const Array2DReal &PseudoThick) const {
+void PressureGrad::computePressureGrad(
+    Array2DReal &Tend, const Array2DReal &PressureMid,
+    const Array2DReal &PressureInterface, const Array2DReal &SpecVol,
+    const Array2DReal &GeomZInterface, const Array2DReal &PseudoThick,
+    const Array2DReal &ConservTemp, const Array2DReal &AbsSalinity,
+    const Array2DReal &SpecVolDThetaCons, const Array2DReal &SpecVolDSalt,
+    const Array2DReal &SpecVolDPressure) const {
 
    OMEGA_SCOPE(LocCenteredPGrad, CenteredPGrad);
    OMEGA_SCOPE(LocHighOrderPGrad, HighOrderPGrad);
@@ -208,10 +209,12 @@ void PressureGrad::computePressureGrad(Array2DReal &Tend,
 
              parallelForInner(
                  Team, KRange, INNER_LAMBDA(int KChunk) {
-                    LocHighOrderPGrad(Tend, IEdge, KChunk, PressureMid,
-                                      PressureInterface, GeomZInterface,
-                                      LocTidalPotential,
-                                      LocSelfAttractionLoading, SpecVol);
+                    LocHighOrderPGrad(
+                        Tend, IEdge, KChunk, PressureMid, PressureInterface,
+                        GeomZInterface, LocTidalPotential,
+                        LocSelfAttractionLoading, SpecVol, ConservTemp,
+                        AbsSalinity, SpecVolDThetaCons, SpecVolDSalt,
+                        SpecVolDPressure);
                  });
           });
    }

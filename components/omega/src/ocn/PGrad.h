@@ -102,15 +102,30 @@ class PressureGradHighOrder {
                          const VertCoord *VCoord ///< [in] Vertical coordinate
    );
 
-   KOKKOS_FUNCTION void operator()(const Array2DReal &Tend, I4 IEdge, I4 KChunk,
-                                   const Array2DReal &PressureMid,
-                                   const Array2DReal &PressureInterface,
-                                   const Array2DReal &GeomZInterface,
-                                   const Array1DReal &TidalPotential,
-                                   const Array1DReal &SelfAttractionLoading,
-                                   const Array2DReal &SpecVol) const {
+   KOKKOS_FUNCTION void operator()(
+       const Array2DReal &Tend, I4 IEdge, I4 KChunk,
+       const Array2DReal &PressureMid, const Array2DReal &PressureInterface,
+       const Array2DReal &GeomZInterface, const Array1DReal &TidalPotential,
+       const Array1DReal &SelfAttractionLoading, const Array2DReal &SpecVol,
+       const Array2DReal &ConservTemp, const Array2DReal &AbsSalinity,
+       const Array2DReal &SpecVolDThetaCons, const Array2DReal &SpecVolDSalt,
+       const Array2DReal &SpecVolDPressure) const {
 
-      // Placeholder: for now, no-op (future high-order implementation)
+      // Placeholder: for now, no-op (the finite-volume formulation that uses
+      // ConservTemp, AbsSalinity, and the specific-volume derivatives is added
+      // in a following commit). The data path is wired up here.
+      (void)PressureMid;
+      (void)PressureInterface;
+      (void)GeomZInterface;
+      (void)TidalPotential;
+      (void)SelfAttractionLoading;
+      (void)SpecVol;
+      (void)ConservTemp;
+      (void)AbsSalinity;
+      (void)SpecVolDThetaCons;
+      (void)SpecVolDSalt;
+      (void)SpecVolDPressure;
+
       const I4 KStart = chunkStart(KChunk, MinLayerEdgeBot(IEdge));
       const I4 KLen   = chunkLength(KChunk, KStart, MaxLayerEdgeTop(IEdge));
 
@@ -159,12 +174,17 @@ class PressureGrad {
    // Destructor
    ~PressureGrad();
 
-   // Compute pressure gradient tendencies and add into Tend array
-   void computePressureGrad(Array2DReal &Tend, const Array2DReal &PressureMid,
-                            const Array2DReal &PressureInterface,
-                            const Array2DReal &SpecVol,
-                            const Array2DReal &GeomZInterface,
-                            const Array2DReal &PseudoThick) const;
+   // Compute pressure gradient tendencies and add into Tend array. The
+   // ConservTemp, AbsSalinity, and specific-volume derivative fields are used
+   // only by the high-order finite-volume option; the centered option ignores
+   // them.
+   void computePressureGrad(
+       Array2DReal &Tend, const Array2DReal &PressureMid,
+       const Array2DReal &PressureInterface, const Array2DReal &SpecVol,
+       const Array2DReal &GeomZInterface, const Array2DReal &PseudoThick,
+       const Array2DReal &ConservTemp, const Array2DReal &AbsSalinity,
+       const Array2DReal &SpecVolDThetaCons, const Array2DReal &SpecVolDSalt,
+       const Array2DReal &SpecVolDPressure) const;
 
  private:
    // Construct a new pressure gradient object

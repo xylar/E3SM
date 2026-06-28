@@ -278,8 +278,13 @@ int main(int argc, char *argv[]) {
          deepCopy(Tend, 0.0_Real);
 
          const auto &PressureInterface = VCoord->PressureInterface;
+         const auto &SpecVolDThetaCons = DefEos->SpecVolDThetaCons;
+         const auto &SpecVolDSalt      = DefEos->SpecVolDSalt;
+         const auto &SpecVolDPressure  = DefEos->SpecVolDPressure;
          DefPGrad->computePressureGrad(Tend, PressureMid, PressureInterface,
-                                       SpecVol, GeomZInterface, PseudoThick);
+                                       SpecVol, GeomZInterface, PseudoThick,
+                                       Temp, Salinity, SpecVolDThetaCons,
+                                       SpecVolDSalt, SpecVolDPressure);
 
          // compute errors
          Real MaxValue = 0.0_Real;

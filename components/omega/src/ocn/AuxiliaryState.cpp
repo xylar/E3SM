@@ -89,9 +89,11 @@ void AuxiliaryState::computeMomVertAux(const OceanState *State,
    const auto &SurfacePressure = VCoord->SurfacePressure;
    VCoord->computePressure(PseudoThickCell, SurfacePressure);
 
-   // compute specific volume
+   // compute specific volume and its first derivatives (the derivatives are
+   // used by the high-order finite-volume pressure gradient; SpecVol itself is
+   // bit-for-bit identical to computeSpecVol)
    const auto &PressureMid = VCoord->PressureMid;
-   EosInstance->computeSpecVol(ConservTemp, AbsSalinity, PressureMid);
+   EosInstance->computeSpecVolAndDerivs(ConservTemp, AbsSalinity, PressureMid);
 
    // compute geometric height
    VCoord->computeGeomZHeight(PseudoThickCell, EosInstance->SpecVol);

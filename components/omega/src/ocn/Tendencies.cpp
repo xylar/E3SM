@@ -679,9 +679,26 @@ void Tendencies::computeVelocityTendenciesOnly(
       const auto &PressureInterface = VCoord->PressureInterface;
       const auto &SpecVol           = EqState->SpecVol;
       const auto &GeomZInterface    = VCoord->GeomZInterface;
-      PGrad->computePressureGrad(LocNormalVelocityTend, PressureMid,
-                                 PressureInterface, SpecVol, GeomZInterface,
-                                 PseudoThick);
+
+      // Conservative temperature and absolute salinity, and the specific-volume
+      // derivatives, are needed by the high-order finite-volume option; the
+      // centered option ignores them.
+      I4 ConservTempIdx;
+      I4 AbsSalinityIdx;
+      Tracers::getIndex(ConservTempIdx, "Temperature");
+      Tracers::getIndex(AbsSalinityIdx, "Salinity");
+      const auto ConservTemp = Kokkos::subview(TracerArray, ConservTempIdx,
+                                               Kokkos::ALL, Kokkos::ALL);
+      const auto AbsSalinity = Kokkos::subview(TracerArray, AbsSalinityIdx,
+                                               Kokkos::ALL, Kokkos::ALL);
+      const auto &SpecVolDThetaCons = EqState->SpecVolDThetaCons;
+      const auto &SpecVolDSalt      = EqState->SpecVolDSalt;
+      const auto &SpecVolDPressure  = EqState->SpecVolDPressure;
+
+      PGrad->computePressureGrad(
+          LocNormalVelocityTend, PressureMid, PressureInterface, SpecVol,
+          GeomZInterface, PseudoThick, ConservTemp, AbsSalinity,
+          SpecVolDThetaCons, SpecVolDSalt, SpecVolDPressure);
       Pacer::stop("Tend:pressureGradTerm", 2);
    }
 
