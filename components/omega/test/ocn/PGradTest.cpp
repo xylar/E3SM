@@ -29,6 +29,7 @@
 #include "Tracers.h"
 #include "VertCoord.h"
 #include "mpi.h"
+#include <limits>
 
 using namespace OMEGA;
 
@@ -321,6 +322,156 @@ int main(int argc, char *argv[]) {
          RetVal = 0;
       } else {
          RetVal = 1;
+      }
+
+      // ---- Finite-volume scheme tests ----
+      // (1) Discrete hydrostatic consistency: a resting column whose specific
+      //     volume is the same (linear-in-pressure) function of pressure in
+      //     both columns must produce zero pressure gradient to round-off, even
+      //     with arbitrarily tilted layers.
+      // (2) With the compressibility term alpha_p set to zero, the
+      // finite-volume
+      //     operator must reproduce the centered scheme to round-off.
+      {
+         PressureGrad *DefPGrad = PressureGrad::getDefault();
+         const I4 NK            = 16;
+         VCoord->NVertLayers    = NK;
+         VCoord->NVertLayersP1  = NK + 1;
+         I4 NEdgesSize          = DefMesh->NEdgesSize;
+
+         auto &MinLayerCell    = VCoord->MinLayerCell;
+         auto &MaxLayerCell    = VCoord->MaxLayerCell;
+         auto &MinLayerEdgeBot = VCoord->MinLayerEdgeBot;
+         auto &MaxLayerEdgeTop = VCoord->MaxLayerEdgeTop;
+         auto &EdgeMask        = VCoord->EdgeMask;
+         auto &CellsOnEdge     = DefMesh->CellsOnEdge;
+         auto &DcEdge          = DefMesh->DcEdge;
+         Real DCL              = 30000.0_Real;
+         parallelFor(
+             {NCellsAll}, KOKKOS_LAMBDA(int i) {
+                MinLayerCell(i) = 0;
+                MaxLayerCell(i) = NK - 1;
+             });
+         parallelFor(
+             {NEdgesAll}, KOKKOS_LAMBDA(int i) {
+                MinLayerEdgeBot(i) = 0;
+                MaxLayerEdgeTop(i) = NK - 1;
+                CellsOnEdge(i, 0)  = 0;
+                CellsOnEdge(i, 1)  = 1;
+                DcEdge(i)          = DCL;
+             });
+         parallelFor(
+             {NEdgesAll, NK},
+             KOKKOS_LAMBDA(int i, int k) { EdgeMask(i, k) = 1.0_Real; });
+
+         // resting, linear-in-pressure specific volume (isothermal): the same
+         // function of pressure in both columns; column 1 layers are tilted
+         // relative to column 0.
+         const Real AA0   = 9.7e-4_Real;
+         const Real AA1   = -4.0e-13_Real;
+         const Real APref = 1.0e7_Real;
+         const Real Psurf = 1.0e5_Real;
+         auto &PInterface = VCoord->PressureInterface;
+         auto &PMid       = VCoord->PressureMid;
+         auto &GeomZIface = VCoord->GeomZInterface;
+         auto &SpecVolL   = DefEos->SpecVol;
+         auto &SpecVolDP  = DefEos->SpecVolDPressure;
+         auto &SpecVolDT  = DefEos->SpecVolDThetaCons;
+         auto &SpecVolDS  = DefEos->SpecVolDSalt;
+         parallelFor(
+             {NCellsAll}, KOKKOS_LAMBDA(int i) {
+                Real Pres        = Psurf;
+                Real Gz          = 0.0_Real;
+                PInterface(i, 0) = Pres;
+                GeomZIface(i, 0) = Gz;
+                for (int k = 0; k < NK; ++k) {
+                   Real Tilt =
+                       (i == 1) ? (40.0_Real * ((k % 2) ? 1.0_Real : -1.0_Real))
+                                : 0.0_Real;
+                   Real Htil       = 100.0_Real + Tilt;
+                   Real Dp         = RhoSw * Gravity * Htil;
+                   Real Pmid       = Pres + 0.5_Real * Dp;
+                   Real Alpha0     = AA0 + AA1 * (Pmid - APref);
+                   PMid(i, k)      = Pmid;
+                   SpecVolL(i, k)  = Alpha0;
+                   SpecVolDP(i, k) = AA1;
+                   SpecVolDT(i, k) = 0.0_Real;
+                   SpecVolDS(i, k) = 0.0_Real;
+                   Gz -= Alpha0 * Dp / Gravity;
+                   Pres += Dp;
+                   PInterface(i, k + 1) = Pres;
+                   GeomZIface(i, k + 1) = Gz;
+                }
+             });
+
+         // build a FiniteVolume PressureGrad instance in-memory
+         Config FVOpts("Omega");
+         Config FVGroup("PressureGrad");
+         FVGroup.add("PressureGradType", std::string("FiniteVolume"));
+         FVOpts.add(FVGroup);
+         PressureGrad *FVPGrad =
+             PressureGrad::create("FVTest", DefMesh, VCoord, &FVOpts);
+
+         Array2DReal PseudoThickL = DefState->getPseudoThickness(0);
+
+         // (1) full finite-volume (with alpha_p) should be ~zero
+         Array2DReal TendFV("TendFV", NEdgesSize, NK);
+         deepCopy(TendFV, 0.0_Real);
+         FVPGrad->computePressureGrad(
+             TendFV, PMid, PInterface, SpecVolL, GeomZIface, PseudoThickL,
+             SpecVolL, SpecVolL, SpecVolDT, SpecVolDS, SpecVolDP);
+         Real MaxFV = 0.0_Real;
+         parallelReduce(
+             {NEdgesAll, NK},
+             KOKKOS_LAMBDA(int i, int k, Real &m) {
+                Real v = Kokkos::abs(TendFV(i, k));
+                if (v > m)
+                   m = v;
+             },
+             Kokkos::Max<Real>(MaxFV));
+         LOG_INFO("PGradTest: FV hydrostatic consistency max|Tend| = {}",
+                  MaxFV);
+         // Threshold tracks Real's epsilon (the resting state cancels to round-
+         // off in double precision; single-precision builds expose a higher
+         // floor, so the check is meaningful mainly in double precision).
+         const Real ConsistencyTol =
+             1.0e4_Real * std::numeric_limits<Real>::epsilon();
+         if (MaxFV > ConsistencyTol) {
+            LOG_ERROR("PGradTest: FV hydrostatic consistency FAIL ({})", MaxFV);
+            RetVal = 1;
+         }
+
+         // (2) with alpha_p = 0 the finite-volume operator must match centered
+         deepCopy(SpecVolDP, 0.0_Real);
+         Array2DReal TendFV0("TendFV0", NEdgesSize, NK);
+         Array2DReal TendC("TendC", NEdgesSize, NK);
+         deepCopy(TendFV0, 0.0_Real);
+         deepCopy(TendC, 0.0_Real);
+         FVPGrad->computePressureGrad(
+             TendFV0, PMid, PInterface, SpecVolL, GeomZIface, PseudoThickL,
+             SpecVolL, SpecVolL, SpecVolDT, SpecVolDS, SpecVolDP);
+         DefPGrad->computePressureGrad(
+             TendC, PMid, PInterface, SpecVolL, GeomZIface, PseudoThickL,
+             SpecVolL, SpecVolL, SpecVolDT, SpecVolDS, SpecVolDP);
+         Real MaxDiff = 0.0_Real;
+         parallelReduce(
+             {NEdgesAll, NK},
+             KOKKOS_LAMBDA(int i, int k, Real &m) {
+                Real v = Kokkos::abs(TendFV0(i, k) - TendC(i, k));
+                if (v > m)
+                   m = v;
+             },
+             Kokkos::Max<Real>(MaxDiff));
+         LOG_INFO("PGradTest: FV(alpha_p=0) vs centered max|diff| = {}",
+                  MaxDiff);
+         const Real ReductionTol =
+             1.0e6_Real * std::numeric_limits<Real>::epsilon();
+         if (MaxDiff > ReductionTol) {
+            LOG_ERROR("PGradTest: FV reduction-to-centered FAIL ({})", MaxDiff);
+            RetVal = 1;
+         }
+
+         PressureGrad::erase("FVTest");
       }
 
       // cleanup

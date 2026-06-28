@@ -111,27 +111,70 @@ class PressureGradHighOrder {
        const Array2DReal &SpecVolDThetaCons, const Array2DReal &SpecVolDSalt,
        const Array2DReal &SpecVolDPressure) const {
 
-      // Placeholder: for now, no-op (the finite-volume formulation that uses
-      // ConservTemp, AbsSalinity, and the specific-volume derivatives is added
-      // in a following commit). The data path is wired up here.
-      (void)PressureMid;
-      (void)PressureInterface;
-      (void)GeomZInterface;
-      (void)TidalPotential;
-      (void)SelfAttractionLoading;
-      (void)SpecVol;
+      // Finite-volume horizontal pressure gradient, constant-in-layer limit.
+      //
+      // The layer-mean edge-normal acceleration is -alpha*grad(p) - grad(Phi),
+      // evaluated at the layer's two interfaces and averaged. Specific volume
+      // at each interface comes from a reference-state Taylor expansion about
+      // the mid-layer pressure,
+      //    alpha(p) = alpha0 + alpha_p * (p - p_mid),
+      // with alpha0 = SpecVol and alpha_p = SpecVolDPressure. Including the
+      // compressibility term alpha_p makes the discrete pressure force and the
+      // geopotential (built hydrostatically from the same alpha0) cancel to
+      // machine precision for a column whose alpha is horizontally uniform as a
+      // function of pressure (discrete hydrostatic consistency). Dropping
+      // alpha_p reduces this operator exactly to PressureGradCentered.
+      //
+      // ConservTemp, AbsSalinity, and the temperature/salinity derivatives are
+      // not used in the constant-in-layer limit; they enter once the
+      // mean-preserving within-layer reconstruction is added.
       (void)ConservTemp;
       (void)AbsSalinity;
       (void)SpecVolDThetaCons;
       (void)SpecVolDSalt;
-      (void)SpecVolDPressure;
 
       const I4 KStart = chunkStart(KChunk, MinLayerEdgeBot(IEdge));
       const I4 KLen   = chunkLength(KChunk, KStart, MaxLayerEdgeTop(IEdge));
 
+      const I4 ICell0      = CellsOnEdge(IEdge, 0);
+      const I4 ICell1      = CellsOnEdge(IEdge, 1);
+      const Real InvDcEdge = 1.0_Real / DcEdge(IEdge);
+
+      const Real GradGeoPot =
+          (TidalPotential(ICell1) - TidalPotential(ICell0)) * InvDcEdge +
+          (SelfAttractionLoading(ICell1) - SelfAttractionLoading(ICell0)) *
+              InvDcEdge;
+
       for (int KVec = 0; KVec < KLen; ++KVec) {
          const I4 K = KStart + KVec;
-         Tend(IEdge, K) += 0.0_Real;
+
+         const Real Alpha0Cell0 = SpecVol(ICell0, K);
+         const Real Alpha0Cell1 = SpecVol(ICell1, K);
+         const Real AlphaPCell0 = SpecVolDPressure(ICell0, K);
+         const Real AlphaPCell1 = SpecVolDPressure(ICell1, K);
+         const Real PMidCell0   = PressureMid(ICell0, K);
+         const Real PMidCell1   = PressureMid(ICell1, K);
+
+         // -alpha*grad(p) - g*grad(z) at the top (J=K) and bottom (J=K+1)
+         // interfaces, then averaged over the layer.
+         Real Acc = 0.0_Real;
+         for (int J = K; J <= K + 1; ++J) {
+            const Real PCell0 = PressureInterface(ICell0, J);
+            const Real PCell1 = PressureInterface(ICell1, J);
+            const Real AlphaCell0 =
+                Alpha0Cell0 + AlphaPCell0 * (PCell0 - PMidCell0);
+            const Real AlphaCell1 =
+                Alpha0Cell1 + AlphaPCell1 * (PCell1 - PMidCell1);
+            const Real AlphaEdge = 0.5_Real * (AlphaCell0 + AlphaCell1);
+            const Real GradP     = (PCell1 - PCell0) * InvDcEdge;
+            const Real GradZ =
+                (GeomZInterface(ICell1, J) - GeomZInterface(ICell0, J)) *
+                InvDcEdge;
+            Acc += -AlphaEdge * GradP - Gravity * GradZ;
+         }
+         Acc *= 0.5_Real;
+
+         Tend(IEdge, K) += EdgeMask(IEdge, K) * (Acc - GradGeoPot);
       }
    }
 
