@@ -137,6 +137,7 @@ design/Metadata
 design/PGrad
 design/IO
 design/IOStreams
+design/RayleighDamping
 design/Reductions
 design/State
 design/StateValidation
