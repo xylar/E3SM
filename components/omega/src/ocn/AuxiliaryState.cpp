@@ -30,7 +30,8 @@ AuxiliaryState::AuxiliaryState(const std::string &Name, const HorzMesh *Mesh,
       VelocityDel2Aux(stripDefault(Name), Mesh, VCoord),
       SurfTracerRestAux(stripDefault(Name), Mesh, NTracers),
       TracerAux(stripDefault(Name), Mesh, VCoord, NTracers),
-      TransportAux(stripDefault(Name), Mesh, VCoord), TimeStep(TimeStep) {
+      TransportAux(stripDefault(Name), Mesh, VCoord),
+      VelocityReconAux(stripDefault(Name), Mesh, VCoord), TimeStep(TimeStep) {
 
    GroupName = "AuxiliaryState";
    if (Name != "Default") {
@@ -45,6 +46,7 @@ AuxiliaryState::AuxiliaryState(const std::string &Name, const HorzMesh *Mesh,
    VorticityAux.registerFields(GroupName, AuxMeshName);
    VelocityDel2Aux.registerFields(GroupName, AuxMeshName);
    SurfTracerRestAux.registerFields(GroupName, AuxMeshName);
+   VelocityReconAux.registerFields(GroupName, AuxMeshName);
    TracerAux.registerFields(GroupName, AuxMeshName);
    TransportAux.registerFields(GroupName, AuxMeshName);
 }
@@ -57,6 +59,7 @@ AuxiliaryState::~AuxiliaryState() {
    VorticityAux.unregisterFields();
    VelocityDel2Aux.unregisterFields();
    SurfTracerRestAux.unregisterFields();
+   VelocityReconAux.unregisterFields();
    TracerAux.unregisterFields();
    TransportAux.unregisterFields();
 
@@ -496,6 +499,38 @@ void AuxiliaryState::computePseudoThicknessTracerAux(
    Pacer::stop("AuxState:computeVerticalPseudoVelocity", 2);
 
    Pacer::stop("AuxState:computePseudoThicknessTracerAux", 1);
+}
+
+// Compute the diagnostic zonal and meridional velocity components at cell
+// centers. These are not used by the Omega equations, so this is kept out
+// of computeAll (which runs once per time stepper stage) and is instead
+// called once per time step.
+void AuxiliaryState::computeVelocityRecon(const OceanState *State,
+                                          int VelTimeLevel) const {
+
+   if (!Mesh->HasVectorRecon)
+      ABORT_ERROR("AuxiliaryState: {} and {} were requested but mesh {} has "
+                  "no vector reconstruction data; the mesh file must supply "
+                  "NEdgesReconOnCell, ReconStencilCell and ReconWeightsCell",
+                  VelocityReconAux.VelocityZonalCell.label(),
+                  VelocityReconAux.VelocityMeridionalCell.label(),
+                  Mesh->MeshName);
+
+   Array2DReal NormalVelEdge = State->getNormalVelocity(VelTimeLevel);
+
+   OMEGA_SCOPE(LocVelocityReconAux, VelocityReconAux);
+
+   Pacer::start("AuxState:computeVelocityRecon", 1);
+
+   // Only owned cells are needed: these are diagnostics written to output,
+   // not inputs to any tendency that would read them in the halo.
+   parallelFor(
+       "velocityReconAuxState", {Mesh->NCellsOwned, VCoord->NVertLayers},
+       KOKKOS_LAMBDA(int ICell, int K) {
+          LocVelocityReconAux.computeVarsOnCell(ICell, K, NormalVelEdge);
+       });
+
+   Pacer::stop("AuxState:computeVelocityRecon", 1);
 }
 
 // Create a non-default auxiliary state

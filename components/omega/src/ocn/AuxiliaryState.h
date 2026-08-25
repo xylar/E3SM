@@ -16,6 +16,7 @@
 #include "auxiliaryVars/TracerAuxVars.h"
 #include "auxiliaryVars/TransportAuxVars.h"
 #include "auxiliaryVars/VelocityDel2AuxVars.h"
+#include "auxiliaryVars/VelocityReconAuxVars.h"
 #include "auxiliaryVars/VorticityAuxVars.h"
 
 #include <memory>
@@ -44,6 +45,7 @@ class AuxiliaryState {
    VelocityDel2AuxVars VelocityDel2Aux;
    SurfTracerRestAuxVars SurfTracerRestAux;
    TransportAuxVars TransportAux;
+   VelocityReconAuxVars VelocityReconAux;
 
    ~AuxiliaryState();
 
@@ -101,6 +103,12 @@ class AuxiliaryState {
    void computeTracerAux(const OceanState *State,
                          const Array3DReal &TracerArray, int ThickTimeLevel,
                          int VelTimeLevel, const TimeInterval ProjDt) const;
+
+   // Compute the diagnostic zonal and meridional velocity components at
+   // cell centers. Unlike the auxiliary variables above, nothing in the
+   // Omega equations uses these, so they are computed once per time step
+   // rather than once per time stepper stage.
+   void computeVelocityRecon(const OceanState *State, int VelTimeLevel) const;
 
    /// Compute all auxiliary variables based on an ocean state at a given time
    /// level
