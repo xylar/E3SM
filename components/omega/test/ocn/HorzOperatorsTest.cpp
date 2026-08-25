@@ -31,17 +31,16 @@ struct TestSetupPlane {
    Real Lx = 1;
    Real Ly = SqrtThree / 2;
 
-   ErrorMeasures ExpectedDivErrors   = {0.00124886886594427027,
-                                        0.00124886886590974385};
-   ErrorMeasures ExpectedGradErrors  = {0.00125026071878537952,
-                                        0.00134354611117262204};
-   ErrorMeasures ExpectedCurlErrors  = {0.161365663569699946,
-                                        0.161348016897141039};
-   ErrorMeasures ExpectedReconErrors = {0.00450897496974901352,
-                                        0.00417367308684470691};
-   // vector reconstruction is spherical-only; unused placeholder kept only
-   // so the (untemplated) test function compiles for all TestSetup variants
-   ErrorMeasures ExpectedVectorReconErrors = {0.0, 0.0};
+   ErrorMeasures ExpectedDivErrors         = {0.00124886886594427027,
+                                              0.00124886886590974385};
+   ErrorMeasures ExpectedGradErrors        = {0.00125026071878537952,
+                                              0.00134354611117262204};
+   ErrorMeasures ExpectedCurlErrors        = {0.161365663569699946,
+                                              0.161348016897141039};
+   ErrorMeasures ExpectedReconErrors       = {0.00450897496974901352,
+                                              0.00417367308684470691};
+   ErrorMeasures ExpectedVectorReconErrors = {0.0911446657908848989,
+                                              0.00564309361227219915};
    ErrorMeasures ExpectedAnisoInterpErrors = {0.0026762081503380526,
                                               0.003058198461518835};
    ErrorMeasures ExpectedIsoInterpErrors   = {0.004279097382993937,
@@ -379,16 +378,11 @@ int testTangentRecon(Real RTol) {
 // values using the least-squares weights/stencil in the mesh and compares
 // the magnitude of the reconstructed vector against the exact magnitude at
 // cell centers. Both the single-layer and the multi-layer form of the
-// operator are exercised. This currently only supports spherical meshes,
-// so it is a no-op for planar meshes.
+// operator are exercised. On a planar mesh the reconstructed components are
+// the Cartesian x and y ones rather than zonal and meridional, which the
+// magnitude comparison here is indifferent to.
 int testVectorRecon(Real RTol) {
    int Err = 0;
-
-   // Vector reconstruction weights/stencil are only available for spherical
-   // meshes (see VectorReconOnCell)
-   if constexpr (Geom != Geometry::Spherical) {
-      return Err;
-   }
 
    TestSetup Setup;
 
