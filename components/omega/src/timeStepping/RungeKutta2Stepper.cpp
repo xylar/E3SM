@@ -40,6 +40,8 @@ void RungeKutta2Stepper::doStep(OceanState *State,   // model state
 
    prescribeState(State, CurLevel, State, CurLevel, SimTime);
 
+   updateKPPFields(State, CurLevel, CurLevel, CurLevel);
+
    // q = (h,u,phi)
    // R_q^{n} = RHS_q(u^{n}, h^{n}, phi^{n}, t^{n})
    Tend->computeAllTendencies(State, AuxState, CurTracerArray, CurLevel,
@@ -74,7 +76,7 @@ void RungeKutta2Stepper::doStep(OceanState *State,   // model state
    Tracers::updateTimeLevels();
    Pacer::stop("RK2:haloExch", 3);
 
-   applyPostStepVerticalMixing(State, CurLevel, CurLevel, CurLevel, "RK2");
+   applyImplicitVerticalMixing(State, CurLevel, CurLevel, CurLevel, "RK2");
 
    validateOceanState(State, AuxState, VertCoord::getDefault(), CurLevel);
 

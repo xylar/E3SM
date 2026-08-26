@@ -5,7 +5,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "RungeKutta4Stepper.h"
-#include "KPPMix.h"
 #include "Pacer.h"
 
 namespace OMEGA {
@@ -88,11 +87,6 @@ void RungeKutta4Stepper::doStep(OceanState *State,   // model state
    Array3DReal NextTracerArray  = Tracers::getAll(NextLevel);
    TimeInstant ForcingStageTime = SimTime;
 
-   const bool StageKPPEnabledPrev = Tend->StageVerticalMixingEnabled;
-   KPPMix *KPPInstance            = KPPMix::getInstance();
-   Tend->StageVerticalMixingEnabled =
-       StageKPPEnabledPrev && KPPInstance && KPPInstance->Enabled;
-
    for (int Stage = 0; Stage < NStages; ++Stage) {
       const TimeInstant StageTime = SimTime + RKC[Stage] * TimeStep;
       // first stage does:
@@ -101,6 +95,7 @@ void RungeKutta4Stepper::doStep(OceanState *State,   // model state
       if (Stage == 0) {
          weightTracers(NextTracerArray, CurTracerArray, State, CurLevel);
          prescribeState(State, CurLevel, State, CurLevel, ForcingStageTime);
+         updateKPPFields(State, CurLevel, CurLevel, CurLevel);
          Tend->computeAllTendencies(State, AuxState, CurTracerArray, CurLevel,
                                     CurLevel, CurLevel, StageTime,
                                     RKProj[Stage] * TimeStep);
@@ -145,9 +140,7 @@ void RungeKutta4Stepper::doStep(OceanState *State,   // model state
    Tracers::updateTimeLevels();
    Pacer::stop("RK4:haloExch", 3);
 
-   // Recompute KPP once on the fully updated state before implicit mixing.
-   applyPostStepVerticalMixing(State, CurLevel, CurLevel, CurLevel, "RK4");
-   Tend->StageVerticalMixingEnabled = StageKPPEnabledPrev;
+   applyImplicitVerticalMixing(State, CurLevel, CurLevel, CurLevel, "RK4");
 
    validateOceanState(State, AuxState, VertCoord::getDefault(), CurLevel);
 
