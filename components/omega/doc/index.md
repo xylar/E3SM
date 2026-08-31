@@ -136,6 +136,7 @@ design/StateValidation
 design/SubmesoscaleEddies
 design/Tendency
 design/Tendencies
+design/Teos10Fits
 design/AuxiliaryVariables
 design/AuxiliaryState
 design/TimeMgr
