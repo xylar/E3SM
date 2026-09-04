@@ -452,6 +452,9 @@ contains
       real (kind=RKIND), dimension(:), pointer :: effectivePressure
       real (kind=RKIND), dimension(:), pointer :: effectivePressureLimited
       real (kind=RKIND), dimension(:), pointer :: muFriction
+      real (kind=RKIND), dimension(:), pointer :: bedRoughnessRC
+      real (kind=RKIND), dimension(:), pointer :: bulkFriction
+      real (kind=RKIND), dimension(:), pointer :: basalDebrisFactor
       real (kind=RKIND), pointer :: deltat
       integer, dimension(:), pointer :: vertexMask, cellMask, edgeMask
       integer, dimension(:,:), pointer :: dirichletVelocityMask
@@ -517,6 +520,9 @@ contains
       call mpas_pool_get_array(velocityPool, 'drivingStressVert', drivingStressVert)
       call mpas_pool_get_array(velocityPool, 'drivingStress', drivingStress)
       call mpas_pool_get_array(velocityPool, 'muFriction', muFriction)
+      call mpas_pool_get_array(velocityPool, 'bedRoughnessRC', bedRoughnessRC)
+      call mpas_pool_get_array(velocityPool, 'bulkFriction', bulkFriction)
+      call mpas_pool_get_array(velocityPool, 'basalDebrisFactor', basalDebrisFactor)
       call mpas_pool_get_array(velocityPool, 'anyDynamicVertexMaskChanged', anyDynamicVertexMaskChanged)
       call mpas_pool_get_array(velocityPool, 'dirichletMaskChanged', dirichletMaskChanged)
       call mpas_pool_get_array(velocityPool, 'dirichletVelocityMask', dirichletVelocityMask, timeLevel = 1)
@@ -599,6 +605,7 @@ contains
           call velocity_solver_solve_FO(bedTopography, lowerSurface, thickness, &
                 betaSolve, sfcMassBal, temperature, stiffnessFactor, &
                 effectivePressureLimited, muFriction, &
+                bedRoughnessRC, bulkFriction, basalDebrisFactor, &
                 uReconstructX, uReconstructY,  &  ! Dirichlet boundary values to apply where dirichletVelocityMask=1
                 normalVelocity, drivingStressVert, dissipationVertexField % array, uReconstructX, uReconstructY, &  ! return values
                 deltat, albanyVelocityErrorTmp)  ! return values
@@ -792,6 +799,9 @@ subroutine li_velocity_external_write_albany_mesh(domain)
       real (kind=RKIND), dimension(:), pointer :: stiffnessFactor
       real (kind=RKIND), dimension(:), pointer :: effectivePressure
       real (kind=RKIND), dimension(:), pointer :: muFriction
+      real (kind=RKIND), dimension(:), pointer :: bedRoughnessRC
+      real (kind=RKIND), dimension(:), pointer :: bulkFriction
+      real (kind=RKIND), dimension(:), pointer :: basalDebrisFactor
       integer, dimension(:,:), pointer :: dirichletVelocityMask
       type (mpas_pool_type), pointer :: meshPool, geometryPool, thermalPool, observationsPool, velocityPool, scratchPool, hydroPool
       real (kind=RKIND), pointer :: config_sea_level, config_ice_density, config_ocean_density
@@ -853,6 +863,9 @@ subroutine li_velocity_external_write_albany_mesh(domain)
       ! Velocity variables
       call mpas_pool_get_array(velocityPool, 'beta', beta)
       call mpas_pool_get_array(velocityPool, 'muFriction', muFriction)
+      call mpas_pool_get_array(velocityPool, 'bedRoughnessRC', bedRoughnessRC)
+      call mpas_pool_get_array(velocityPool, 'bulkFriction', bulkFriction)
+      call mpas_pool_get_array(velocityPool, 'basalDebrisFactor', basalDebrisFactor)
       call mpas_pool_get_array(velocityPool, 'dirichletVelocityMask', dirichletVelocityMask, timeLevel = 1)
       call mpas_pool_get_array(velocityPool, 'stiffnessFactor', stiffnessFactor)
 
@@ -906,6 +919,7 @@ subroutine li_velocity_external_write_albany_mesh(domain)
               surfaceAirTemperature, basalHeatFlux, &
               stiffnessFactor, &
               effectivePressure, muFriction, &
+              bedRoughnessRC, bulkFriction, basalDebrisFactor, &
               thickness, thicknessUncertainty, &
               sfcMassBal, sfcMassBalUncertainty, &
               floatingBasalMassBal, floatingBasalMassBalUncertainty, &
