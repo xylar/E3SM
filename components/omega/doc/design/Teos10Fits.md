@@ -52,10 +52,19 @@ Two things this document deliberately does **not** propose:
 
 - It does not replace the Roquet et al. (2015) 75-term specific volume
   polynomial already implemented in `Eos.h`. That polynomial is itself a
-  published least-squares fit to the full TEOS-10 Gibbs function, it is
-  implemented from the published literature rather than from GSW-C source, and
-  it is very unlikely that refitting it would improve either its accuracy or its
-  cost. The same applies to `calcCtFromPt`, `calcPtFromCt` and `calcCtFreezing`.
+  published least-squares fit to the full TEOS-10 Gibbs function, its
+  coefficients are taken from the paper's appendix rather than from GSW-C
+  source, and it is very unlikely that refitting it would improve either its
+  accuracy or its cost.
+
+  This exemption does **not** extend to the other TEOS-10 functions currently in
+  `Eos.h`. Omega issue #499 flags `calcGibbsDerivPt0Pt0`, `calcPtFromCt`,
+  `calcCtFromPt` and `calcCtFreezing` as likely direct ports of GSW-C code. That
+  is substantiated at least for `calcCtFreezing`, whose coefficients `C0`–`C22`,
+  `A` and `B` are the values of `GSW_FREEZING_POLY_COEFFICIENTS` in GSW-C's
+  `gsw_internal_const.h`, transcribed verbatim under renamed symbols. These four
+  functions are therefore in scope here and are triaged in section 3.1.1 along
+  with everything else.
 - It does not use machine learning. A neural network was considered and
   rejected: the functions of interest are smooth functions of one to three
   variables, a regime where tensor-product polynomial approximation is close to
@@ -229,7 +238,7 @@ the following set of quantities to approximate:
 | $\theta_{Ih}(h_{Ih})$ | potential enthalpy of ice | 1 | inverse of the ice potential enthalpy relation |
 | $h_{Ih}(\theta_{Ih})$ | potential temperature of ice | 1 | ice potential enthalpy at reference pressure |
 | $t(\theta_{Ih}^0, p)$ | ice potential temperature, pressure | 2 | GSW uses up to 6 Newton iterations on the ice Gibbs function |
-| $\Theta_f(S_A, p)$ | absolute salinity, pressure | 2 | already implemented in `Eos.h`; not revisited here |
+| $\Theta_f(S_A, p)$ | absolute salinity, pressure | 2 | in `Eos.h`, but as a verbatim transcription of GSW's coefficients (issue #499); must be re-derived |
 | $h(S_A, \Theta, p)$ | seawater enthalpy | 3 | pressure integral of specific volume; see below |
 
 Everything else — the mixing rules, the regime test, the recovery of $S_A$ and
@@ -249,6 +258,44 @@ the table can in principle be computed from those two potentials by
 differentiation and root-finding, with no reference to GSW-C source at all. GSW's
 `*_poly` functions are simply GSW's own cheap approximations to the same
 standards; they are not the standards, and Omega is free to construct its own.
+
+It is worth being precise about what "published" means here, because the two
+layers are easy to conflate and only one of them is fully public:
+
+- **The standard itself is published.** The seawater and ice Gibbs functions are
+  IAPWS R13-08 and IAPWS R10-06(2009), both freely available as releases from
+  IAPWS and mirrored on the TEOS-10 site, and both restated in the TEOS-10
+  Manual. Every quantity in the table above is *defined* by these, and the
+  thermodynamics of frazil and of ice melting is derived in McDougall et al.
+  (2014). Nothing here requires reading GSW-C.
+- **GSW's polynomial approximations to that standard are only partly
+  published.** Roquet et al. (2015) published theirs, which is why Omega can use
+  it. Most of the rest exist only as coefficients in the code. GSW's own notes
+  on `gsw_frazil_properties_potential_poly` are explicit about the *form*: "we
+  first estimate the ice mass fraction using a polynomial with 36 coefficients.
+  This polynomial is in terms of (normalized values of) $S_A^B$, `func0` and
+  $p$. Every term in the polynomial contains at least the first power of `func0`
+  so that $w_{Ih} \to 0$ as `func0` $\to 0$." The document describes how the
+  polynomial was built, including that its fit was weighted towards the region
+  ocean models actually use, but it lists no coefficient values. The same is
+  true of the 29-coefficient derivative polynomial it describes, and
+  `gsw_pot_enthalpy_ice_freezing_poly` cites only the TEOS-10 Manual and a
+  Newton-method paper for its coefficients.
+
+The decisive point is that **the unpublished layer is precisely the layer Omega
+does not need.** We cannot copy those coefficients, and we do not have to: the
+published layer defines the answer, so Omega can construct its own fits to it
+and use the unmodified GSW-C toolbox as an oracle to check them. The publication
+status of GSW's polynomials determines only how much work this costs, never
+whether Omega is blocked.
+
+Two details in that quotation are worth keeping, because they are the GSW
+authors independently confirming choices this design arrived at separately:
+$(S_A^{bulk}, f_0, p)$ is the right parameterization, the constraint
+$w_{Ih} \to 0$ as $f_0 \to 0$ is the right way to enforce continuity at the
+regime boundary (section 3.3), and weighting the fit towards the region the
+model actually occupies is the right way to keep the order down (requirement
+2.6).
 
 So the honest position is that for this function set the *necessity* test is
 mostly not met, and **the efficiency test is the one that has to be passed.**
@@ -527,10 +574,23 @@ and refuses to emit one justified by efficiency that carries no measurement.
 
 ### 4.4 Relationship to existing code
 
-`Eos.h` is unchanged by this design except that `calcCtFreezing` and its
-derivative are made available to the new functors, since the frazil equilibrium
-solve needs them. The Roquet et al. (2015) specific volume polynomial and the
-conservative/potential temperature conversions stay exactly as they are.
+The Roquet et al. (2015) specific volume polynomial in `Eos.h` stays exactly as
+it is, for the reasons given in section 1.
+
+The four functions flagged by issue #499 — `calcGibbsDerivPt0Pt0`,
+`calcPtFromCt`, `calcCtFromPt` and `calcCtFreezing` — are replaced by
+implementations produced under this design. Each is triaged by the test in
+requirement 2.3 first: where the underlying relation is published, as
+`calcGibbsDerivPt0Pt0` is in IAPWS R13-08, it is rewritten directly from the
+standard and no fit is involved; where only GSW's approximation exists, it is
+refit. The freezing temperature $\Theta_f(S_A, p)$ is on the critical path for
+this design regardless, because the frazil equilibrium solve needs it, so it is
+the first function to be re-derived.
+
+This ordering matters: until $\Theta_f$ has a licence-clean implementation, the
+frazil functors built on top of it inherit the same problem, and the exact
+regime test $f_0 = h^{bulk} - c_p^0\,\Theta_f(S_A^{bulk}, p)$ that the whole
+decomposition in section 3.1 depends on cannot be used.
 
 `Frazil.h` drops its `#include <gswteos-10.h>` and its direct `gsw_*` calls, and
 uses the functors above instead. GSW-C remains a submodule and remains linked
@@ -598,3 +658,47 @@ The existing frazil test in `test/ocn/FrazilTest.cpp` continues to pass with the
 fitted functions in place of the direct GSW-C calls, within a tolerance widened
 to the composite tolerance declared in 5.4. This is the end-to-end check that
 the replacement is fit for its purpose.
+
+## 6 References
+
+Primary standards, all freely available and sufficient to define every quantity
+in this document without reference to GSW-C source:
+
+- IAPWS, 2008: *Release on the IAPWS Formulation 2008 for the Thermodynamic
+  Properties of Seawater* (R13-08).
+  <https://iapws.org/documents/release/Seawater> ·
+  <https://www.teos-10.org/pubs/IAPWS-08.pdf>
+- IAPWS, 2009: *Revised Release on the Equation of State 2006 for H2O Ice Ih*
+  (R10-06(2009)). <https://iapws.org/documents/release/Ice-2009>
+- Feistel, R. and W. Wagner, 2006: A new equation of state for H2O ice Ih.
+  *J. Phys. Chem. Ref. Data*, **35**, 1021–1047.
+  <https://www.teos-10.org/pubs/Feistel_and_Wagner_2006.pdf>
+- IOC, SCOR and IAPSO, 2010: *The international thermodynamic equation of
+  seawater – 2010: Calculation and use of thermodynamic properties.*
+  Intergovernmental Oceanographic Commission, Manuals and Guides No. 56, UNESCO.
+  <https://www.teos-10.org/pubs/TEOS-10_Manual.pdf>
+- McDougall, T. J., P. M. Barker, R. Feistel and B. K. Galton-Fenzi, 2014:
+  Melting of ice and sea ice into seawater and frazil ice formation.
+  *J. Phys. Oceanogr.*, **44**, 1751–1775.
+  <https://doi.org/10.1175/JPO-D-13-0253.1>
+- McDougall, T. J. and S. J. Wotherspoon, 2014: A simple modification of
+  Newton's method to achieve convergence of order $1 + \sqrt{2}$.
+  *Appl. Math. Lett.*, **29**, 20–25.
+  <https://doi.org/10.1016/j.aml.2013.10.008>
+
+Published polynomial approximation Omega already relies on:
+
+- Roquet, F., G. Madec, T. J. McDougall and P. M. Barker, 2015: Accurate
+  polynomial expressions for the density and specific volume of seawater using
+  the TEOS-10 standard. *Ocean Modelling*, **90**, 29–43.
+  <https://doi.org/10.1016/j.ocemod.2015.04.002>
+
+Method description without coefficient values, cited in section 3.1.1:
+
+- TEOS-10: *Notes on gsw_frazil_properties_potential_poly*.
+  <https://www.teos-10.org/pubs/gsw/pdf/frazil_properties_potential_poly.pdf>
+
+Licence:
+
+- *Licence for the use of the Gibbs SeaWater (GSW) Oceanographic Toolbox*,
+  SCOR/IAPSO WG127. <https://github.com/TEOS-10/GSW-C/blob/main/LICENSE>
