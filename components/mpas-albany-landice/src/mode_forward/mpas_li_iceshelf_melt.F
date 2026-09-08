@@ -1415,13 +1415,45 @@ module li_iceshelf_melt
 !> explores, and K absorbs any constant offset in any case; agreement with the
 !> reference implementation is a sanity check, not a requirement.
 !>
-!> Compared with iceshelf_melt_ismip6 this is a *local* parameterization:
-!> the second thermal-forcing factor is the local value rather than a basin
-!> mean, so no global reduction is needed and no basin mask is used.  The
-!> slope and the Coriolis parameter are taken as constants, matching the
-!> reference implementation the ISMIP7 protocol calibrated against; K absorbs
-!> both, so a K calibrated with one convention must be used with that same
-!> convention.
+!> Only the *local* form, Eq. (1), is provided: the salinity and the |TF|
+!> amplitude are local values, so no global reduction is needed.
+!>
+!> The protocol also permits the semi-local form of Eq. (2), which replaces
+!> both with shelf- or basin-wide averages.  That is deliberately not
+!> implemented, and should not be added without reading this.  With the
+!> salinity held constant it is *algebraically identical* to the ISMIP6
+!> non-local method already in this module: both are
+!> C * (TF_loc + dT) * |<TF> + dT|, differing only in how the constant C is
+!> decomposed, so every K has an exactly equivalent gamma0.  With a basin-mean
+!> salinity the two differ by under 1% per basin, which the per-basin dT
+!> absorbs.  Implementing it would add a second code path, and a global
+!> reduction, to compute what iceshelf_melt_ismip6 already computes; use
+!> config_basal_mass_bal_float = 'ismip6' for that behaviour.
+!>
+!> The local form is the one that genuinely differs: replacing |<TF>| with
+!> |TF_loc| changes the spatial pattern of melt in a way no per-basin constant
+!> can reproduce.
+!>
+!> The basin-wide temperature correction ismip6shelfMelt_deltaT is applied
+!> wherever the thermal forcing appears, as protocol Sect. 4.2.1 prescribes,
+!> exactly as in iceshelf_melt_ismip6.  It defaults to zero, which is what the
+!> calibration uses -- fitting dT_b before K leaves the parameter bounds
+!> unconstrained -- but production runs are expected to use non-zero values.
+!>
+!> Melt is exactly linear in K, since dT_b does not depend on it.  That is what
+!> lets dT_b be fitted after K rather than jointly with it.
+!>
+!> The slope and the Coriolis parameter are taken as constants, matching the
+!> reference implementation the ISMIP7 protocol calibrated against.  With a
+!> constant slope, sin(theta) is simply a dimensionless coefficient
+!> multiplying K -- only the product affects the melt -- and it is kept
+!> separate only so that K stays comparable with published values.  A
+!> *locally varying* slope, which Eq. (1) also permits, is deliberately not
+!> implemented: MALI-Dev/E3SM PR #48 tried that on the ISMIP6 method and found
+!> a feedback between basal slope and melt rate that melted holes in ice
+!> shelves as thermal forcing rose.  K also absorbs the slope and the Coriolis
+!> parameter, so a K calibrated with one convention must be used with that
+!> same convention.
 !>
 !> Melt is exactly linear in K for a fixed geometry, which is what allows a
 !> calibration ensemble to use one model run per ocean state rather than one
@@ -1456,12 +1488,14 @@ module li_iceshelf_melt
       real (kind=RKIND), dimension(:,:), pointer :: TFocean3d, Socean3d
       real (kind=RKIND), dimension(:), pointer :: zOcean
       real (kind=RKIND), dimension(:), pointer :: TFdraft, Sdraft
+      real (kind=RKIND), dimension(:), pointer :: deltaT
       real (kind=RKIND), dimension(:), pointer :: lowerSurface
       real (kind=RKIND), dimension(:), pointer :: bedTopography
       real (kind=RKIND), dimension(:), pointer :: floatingBasalMassBal
+      real (kind=RKIND), dimension(:), pointer :: areaCell
       integer, dimension(:), pointer :: cellMask, indexToCellID
       integer, dimension(:), pointer :: connectedOceanMask
-      real (kind=RKIND) :: coef, wDeep, wShallow
+      real (kind=RKIND) :: coef, wDeep, wShallow, TF_local
 
       err = 0
 
@@ -1496,6 +1530,7 @@ module li_iceshelf_melt
 
       call mpas_log_write("iceshelf_melt_ismip7: K=$r, sin(slope)=$r, |f|=$r", &
          realArgs=(/meltK, sinSlope, coriolis/))
+      call mpas_log_write("iceshelf_melt_ismip7: local form, Eq. (1)")
 
       block => domain % blocklist
       do while (associated(block))
@@ -1516,6 +1551,9 @@ module li_iceshelf_melt
          call mpas_pool_get_array(geometryPool, 'floatingBasalMassBal', floatingBasalMassBal)
          call mpas_pool_get_array(geometryPool, 'cellMask', cellMask)
          call mpas_pool_get_array(geometryPool, 'connectedOceanMask', connectedOceanMask)
+         call mpas_pool_get_array(geometryPool, 'ismip6shelfMelt_deltaT', deltaT)
+
+         floatingBasalMassBal(:) = 0.0_RKIND
 
          ! Check zOcean for valid values
          if (minval(zOcean) >= 0.0_RKIND) then
@@ -1523,8 +1561,6 @@ module li_iceshelf_melt
                "but min value >= 0.0 was found", MPAS_LOG_ERR)
             err = ior(err, 1)
          endif
-
-         floatingBasalMassBal(:) = 0.0_RKIND
 
          do iCell = 1, nCellsSolve
 
@@ -1578,12 +1614,18 @@ module li_iceshelf_melt
                   endif
                endif
 
+               ! The basin-wide temperature correction is applied wherever the
+               ! thermal forcing appears, as protocol Sect. 4.2.1 prescribes:
+               ! melt rates are calculated using TF_loc + dT_b instead of
+               ! TF_loc.  This matches iceshelf_melt_ismip6.
+               TF_local = TFdraft(iCell) + deltaT(iCell)
+
                ! Protocol Eq. (1).  Negative floatingBasalMassBal is melting,
                ! so the sign is flipped relative to the melt rate m.  Melting
                ! where TF > 0 and refreezing where TF < 0 follows from the
-               ! |TF| TF factor keeping the sign of TF.
+               ! |TF| TF factor keeping the sign of the local TF.
                floatingBasalMassBal(iCell) = -1.0_RKIND * coef * Sdraft(iCell) &
-                  * abs(TFdraft(iCell)) * TFdraft(iCell)
+                  * abs(TF_local) * TF_local
 
             else
                TFdraft(iCell) = 0.0_RKIND
