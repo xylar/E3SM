@@ -1483,6 +1483,9 @@ module li_iceshelf_melt
       integer, pointer :: nOceanLayers, nCellsSolve
       real (kind=RKIND), pointer :: rhoi, rhosw
       real (kind=RKIND), pointer :: meltK, sinSlope, coriolis
+      real (kind=RKIND), pointer :: constSalinity
+      character (len=StrKIND), pointer :: salinitySource
+      logical :: useDataSalinity
       type (block_type), pointer :: block
       type (mpas_pool_type), pointer :: geometryPool, meshPool
       real (kind=RKIND), dimension(:,:), pointer :: TFocean3d, Socean3d
@@ -1504,9 +1507,27 @@ module li_iceshelf_melt
       call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_K', meltK)
       call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_sin_slope', sinSlope)
       call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_coriolis', coriolis)
+      call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_salinity', constSalinity)
+      call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_salinity_source', salinitySource)
 
       if (coriolis <= 0.0_RKIND) then
          call mpas_log_write("iceshelf_melt_ismip7: config_ismip7_melt_coriolis must be positive", MPAS_LOG_ERR)
+         err = ior(err, 1)
+         return
+      endif
+
+      if (trim(salinitySource) == 'data') then
+         useDataSalinity = .true.
+      elseif (trim(salinitySource) == 'constant') then
+         useDataSalinity = .false.
+         if (constSalinity <= 0.0_RKIND) then
+            call mpas_log_write("iceshelf_melt_ismip7: config_ismip7_melt_salinity must be positive", MPAS_LOG_ERR)
+            err = ior(err, 1)
+            return
+         endif
+      else
+         call mpas_log_write("iceshelf_melt_ismip7: config_ismip7_melt_salinity_source must be " // &
+            "'constant' or 'data', but is '" // trim(salinitySource) // "'", MPAS_LOG_ERR)
          err = ior(err, 1)
          return
       endif
@@ -1531,6 +1552,12 @@ module li_iceshelf_melt
       call mpas_log_write("iceshelf_melt_ismip7: K=$r, sin(slope)=$r, |f|=$r", &
          realArgs=(/meltK, sinSlope, coriolis/))
       call mpas_log_write("iceshelf_melt_ismip7: local form, Eq. (1)")
+      if (useDataSalinity) then
+         call mpas_log_write("iceshelf_melt_ismip7: salinity from ismip7shelfMelt_3dSalinity, " // &
+            "interpolated to the ice draft")
+      else
+         call mpas_log_write("iceshelf_melt_ismip7: constant salinity S=$r PSU", realArgs=(/constSalinity/))
+      endif
 
       block => domain % blocklist
       do while (associated(block))
@@ -1612,6 +1639,15 @@ module li_iceshelf_melt
                      TFdraft(iCell) = wDeep * TFocean3d(kinf, iCell) + wShallow * TFocean3d(ksup, iCell)
                      Sdraft(iCell) = wDeep * Socean3d(kinf, iCell) + wShallow * Socean3d(ksup, iCell)
                   endif
+               endif
+
+               ! With a constant salinity the interpolated value is discarded.
+               ! The interpolation above is deliberately left alone rather
+               ! than made conditional, so that its four code paths stay
+               ! exactly as they were verified against the protocol's
+               ! reference implementation.
+               if (.not. useDataSalinity) then
+                  Sdraft(iCell) = constSalinity
                endif
 
                ! The basin-wide temperature correction is applied wherever the
