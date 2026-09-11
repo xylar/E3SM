@@ -208,9 +208,9 @@ void VertAdv::defineFields() {
        DimNames                             // dimension names
    );
 
-   NDims = 3;
-   DimNames.resize(NDims);
-   DimNames[2] = "NTracers";
+   // The flux arrays are dimensioned (NTracers, NCells, NVertLayersP1)
+   NDims    = 3;
+   DimNames = {"NTracers", "NCells", "NVertLayersP1"};
 
    auto VertFluxField = Field::create(
        VertFluxFldName,                                           // field name
