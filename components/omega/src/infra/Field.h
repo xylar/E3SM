@@ -38,6 +38,10 @@ using Metadata = std::map<std::string, std::any>;
 static const std::string CodeMeta{"code"}; ///< name for code metadata
 /// Field name to use for global simulation metadata
 static const std::string SimMeta{"simulation"}; ///< name for sim metatdata
+/// Value written as the Conventions global attribute of every output file.
+/// CF-1.8 is the newest version the current CF checker release validates;
+/// Omega uses no features introduced after it.
+static const std::string CFConventions{"CF-1.8"};
 
 //------------------------------------------------------------------------------
 /// The Field class manages all metadata and attached data for OMEGA fields
