@@ -40,6 +40,9 @@ void Field::init(const Clock *ModelClock // [in] default model clock
    std::shared_ptr<Field> CodeField = create(CodeMeta);
    std::shared_ptr<Field> SimField  = create(SimMeta);
 
+   // Declare the metadata conventions followed by all Omega output files
+   CodeField->addMetadata("Conventions", CFConventions);
+
    // Define an unlimited time dimension for many time-dependent fields
    // for CF-compliant output
    auto TimeDim = Dimension::create("time", IO::Unlimited);

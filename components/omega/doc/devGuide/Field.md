@@ -22,7 +22,10 @@ Fields initialized with the init method:
 ```c++
 Field::init();
 ```
-which primarily defines the CodeMeta and SimMeta fields for later use.
+which primarily defines the CodeMeta and SimMeta fields for later use. The
+CodeMeta field is created with a `Conventions` entry (the `CFConventions`
+constant in `Field.h`, currently `CF-1.8`) so that every output file declares
+the metadata conventions it follows.
 For array fields, the appropriate Dimensions must be defined. The default
 dimensions (eg NCells, NEdges, NVertLayers) will be defined by the relevant
 Mesh initialization and should be done before any Fields are defined.
