@@ -163,25 +163,25 @@ void VertAdv::defineFields() {
                                                                   // or
                                                                   // description
        "m s-1",                                                   // units
-       "",                               // CF standard Name
-       std::numeric_limits<Real>::min(), // min valid value
-       std::numeric_limits<Real>::max(), // max valid value
-       NDims,                            // number of dimensions
-       DimNames                          // dimension names
+       "",                                  // CF standard Name
+       std::numeric_limits<Real>::lowest(), // min valid value
+       std::numeric_limits<Real>::max(),    // max valid value
+       NDims,                               // number of dimensions
+       DimNames                             // dimension names
    );
 
    auto VerticalTransportPseudoVelocityField =
        Field::create(VerticalTransportPseudoVelocityFldName, // field name
                      "Vertical transport pseudo-velocity across a "
-                     "pseudo-height surface",          // long name
-                                                       // or
-                                                       // description
-                     "m s-1",                          // units
-                     "",                               // CF standard Name
-                     std::numeric_limits<Real>::min(), // min valid value
-                     std::numeric_limits<Real>::max(), // max valid value
-                     NDims,                            // number of dimensions
-                     DimNames                          // dimension names
+                     "pseudo-height surface",             // long name
+                                                          // or
+                                                          // description
+                     "m s-1",                             // units
+                     "",                                  // CF standard Name
+                     std::numeric_limits<Real>::lowest(), // min valid value
+                     std::numeric_limits<Real>::max(),    // max valid value
+                     NDims,   // number of dimensions
+                     DimNames // dimension names
        );
 
    auto TotalVertPseudoVelocityField =
@@ -190,22 +190,22 @@ void VertAdv::defineFields() {
                      "pseudo-height surface", // long name or description
                      "m s-1",                 // units
                      "",                      // CF standard Name
-                     std::numeric_limits<Real>::min(), // min valid value
-                     std::numeric_limits<Real>::max(), // max valid value
-                     NDims,                            // number of dimensions
-                     DimNames                          // dimension names
+                     std::numeric_limits<Real>::lowest(), // min valid value
+                     std::numeric_limits<Real>::max(),    // max valid value
+                     NDims,   // number of dimensions
+                     DimNames // dimension names
        );
 
    auto TotalVertTransportPseudoVelocityField = Field::create(
        TotalVertTransportPseudoVelocityFldName, // field name
        "Total vertical transport pseudo-velocity across a moving, tilted "
-       "pseudo-height surface",          // long name or description
-       "m s-1",                          // units
-       "",                               // CF standard Name
-       std::numeric_limits<Real>::min(), // min valid value
-       std::numeric_limits<Real>::max(), // max valid value
-       NDims,                            // number of dimensions
-       DimNames                          // dimension names
+       "pseudo-height surface",             // long name or description
+       "m s-1",                             // units
+       "",                                  // CF standard Name
+       std::numeric_limits<Real>::lowest(), // min valid value
+       std::numeric_limits<Real>::max(),    // max valid value
+       NDims,                               // number of dimensions
+       DimNames                             // dimension names
    );
 
    NDims = 3;
@@ -218,23 +218,23 @@ void VertAdv::defineFields() {
                                                                   // or
                                                                   // description
        "",                                                        // units
-       "",                               // CF standard Name
-       std::numeric_limits<Real>::min(), // min valid value
-       std::numeric_limits<Real>::max(), // max valid value
-       NDims,                            // number of dimensions
-       DimNames                          // dimension names
+       "",                                  // CF standard Name
+       std::numeric_limits<Real>::lowest(), // min valid value
+       std::numeric_limits<Real>::max(),    // max valid value
+       NDims,                               // number of dimensions
+       DimNames                             // dimension names
    );
 
    auto LowOrderVertFluxField = Field::create(
        LowOrderVertFluxFldName, // field name
        "Low-order vertical flux of tracers across a pseudo-height "
-       "surface",                        // long name or description
-       "",                               // units
-       "",                               // CF standard Name
-       std::numeric_limits<Real>::min(), // min valid value
-       std::numeric_limits<Real>::max(), // max valid value
-       NDims,                            // number of dimensions
-       DimNames                          // dimension names
+       "surface",                           // long name or description
+       "",                                  // units
+       "",                                  // CF standard Name
+       std::numeric_limits<Real>::lowest(), // min valid value
+       std::numeric_limits<Real>::max(),    // max valid value
+       NDims,                               // number of dimensions
+       DimNames                             // dimension names
    );
 
    GroupName = "VertAdv";

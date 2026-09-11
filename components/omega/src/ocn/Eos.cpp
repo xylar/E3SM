@@ -458,7 +458,7 @@ void Eos::defineFields() {
        "Brunt-Vaisala frequency squared",                // Long Name
        "s-2",                                            // Units
        "square_of_brunt_vaisala_frequency_in_sea_water", // CF name
-       std::numeric_limits<Real>::min(),                 // Min valid value
+       std::numeric_limits<Real>::lowest(),              // Min valid value
        std::numeric_limits<Real>::max(),                 // Max valid value
        NDims,                                            // Number of dimensions
        DimNames                                          // Dimension names
