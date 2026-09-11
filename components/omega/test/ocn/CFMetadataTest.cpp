@@ -14,9 +14,13 @@
 ///      standard_name has the form of a CF standard name
 ///   3. valid_min does not exceed valid_max and is not a tiny positive number
 ///      (the smallest positive Real, which excludes every negative value)
-///   4. The global code metadata declares the Conventions attribute
-///   5. A file written through IOStream carries the Conventions attribute and
-///      no empty or malformed units or standard_name attributes
+///   4. No field carries the retired non-CF duplicates of the standard
+///      attributes (Name, name, Description, Units, StdName, ValidMin,
+///      ValidMax)
+///   5. The global code metadata declares the Conventions attribute
+///   6. A file written through IOStream carries the Conventions attribute, no
+///      empty or malformed units or standard_name attributes and none of the
+///      retired duplicates
 ///
 /// The standard names themselves can only be validated against the CF
 /// standard name table, which is left to an external CF checker.
@@ -52,6 +56,7 @@
 #include "mpi.h"
 #include "yaml-cpp/yaml.h"
 
+#include <algorithm>
 #include <fstream>
 #include <netcdf.h>
 #include <regex>
@@ -92,6 +97,16 @@ bool isCFPlainFormUnits(const std::string &Units) {
 bool isCFStandardNameForm(const std::string &StdName) {
    static const std::regex NameForm("[a-z][a-z0-9_]*");
    return std::regex_match(StdName, NameForm);
+}
+
+//------------------------------------------------------------------------------
+// Returns true if an attribute name is one of the non-CF duplicates of the
+// standard attributes that Omega used to write alongside the CF ones
+bool isRetiredAttribute(const std::string &AttName) {
+   static const std::vector<std::string> Retired = {
+       "Name",    "name",     "Description", "Units",
+       "StdName", "ValidMin", "ValidMax"};
+   return std::find(Retired.begin(), Retired.end(), AttName) != Retired.end();
 }
 
 //------------------------------------------------------------------------------
@@ -247,6 +262,15 @@ int checkFieldMetadata() {
          }
       }
 
+      // Retired duplicates of the standard attributes must not be present
+      for (const auto &MetaPair : *AllMeta) {
+         if (isRetiredAttribute(MetaPair.first)) {
+            LOG_ERROR("CFMetadataTest: field {} has retired attribute {}",
+                      FieldName, MetaPair.first);
+            Bad = true;
+         }
+      }
+
       // Valid range: min must not exceed max, and a tiny positive min is the
       // signature of numeric_limits::min() used where lowest() was meant
       auto MinIt = AllMeta->find("valid_min");
@@ -342,6 +366,18 @@ int checkFileMetadata(const std::string &FileName) {
                    "that is empty or not of CF form",
                    FileName, VarName, StdName);
          ++NBad;
+      }
+
+      int NAtts = 0;
+      nc_inq_varnatts(NcID, VarID, &NAtts);
+      for (int AttID = 0; AttID < NAtts; ++AttID) {
+         char AttNameBuf[NC_MAX_NAME + 1];
+         nc_inq_attname(NcID, VarID, AttID, AttNameBuf);
+         if (isRetiredAttribute(AttNameBuf)) {
+            LOG_ERROR("CFMetadataTest: {} variable {} has retired attribute {}",
+                      FileName, VarName, AttNameBuf);
+            ++NBad;
+         }
       }
    }
 

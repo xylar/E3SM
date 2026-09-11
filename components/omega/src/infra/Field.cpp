@@ -114,29 +114,20 @@ Field::create(const std::string &FieldName,   // [in] Name of variable/field
    // Create an empty Field
    auto ThisField = std::make_shared<Field>();
 
-   // Add field name to the instance (also added as metadata below)
+   // Add field name to the instance
    ThisField->FldName = FieldName;
 
-   // Add standard metadata. For some CF standard attributes, we
-   // also duplicate the metadata under the CF standard attribute name.
+   // Add standard metadata under the CF attribute names. The name is not
+   // stored as metadata since it is the netCDF variable name itself.
    // Units and standard name are omitted entirely when empty: CF rejects an
    // empty standard_name and treats a missing units attribute as
    // dimensionless or not applicable, while an empty one is just noise.
-   ThisField->FieldMeta["Name"]        = FieldName;
-   ThisField->FieldMeta["name"]        = FieldName;
-   ThisField->FieldMeta["Description"] = Description;
-   ThisField->FieldMeta["long_name"]   = Description;
-   if (!Units.empty()) {
-      ThisField->FieldMeta["Units"] = Units;
+   ThisField->FieldMeta["long_name"] = Description;
+   if (!Units.empty())
       ThisField->FieldMeta["units"] = Units;
-   }
-   if (!StdName.empty()) {
-      ThisField->FieldMeta["StdName"]       = StdName;
+   if (!StdName.empty())
       ThisField->FieldMeta["standard_name"] = StdName;
-   }
-   ThisField->FieldMeta["ValidMin"]  = ValidMin;
    ThisField->FieldMeta["valid_min"] = ValidMin;
-   ThisField->FieldMeta["ValidMax"]  = ValidMax;
    ThisField->FieldMeta["valid_max"] = ValidMax;
 
    // Set the time-dependent flag
