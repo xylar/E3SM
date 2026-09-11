@@ -417,8 +417,8 @@ void Eos::defineFields() {
    auto SpecVolDCtField = Field::create(
        SpecVolDCtFldName, // Field name
        "Derivative of specific volume with respect to conservative "
-       "temperature",    // Long Name
-       "m3 kg-1 degC-1", // Units
+       "temperature", // Long Name
+       "m3 kg-1 K-1", // Units
        // CF-ish Name
        "sea_water_specific_volume_derivative_wrt_conservative_temperature",
        std::numeric_limits<Real>::lowest(), // Min valid value
