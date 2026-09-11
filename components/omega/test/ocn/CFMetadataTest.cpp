@@ -1,5 +1,4 @@
-//===-- Test driver for Omega CF metadata ------------------------*- C++
-//-*-===//
+//===-- Test driver for Omega CF metadata ---------------------*- C++ -*-===//
 //
 /// \file
 /// \brief Test driver for CF compliance of Omega field and file metadata
