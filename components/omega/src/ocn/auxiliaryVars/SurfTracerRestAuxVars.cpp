@@ -36,10 +36,10 @@ void SurfTracerRestAuxVars::registerFields(
                      "monthly surface tracer climatology", // long name/describe
                      "", // units (differ by tracer)
                      "", // CF standard Name
-                     std::numeric_limits<Real>::min(), // min valid value
-                     std::numeric_limits<Real>::max(), // max valid value
-                     NDims,                            // number of dimensions
-                     DimNames);                        // dim names
+                     std::numeric_limits<Real>::lowest(), // min valid value
+                     std::numeric_limits<Real>::max(),    // max valid value
+                     NDims,     // number of dimensions
+                     DimNames); // dim names
 
    // Add fields to FieldGroup
    FieldGroup::addFieldToGroup(TracersMonthlySurfClimoCell.label(),

@@ -610,7 +610,7 @@ void HorzMesh::defineMeshFields() {
                      "X Coordinates of cell centers (m)", // long Name
                      "m",                                 // units
                      "",                                  // CF standard Name
-                     0.0,                                 // min valid value
+                     -7.0E+6,                             // min valid value
                      7.0E+6,                              // max valid value
                      NDims,                               // num of dimensions
                      DimNames,                            // dimension names
@@ -626,7 +626,7 @@ void HorzMesh::defineMeshFields() {
                      "Y Coordinates of cell centers (m)", // long Name
                      "m",                                 // units
                      "",                                  // CF standard Name
-                     0.0,                                 // min valid value
+                     -7.0E+6,                             // min valid value
                      7.0E+6,                              // max valid value
                      NDims,                               // num of dimensions
                      DimNames,                            // dimension names
@@ -642,7 +642,7 @@ void HorzMesh::defineMeshFields() {
                      "Z Coordinates of cell centers (m)", // long Name
                      "m",                                 // units
                      "",                                  // CF standard Name
-                     0.0,                                 // min valid value
+                     -7.0E+6,                             // min valid value
                      7.0E+6,                              // max valid value
                      NDims,                               // num of dimensions
                      DimNames,                            // dimension names
@@ -692,7 +692,7 @@ void HorzMesh::defineMeshFields() {
                      "X Coordinates of cell edges (m)", // long Name
                      "m",                               // units
                      "",                                // CF standard Name
-                     0.0,                               // min valid value
+                     -7.0E+6,                           // min valid value
                      7.0E+6,                            // max valid value
                      NDims,                             // num of dimensions
                      DimNames,                          // dimension names
@@ -708,7 +708,7 @@ void HorzMesh::defineMeshFields() {
                      "Y Coordinates of cell edges (m)", // long Name
                      "m",                               // units
                      "",                                // CF standard Name
-                     0.0,                               // min valid value
+                     -7.0E+6,                           // min valid value
                      7.0E+6,                            // max valid value
                      NDims,                             // num of dimensions
                      DimNames,                          // dimension names
@@ -724,7 +724,7 @@ void HorzMesh::defineMeshFields() {
                      "Z Coordinates of cell edges (m)", // long Name
                      "m",                               // units
                      "",                                // CF standard Name
-                     0.0,                               // min valid value
+                     -7.0E+6,                           // min valid value
                      7.0E+6,                            // max valid value
                      NDims,                             // num of dimensions
                      DimNames,                          // dimension names
@@ -774,7 +774,7 @@ void HorzMesh::defineMeshFields() {
                      "X Coordinates of cell vertices (m)", // long Name
                      "m",                                  // units
                      "",                                   // CF standard Name
-                     0.0,                                  // min valid value
+                     -7.0E+6,                              // min valid value
                      7.0E+6,                               // max valid value
                      NDims,                                // num of dimensions
                      DimNames,                             // dimension names
@@ -790,7 +790,7 @@ void HorzMesh::defineMeshFields() {
                      "Y Coordinates of cell vertices (m)", // long Name
                      "m",                                  // units
                      "",                                   // CF standard Name
-                     0.0,                                  // min valid value
+                     -7.0E+6,                              // min valid value
                      7.0E+6,                               // max valid value
                      NDims,                                // num of dimensions
                      DimNames,                             // dimension names
@@ -806,7 +806,7 @@ void HorzMesh::defineMeshFields() {
                      "Z Coordinates of cell vertices (m)", // long Name
                      "m",                                  // units
                      "",                                   // CF standard Name
-                     0.0,                                  // min valid value
+                     -7.0E+6,                              // min valid value
                      7.0E+6,                               // max valid value
                      NDims,                                // num of dimensions
                      DimNames,                             // dimension names

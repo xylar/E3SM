@@ -52,7 +52,7 @@ void VelocityDel2AuxVars::registerFields(const std::string &AuxGroupName,
        "laplacian of horizontal velocity on edges", // long Name or description
        "m-1 s-1",                                   // units
        "",                                          // CF standard Name
-       std::numeric_limits<Real>::min(),            // min valid value
+       std::numeric_limits<Real>::lowest(),         // min valid value
        std::numeric_limits<Real>::max(),            // max valid value
        NDims,                                       // number of dimensions
        DimNames                                     // dimension names
@@ -66,10 +66,10 @@ void VelocityDel2AuxVars::registerFields(const std::string &AuxGroupName,
                      "on cells", // long Name or description
                      "m-2 s-1",  // units
                      "",         // CF standard Name
-                     std::numeric_limits<Real>::min(), // min valid value
-                     std::numeric_limits<Real>::max(), // max valid value
-                     NDims,                            // number of dimensions
-                     DimNames                          // dimension names
+                     std::numeric_limits<Real>::lowest(), // min valid value
+                     std::numeric_limits<Real>::max(),    // max valid value
+                     NDims,   // number of dimensions
+                     DimNames // dimension names
        );
 
    // Del2 of relative vorticity on vertices
@@ -79,7 +79,7 @@ void VelocityDel2AuxVars::registerFields(const std::string &AuxGroupName,
        "laplacian of relative vorticity at vertices", // long name, description
        "m-2 s-1",                                     // units
        "",                                            // CF standard Name
-       std::numeric_limits<Real>::min(),              // min valid value
+       std::numeric_limits<Real>::lowest(),           // min valid value
        std::numeric_limits<Real>::max(),              // max valid value
        NDims,                                         // number of dimensions
        DimNames                                       // dimension names
