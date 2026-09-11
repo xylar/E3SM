@@ -43,12 +43,22 @@ Fields are created with standard metadata using
                  RetainPrecision ///< [in] (opt, false) retain full prec in IO
    );
 ```
-This interface enforces a list of required metadata. If a CF standard name does
-not exist, an empty string can be provided. This is uncommon for most fields
-since the CF conventions maintain a fairly complete list, but can be the case
-for some intermediate calculations or unique analyses. If there is no
+This interface enforces a list of required metadata. The units string must be
+one that [udunits](https://docs.unidata.ucar.edu/udunits/current/) can parse,
+written in the plain form used by the CF standard name table: factors separated
+by spaces, each with a signed integer exponent and no caret, slash or braces
+(`m s-1`, `m-2 s-1`, `N m-2`, `m3 kg-1`, `degree_C`). A dimensionless quantity
+uses `1`. Fields that have no meaningful units (for example, an array holding
+several tracers with different units) or no CF standard name should pass an
+empty string, in which case the corresponding attribute is not written at all;
+the CF conventions reject an empty `standard_name`. A standard name is only
+valid if it appears in the
+[CF standard name table](https://cfconventions.org/standard-names.html), so
+do not invent descriptive names. If there is no
 restriction on valid range, an appropriately large range should be provided for
-the data type. The fill value is not specified when creating a field; it is
+the data type (`std::numeric_limits<Real>::lowest()` for the minimum of a
+signed quantity; `min()` is the smallest *positive* value and would mark every
+negative entry invalid). The fill value is not specified when creating a field; it is
 automatically deduced from the element type of the array passed to
 `attachData()` and set to the corresponding standard constant from `FillValues.h`
 (`FillValueI4`, `FillValueI8`, `FillValueR4`, or `FillValueR8`). These match

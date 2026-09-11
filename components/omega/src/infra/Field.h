@@ -124,8 +124,10 @@ class Field {
    /// interface for most fields in Omega. It enforces a list of required
    /// metadata. Note that if input parameters don't exist
    /// (eg stdName) or don't make sense (eg min/max or fill) for a
-   /// given field, empty or 0 entries can be provided. Actual field data is
-   /// attached in a separate call and additional metadata can be added later.
+   /// given field, empty or 0 entries can be provided. Empty units or
+   /// standard name are not stored, so no empty attribute is written.
+   /// Actual field data is attached in a separate call and additional
+   /// metadata can be added later.
    static std::shared_ptr<Field>
    create(const std::string &FieldName,   ///< [in] Name of variable/field
           const std::string &Description, ///< [in] long Name or description

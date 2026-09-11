@@ -75,7 +75,8 @@ bool Field::exists(const std::string &FieldName // [in] name of field
 // interface for most fields in Omega. It enforces a list of required
 // metadata. Note that if input parameters do not exist
 // (eg stdName) or do not make sense (eg min/max or fill) for a
-// given field, empty or 0 entries can be provided. Actual field data is
+// given field, empty or 0 entries can be provided. Empty units or standard
+// name are not stored, so no empty attribute is written. Actual field data is
 // attached in a separate call and additional metadata can be added later.
 
 std::shared_ptr<Field>
@@ -104,19 +105,26 @@ Field::create(const std::string &FieldName,   // [in] Name of variable/field
    ThisField->FldName = FieldName;
 
    // Add standard metadata. For some CF standard attributes, we
-   // also duplicate the metadata under the CF standard attribute name
-   ThisField->FieldMeta["Name"]          = FieldName;
-   ThisField->FieldMeta["name"]          = FieldName;
-   ThisField->FieldMeta["Description"]   = Description;
-   ThisField->FieldMeta["long_name"]     = Description;
-   ThisField->FieldMeta["Units"]         = Units;
-   ThisField->FieldMeta["units"]         = Units;
-   ThisField->FieldMeta["StdName"]       = StdName;
-   ThisField->FieldMeta["standard_name"] = StdName;
-   ThisField->FieldMeta["ValidMin"]      = ValidMin;
-   ThisField->FieldMeta["valid_min"]     = ValidMin;
-   ThisField->FieldMeta["ValidMax"]      = ValidMax;
-   ThisField->FieldMeta["valid_max"]     = ValidMax;
+   // also duplicate the metadata under the CF standard attribute name.
+   // Units and standard name are omitted entirely when empty: CF rejects an
+   // empty standard_name and treats a missing units attribute as
+   // dimensionless or not applicable, while an empty one is just noise.
+   ThisField->FieldMeta["Name"]        = FieldName;
+   ThisField->FieldMeta["name"]        = FieldName;
+   ThisField->FieldMeta["Description"] = Description;
+   ThisField->FieldMeta["long_name"]   = Description;
+   if (!Units.empty()) {
+      ThisField->FieldMeta["Units"] = Units;
+      ThisField->FieldMeta["units"] = Units;
+   }
+   if (!StdName.empty()) {
+      ThisField->FieldMeta["StdName"]       = StdName;
+      ThisField->FieldMeta["standard_name"] = StdName;
+   }
+   ThisField->FieldMeta["ValidMin"]  = ValidMin;
+   ThisField->FieldMeta["valid_min"] = ValidMin;
+   ThisField->FieldMeta["ValidMax"]  = ValidMax;
+   ThisField->FieldMeta["valid_max"] = ValidMax;
 
    // Set the time-dependent flag
    ThisField->TimeDependent = TimeDependent;
