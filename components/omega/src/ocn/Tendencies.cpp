@@ -449,23 +449,23 @@ void Tendencies::defineFields() {
    DimNamesThickness[1] = "NVertLayers";
    auto PseudoThicknessTendField =
        Field::create(PseudoThicknessTendFieldName, "Pseudo-thickness tendency",
-                     "m/s", "cell_thickness_tendency", -9.99E+10, 9.99E+10,
+                     "m s-1", "cell_thickness_tendency", -9.99E+10, 9.99E+10,
                      NDims, DimNamesThickness);
    NDims = 3;
    std::vector<std::string> DimNamesTracer(NDims);
    DimNamesTracer[0]    = "NTracers";
    DimNamesTracer[1]    = "NCells";
    DimNamesTracer[2]    = "NVertLayers";
-   auto TracerTendField = Field::create(
-       TracerTendFieldName, "Tracer tendency", "kg/m^3/s", "tracer_tendency",
-       -9.99E+10, 9.99E+10, NDims, DimNamesTracer);
-   NDims = 2;
+   auto TracerTendField = Field::create(TracerTendFieldName, "Tracer tendency",
+                                        "", "tracer_tendency", -9.99E+10,
+                                        9.99E+10, NDims, DimNamesTracer);
+   NDims                = 2;
    std::vector<std::string> DimNamesVelocity(NDims);
    DimNamesVelocity[0] = "NEdges";
    DimNamesVelocity[1] = "NVertLayers";
    auto NormalVelocityTendField =
        Field::create(NormalVelocityTendFieldName, "Normal velocity tendency",
-                     "m/s^2", "sea_water_velocity_tendency", -9.99E+10,
+                     "m s-2", "sea_water_velocity_tendency", -9.99E+10,
                      9.99E+10, NDims, DimNamesVelocity);
 
    std::string TendGroupName = "Tendencies";

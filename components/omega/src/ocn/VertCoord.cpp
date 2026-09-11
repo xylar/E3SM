@@ -432,7 +432,7 @@ void VertCoord::defineFields() {
    auto GeopotentialMidField = Field::create(
        GeopotFldName,                     // field name
        "Geopotential at layer midpoints", // long name or description
-       "m^2 s^-2",                        // units
+       "m2 s-2",                          // units
        "geopotential",                    // CF standard Name
        std::numeric_limits<Real>::min(),  // min valid value
        std::numeric_limits<Real>::max(),  // max valid value

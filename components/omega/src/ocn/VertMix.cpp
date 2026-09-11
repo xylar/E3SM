@@ -394,7 +394,7 @@ void VertMix::defineFields() {
    auto GradRichNumField =
        Field::create(GradRichNumFldName,                     // Field name
                      "Gradient Richardson number",           // Long Name
-                     "dimensionless",                        // Units
+                     "1",                                    // Units
                      "sea_water_gradient_richardson_number", // CF-ish Name
                      std::numeric_limits<Real>::min(),       // Min valid value
                      std::numeric_limits<Real>::max(),       // Max valid value
@@ -405,7 +405,7 @@ void VertMix::defineFields() {
    auto GradRichNumSmoothedField = Field::create(
        GradRichNumSmoothedFldName,                      // Field name
        "Smoothed Gradient Richardson number",           // Long Name
-       "dimensionless",                                 // Units
+       "1",                                             // Units
        "sea_water_gradient_richardson_number_smoothed", // CF-ish Name
        std::numeric_limits<Real>::min(),                // Min valid value
        std::numeric_limits<Real>::max(),                // Max valid value

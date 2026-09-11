@@ -162,7 +162,7 @@ void VertAdv::defineFields() {
        "Vertical pseudo-velocity across a pseudo-height surface", // long name
                                                                   // or
                                                                   // description
-       "m s^-1",                                                  // units
+       "m s-1",                                                   // units
        "",                               // CF standard Name
        std::numeric_limits<Real>::min(), // min valid value
        std::numeric_limits<Real>::max(), // max valid value
@@ -176,7 +176,7 @@ void VertAdv::defineFields() {
                      "pseudo-height surface",          // long name
                                                        // or
                                                        // description
-                     "m s^-1",                         // units
+                     "m s-1",                          // units
                      "",                               // CF standard Name
                      std::numeric_limits<Real>::min(), // min valid value
                      std::numeric_limits<Real>::max(), // max valid value
@@ -188,7 +188,7 @@ void VertAdv::defineFields() {
        Field::create(TotalVertPseudoVelocityFldName, // field name
                      "Total vertical pseudo-velocity across a moving, tilted "
                      "pseudo-height surface", // long name or description
-                     "m s^-1",                // units
+                     "m s-1",                 // units
                      "",                      // CF standard Name
                      std::numeric_limits<Real>::min(), // min valid value
                      std::numeric_limits<Real>::max(), // max valid value
@@ -200,7 +200,7 @@ void VertAdv::defineFields() {
        TotalVertTransportPseudoVelocityFldName, // field name
        "Total vertical transport pseudo-velocity across a moving, tilted "
        "pseudo-height surface",          // long name or description
-       "m s^-1",                         // units
+       "m s-1",                          // units
        "",                               // CF standard Name
        std::numeric_limits<Real>::min(), // min valid value
        std::numeric_limits<Real>::max(), // max valid value
