@@ -58,7 +58,7 @@ void Forcing::registerFields(const std::string &MeshName) const {
       std::vector<std::string> DimNames(1);
       DimNames[0] = MeshName == "Default" ? "NCells" : "NCells" + MeshName;
       auto WindSpeed10mField =
-          Field::create(WindSpeed10mCell.label(), "10 m wind speed", "m s^-1",
+          Field::create(WindSpeed10mCell.label(), "10 m wind speed", "m s-1",
                         "", 0.0, std::numeric_limits<Real>::max(), 1, DimNames);
       WindSpeed10mField->setOptionalRead(true);
       FieldGroup::addFieldToGroup(WindSpeed10mCell.label(), "Forcing");

@@ -30,7 +30,7 @@ void SfcStressForcingVars::registerFields(
    auto ZonalStressCellField =
        Field::create(ZonalStressCell.label(),          // field name
                      "zonal surface stress",           // long name/describe
-                     "N m^{-2}",                       // units
+                     "N m-2",                          // units
                      "",                               // CF standard Name
                      std::numeric_limits<Real>::min(), // min valid value
                      std::numeric_limits<Real>::max(), // max valid value
@@ -41,7 +41,7 @@ void SfcStressForcingVars::registerFields(
    auto MeridStressCellField =
        Field::create(MeridStressCell.label(),     // field name
                      "meridional surface stress", // long Name or description
-                     "N m^{-2}",                  // units
+                     "N m-2",                     // units
                      "",                          // CF standard Name
                      std::numeric_limits<Real>::min(), // min valid value
                      std::numeric_limits<Real>::max(), // max valid value

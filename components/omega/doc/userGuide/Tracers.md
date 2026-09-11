@@ -31,9 +31,9 @@ static void defineAllTracers() {
 
    define("Salt", "Salinity", "psu", "sea_water_salinity", 0.0, 50.0,
           FillValueReal, IndxSalt);
-   define("Debug1", "Debug Tracer 1", "none", "none", 0.0, 100.0, FillValueReal);
-   define("Debug2", "Debug Tracer 2", "none", "none", 0.0, 100.0, FillValueReal);
-   define("Debug3", "Debug Tracer 3", "none", "none", 0.0, 100.0, FillValueReal);
+   define("Debug1", "Debug Tracer 1", "", "none", 0.0, 100.0, FillValueReal);
+   define("Debug2", "Debug Tracer 2", "", "none", 0.0, 100.0, FillValueReal);
+   define("Debug3", "Debug Tracer 3", "", "none", 0.0, 100.0, FillValueReal);
 }
 ```
 

@@ -277,7 +277,7 @@ void OceanState::defineFields() {
    auto NormalVelocityField =
        Field::create(NormalVelocityFldName,               // field name
                      "Velocity component normal to edge", // long Name
-                     "m/s",                               // units
+                     "m s-1",                             // units
                      "sea_water_velocity",                // CF standard Name
                      -9.99E+10,                           // min valid value
                      9.99E+10,                            // max valid value
@@ -306,7 +306,7 @@ void OceanState::defineFields() {
       DimNames[1]                   = "NVertLayers";
       NormalBaroclinicVelocityField = Field::create(
           NormalBaroclinicVelocityFldName, // field name
-          "Baroclinic velocity component normal to edge", "m/s",
+          "Baroclinic velocity component normal to edge", "m s-1",
           "sea_water_velocity", -9.99E+10, 9.99E+10, NDims, DimNames);
 
       NDims       = 1;
@@ -314,7 +314,7 @@ void OceanState::defineFields() {
       DimNames.resize(NDims);
       NormalBarotropicVelocityField =
           Field::create(NormalBarotropicVelocityFldName, // field name
-                        "Barotropic velocity component normal to edge", "m/s",
+                        "Barotropic velocity component normal to edge", "m s-1",
                         "barotropic_sea_water_velocity", -9.99E+10, 9.99E+10,
                         NDims, DimNames);
 
