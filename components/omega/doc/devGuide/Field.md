@@ -31,6 +31,10 @@ dimensions (eg NCells, NEdges, NVertLayers) will be defined by the relevant
 Mesh initialization and should be done before any Fields are defined.
 See {ref}`omega-dev-dimension`.
 
+The names of every field defined so far, including CodeMeta and SimMeta, can
+be listed with `Field::getAllFieldNames()`; this is intended for tests and
+diagnostics that need to inspect all metadata rather than for model code.
+
 Fields are created with standard metadata using
 ```c++
    std::shared_ptr<Field> MyField =

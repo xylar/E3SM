@@ -124,6 +124,11 @@ class Field {
    );
 
    //---------------------------------------------------------------------------
+   /// Returns the names of all defined fields, including the global metadata
+   /// fields (CodeMeta, SimMeta) that hold no data array
+   static std::vector<std::string> getAllFieldNames();
+
+   //---------------------------------------------------------------------------
    /// Creates a field with standard metadata. This is the preferred
    /// interface for most fields in Omega. It enforces a list of required
    /// metadata. Note that if input parameters don't exist
