@@ -278,7 +278,7 @@ void OceanState::defineFields() {
        Field::create(NormalVelocityFldName,               // field name
                      "Velocity component normal to edge", // long Name
                      "m s-1",                             // units
-                     "sea_water_velocity",                // CF standard Name
+                     "",                                  // CF standard Name
                      -9.99E+10,                           // min valid value
                      9.99E+10,                            // max valid value
                      NDims,   // number of dimensions
@@ -302,12 +302,12 @@ void OceanState::defineFields() {
    std::shared_ptr<Field> NormalBarotropicVelocityField;
    std::shared_ptr<Field> BarotropicPressureAnomalyField;
    if (UseModeSplit) {
-      DimNames[0]                   = "NEdges";
-      DimNames[1]                   = "NVertLayers";
-      NormalBaroclinicVelocityField = Field::create(
-          NormalBaroclinicVelocityFldName, // field name
-          "Baroclinic velocity component normal to edge", "m s-1",
-          "sea_water_velocity", -9.99E+10, 9.99E+10, NDims, DimNames);
+      DimNames[0] = "NEdges";
+      DimNames[1] = "NVertLayers";
+      NormalBaroclinicVelocityField =
+          Field::create(NormalBaroclinicVelocityFldName, // field name
+                        "Baroclinic velocity component normal to edge", "m s-1",
+                        "", -9.99E+10, 9.99E+10, NDims, DimNames);
 
       NDims       = 1;
       DimNames[0] = "NEdges";
@@ -315,14 +315,13 @@ void OceanState::defineFields() {
       NormalBarotropicVelocityField =
           Field::create(NormalBarotropicVelocityFldName, // field name
                         "Barotropic velocity component normal to edge", "m s-1",
-                        "barotropic_sea_water_velocity", -9.99E+10, 9.99E+10,
-                        NDims, DimNames);
+                        "", -9.99E+10, 9.99E+10, NDims, DimNames);
 
-      DimNames[0]                    = "NCells";
-      BarotropicPressureAnomalyField = Field::create(
-          BarotropicPressureAnomalyFldName, // field name
-          "Barotropic pressure anomaly", "Pa", "barotropic_pressure_anomaly",
-          -9.99E+30, 9.99E+30, NDims, DimNames);
+      DimNames[0] = "NCells";
+      BarotropicPressureAnomalyField =
+          Field::create(BarotropicPressureAnomalyFldName, // field name
+                        "Barotropic pressure anomaly", "Pa", "", -9.99E+30,
+                        9.99E+30, NDims, DimNames);
    }
 
    // Create a field group for state fields. VertCoord initializes before
