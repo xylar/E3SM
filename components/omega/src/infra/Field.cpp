@@ -74,6 +74,16 @@ bool Field::exists(const std::string &FieldName // [in] name of field
 }
 
 //------------------------------------------------------------------------------
+// Returns the names of all defined fields
+std::vector<std::string> Field::getAllFieldNames() {
+   std::vector<std::string> Names;
+   Names.reserve(AllFields.size());
+   for (const auto &FieldPair : AllFields)
+      Names.push_back(FieldPair.first);
+   return Names;
+}
+
+//------------------------------------------------------------------------------
 // Creates a field with standard metadata. This is the preferred
 // interface for most fields in Omega. It enforces a list of required
 // metadata. Note that if input parameters do not exist
