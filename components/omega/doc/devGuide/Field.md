@@ -50,7 +50,12 @@ Fields are created with standard metadata using
                  RetainPrecision ///< [in] (opt, false) retain full prec in IO
    );
 ```
-This interface enforces a list of required metadata. The units string must be
+This interface enforces a list of required metadata, stored under the CF
+attribute names `long_name`, `units`, `standard_name`, `valid_min` and
+`valid_max` (the `_FillValue` attribute is added when data is attached). No
+other attributes are written for these entries; in particular the field name
+is not repeated as an attribute since it is the netCDF variable name itself.
+The units string must be
 one that [udunits](https://docs.unidata.ucar.edu/udunits/current/) can parse,
 written in the plain form used by the CF standard name table: factors separated
 by spaces, each with a signed integer exponent and no caret, slash or braces

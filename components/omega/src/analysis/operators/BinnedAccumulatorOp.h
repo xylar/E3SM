@@ -130,9 +130,9 @@ template <typename ArrayT> class BinnedAccumulatorOp : public AnalysisOperator {
       // units of the values summed.
       std::string ValueDescr;
       ScalarT ValueValidMin, ValueValidMax;
-      ValueField->getMetadata("Description", ValueDescr);
-      ValueField->getMetadata("ValidMin", ValueValidMin);
-      ValueField->getMetadata("ValidMax", ValueValidMax);
+      ValueField->getMetadata("long_name", ValueDescr);
+      ValueField->getMetadata("valid_min", ValueValidMin);
+      ValueField->getMetadata("valid_max", ValueValidMax);
       auto Meta = inheritMetadata(InputNames[0]);
 
       // Create output Field dimensions
