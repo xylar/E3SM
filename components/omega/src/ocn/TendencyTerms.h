@@ -1052,6 +1052,7 @@ class TracerHorzAdvOnCell {
    Array1DReal DvEdge;
    Array1DReal AreaCell;
 
+   Array2DReal TotalVerticalPseudoVelocity;
    Array2DReal TotalVerticalTransportPseudoVelocity;
    Array2DReal HProvInv;
    Array2DReal HNewInv;
