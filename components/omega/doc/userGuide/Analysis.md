@@ -101,7 +101,11 @@ user-specified fields. The mean and standard deviation are weighted so that
 they do not depend on the mesh resolution: by the area of each cell, edge or
 vertex for a horizontal field, and by mass (area times pseudo-thickness) for
 a field with a vertical dimension, with an interface field weighted by half
-the mass of each adjacent layer. Only active layers take part.
+the mass of each adjacent layer. Only active layers take part. Each statistic
+is written with the `units` and `standard_name` of the field it reduces and a
+CF `cell_methods` attribute describing the reduction, for example
+`area: depth: mean` for the mean of a layered field and
+`area: depth: mean time: mean` for its time mean.
 
 **Example:**
 
