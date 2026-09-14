@@ -965,7 +965,8 @@ void Tendencies::computeTracerTendenciesOnly(
        AuxState->PseudoThicknessAux.FluxPseudoThickEdge;
 
    OMEGA_SCOPE(LocPseudoThickCell, PseudoThickCell);
-   OMEGA_SCOPE(LocNormalTransportVelocity, AuxState->TransportAux.NormalTransportVelocity);
+   OMEGA_SCOPE(LocNormalTransportVelocity,
+               AuxState->TransportAux.NormalTransportVelocity);
    OMEGA_SCOPE(LocFluxPseudoThickEdge, FluxPseudoThickEdge);
 
    Pacer::start("Tend:computeTracerTendenciesOnly", 1);
@@ -1008,7 +1009,8 @@ void Tendencies::computeTracerTendenciesOnly(
                 "Tend:FCTHighAndLowOrderFlux", {Mesh->NEdgesHaloH(1)},
                 KOKKOS_LAMBDA(int IEdge, const TeamMember &Team) {
                    LocTracerHorzAdv.FCTHighAndLowOrderFlux(
-                       Team, IEdge, LocFluxPseudoThickEdge, LocNormalTransportVelocity);
+                       Team, IEdge, LocFluxPseudoThickEdge,
+                       LocNormalTransportVelocity);
                 });
             parallelForOuter(
                 "Tend:FCTFluxInOut", {Mesh->NCellsHaloH(0)},
@@ -1064,7 +1066,8 @@ void Tendencies::computeTracerTendenciesOnly(
                           TeamScratch<Real>(VCoord->NVertLayers)),
              KOKKOS_LAMBDA(int L, int IEdge, const TeamMember &Team) {
                 LocTracerHorzAdv(Team, L, IEdge, TracerArray,
-                                 FluxPseudoThickEdge, LocNormalTransportVelocity);
+                                 FluxPseudoThickEdge,
+                                 LocNormalTransportVelocity);
              });
          parallelForOuter(
              LaunchConfig({NTracers, Mesh->NCellsAll},

@@ -117,9 +117,8 @@ TracerHorzAdvOnCell::TracerHorzAdvOnCell(const HorzMesh *Mesh,
       MinLayerEdgeBot(VCoord->MinLayerEdgeBot),
       MaxLayerEdgeTop(VCoord->MaxLayerEdgeTop),
       EdgeSignOnCell(Mesh->EdgeSignOnCell), DvEdge(Mesh->DvEdge),
-      AreaCell(Mesh->AreaCell),
-      TotalVerticalTransportPseudoVelocity(
-          VAdv->TotalVerticalTransportPseudoVelocity),
+      AreaCell(Mesh->AreaCell), TotalVerticalTransportPseudoVelocity(
+                                    VAdv->TotalVerticalTransportPseudoVelocity),
       HProvInv(), HNewInv(), HProv(), TracerMax(), TracerMin(), HighOrderFlx(),
       LowOrderFlx(), MinLayerCell(VCoord->MinLayerCell),
       MaxLayerCell(VCoord->MaxLayerCell), WorkTend(), FlxIn(), FlxOut(),
