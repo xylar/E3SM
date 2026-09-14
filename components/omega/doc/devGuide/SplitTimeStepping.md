@@ -1,6 +1,6 @@
 (omega-dev-split-time-stepping)=
 
-# Split time stepping
+# Split Time Stepping
 
 The `SplitExplicitRK2Stepper` class implements the mode-split RK2 time stepping
 scheme. It is used by two time stepper types that share all of their code and

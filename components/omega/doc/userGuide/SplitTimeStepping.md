@@ -1,6 +1,6 @@
 (omega-user-split-time-stepping)=
 
-# Split time stepping
+# Split Time Stepping
 
 Ocean motion spans two very different speeds. The barotropic (depth-averaged)
 mode carries fast external gravity waves, while the baroclinic
