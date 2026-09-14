@@ -1064,7 +1064,7 @@ void Tendencies::computeTracerTendenciesOnly(
                           TeamScratch<Real>(VCoord->NVertLayers)),
              KOKKOS_LAMBDA(int L, int IEdge, const TeamMember &Team) {
                 LocTracerHorzAdv(Team, L, IEdge, TracerArray,
-                                 FluxPseudoThickEdge, NormalTransportVelocity);
+                                 FluxPseudoThickEdge, LocNormalTransportVelocity);
              });
          parallelForOuter(
              LaunchConfig({NTracers, Mesh->NCellsAll},
