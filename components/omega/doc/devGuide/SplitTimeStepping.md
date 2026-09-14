@@ -1,6 +1,6 @@
-(omega-dev-split-explicit-time-stepping)=
+(omega-dev-split-time-stepping)=
 
-# Split-explicit time stepping
+# Split time stepping
 
 The `SplitExplicitRK2Stepper` class implements the mode-split RK2 time stepping
 scheme. It is used by two time stepper types that share all of their code and
@@ -20,12 +20,11 @@ SEConfig(SplitExplicitInit::readConfigOptions(
 
 The algorithm then uses the resolved `SEConfig` options. For `UnsplitRK2`,
 `SplitFactor` is zero, so the barotropic velocity and the barotropic forcing
-are zero, the full velocity is carried in the baroclinic velocity array, and
-the surface pressure gradient is computed from the SSH gradient as in the
-unsplit steppers. Everything below applies to both types unless it is marked as
+are zero, the full velocity is carried in the baroclinic velocity array.
+Everything below applies to both types unless it is marked as
 split-only.
 
-Both `UnsplitRK2` and `RungeKutta2` steppers use an unsplit RK2 approach
+Both `UnsplitRK2` and `RungeKutta2` steppers use an unsplit RK2 approach.
 `UnsplitRK2` uses `SplitExplicitRK2Stepper` with `SplitFactor = 0` and computes
 the linear Coriolis term separately with `CoriolisTendMode::Separate` and one
 Coriolis iteration. `RungeKutta2` uses `RungeKutta2Stepper`, where the Coriolis
@@ -120,7 +119,7 @@ computeTransportVelocity(State, NextLevel);
 doThicknessTracerUpdate(State, CurTracerArray, NextTracerArray, CurLevel, NextLevel, StageTime, TimeStep, FinalIteration);
 ```
 
-The first iteration is the predictor and evaluates the momentum right-hand side
+The first outer iteration is the predictor and evaluates the momentum right-hand side
 at time `n`; later iterations see the midpoint state left by their predecessor,
 so `VelStageTime` is `StageTime + 0.5 * TimeStep` for them. The last iteration
 is flagged with `FinalIteration`. The baroclinic velocity halo is exchanged
@@ -191,7 +190,7 @@ velocities; the flux mean averages the `2*NBtrSubcycles` corrector fluxes. Each
 Stage 2 call restarts from the current model time level, integrating over a
 window of length `2*TimeStep`.
 
-To avoid exchanges between predictor and corrector kernels, the two `Cur`
+To avoid halo exchanges between predictor and corrector kernels, the two `Cur`
 buffers are exchanged, once at the top of each subcycle. Each kernel then
 computes over one halo layer fewer than its inputs cover, which is why the loop
 ranges use `NEdgesHaloH`/`NCellsHaloH` and why a halo width of at least 3 is

@@ -1,6 +1,6 @@
-(omega-user-split-explicit-time-stepping)=
+(omega-user-split-time-stepping)=
 
-# Split-explicit time stepping
+# Split time stepping
 
 Ocean motion spans two very different speeds. The barotropic (depth-averaged)
 mode carries fast external gravity waves, while the baroclinic
@@ -71,8 +71,9 @@ name `SplitExplicitRK2` describes its RK2 structure, rather than a guarantee of
 second-order convergence of the complete split scheme: the current time-stepper
 test checks first-order convergence for its split configuration.
 
-For `UnsplitRK2`, a configuration excerpt with all applicable defaults explicit
-is:
+
+For `UnsplitRK2`, a configuration block with all applicable default values
+explicitly specified is as follows:
 
 ```yaml
   TimeIntegration:
@@ -91,13 +92,14 @@ The subcycle count parameter `NBtrSubcycles` is `ceil(TimeStep/BtrTimeStep)`,
 and the barotropic time step actually used is `TimeStep` divided by that
 number, so it is never longer than `BtrTimeStep`. The resolved values are
 written to the log at initialization. For the `SplitExplicitRK2` example above,
-the log shows:
+the `omega.log` shows:
 
 ```
 SplitExplicitRK2: TimeStep=600 s, BtrTimeStep=20 s, NBtrSubcycles=30, BtrDt=20 s, NTimeStepIteration=2, NBclCoriolisIteration=2
 ```
 
-`BtrTimeStep` must be short enough to resolve the external gravity waves on the
+`BtrTimeStep` must be short enough (approximately 20~30x shorter than `TimeStep`)
+to resolve the external gravity waves on the
 mesh, while `TimeStep` must satisfy the stability limits of the remaining
 explicit processes. In each time-step iteration, the complete barotropic
 subcycling sequence spans twice the model time step. Each individual barotropic
@@ -138,10 +140,3 @@ three from the restart file instead. `UnsplitRK2` initializes its baroclinic
 velocity from the full `NormalVelocity` and sets its barotropic velocity to
 zero on both cold starts and restarts; its barotropic pressure anomaly is
 unused.
-
-To write these fields to another output stream, add the individual field names
-to the `Contents` of that stream, as described in
-[IOStreams](#omega-user-iostreams).
-
-The algorithm and its implementation are described in the [Developer's
-Guide](#omega-dev-split-explicit-time-stepping).
