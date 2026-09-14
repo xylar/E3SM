@@ -960,7 +960,6 @@ void Tendencies::computeTracerTendenciesOnly(
    OMEGA_SCOPE(LocMinLayerEdgeBot, VCoord->MinLayerEdgeBot);
    OMEGA_SCOPE(LocMaxLayerEdgeTop, VCoord->MaxLayerEdgeTop);
 
-   Array2DReal NormalVelEdge   = State->getNormalVelocity(VelTimeLevel);
    Array2DReal PseudoThickCell = State->getPseudoThickness(ThickTimeLevel);
    Array2DReal FluxPseudoThickEdge =
        AuxState->PseudoThicknessAux.FluxPseudoThickEdge;
