@@ -990,7 +990,7 @@ void Tendencies::computeTracerTendenciesOnly(
              KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
                 LocTracerHorzAdv.FCTProvisionaLayerThicknesses(
                     Team, ICell, Dt, LocFluxPseudoThickEdge, LocPseudoThickCell,
-                    LocNormalVelEdge);
+                    LocNormalTransportVelocity);
              });
          for (int L = 0; L < NTracers; ++L) {
             parallelForOuter(
