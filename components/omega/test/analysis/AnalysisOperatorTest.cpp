@@ -810,14 +810,21 @@ void testTimeMeanOpType(const std::string &TypeName, const MachEnv *Env,
       auto ResultData = ResultField->getDataArray<Array2D_t<Real>>();
       auto ResultHost = createHostMirrorCopy(ResultData);
 
+      // Active layers [MinLayerCell, MaxLayerCell] must equal the analytic
+      // time-mean; inactive layers must retain FillValueReal (the refactored
+      // TimeMeanOp only writes active layers, preserving fill values).
       for (I4 i = 0; i < Mesh->NCellsOwned; ++i) {
+         const I4 KMin = VCoord->MinLayerCellH(i);
+         const I4 KMax = VCoord->MaxLayerCellH(i);
          for (I4 j = 0; j < VCoord->NVertLayers; ++j) {
             Real ComputedValue = ResultHost(i, j);
-            if (std::abs(ComputedValue - ExpectedMean) >
+            bool Active        = (j >= KMin && j <= KMax);
+            Real Expected      = Active ? ExpectedMean : FillValueReal;
+            if (std::abs(ComputedValue - Expected) >
                 static_cast<Real>(Helper::getTolerance())) {
                Passed = false;
-               LOG_ERROR("  At index ({}, {}): Expected {}, Got {}", i, j,
-                         ExpectedMean, ComputedValue);
+               LOG_ERROR("  At index ({}, {}) [active={}]: Expected {}, Got {}",
+                         i, j, Active, Expected, ComputedValue);
                break;
             }
          }
@@ -830,13 +837,18 @@ void testTimeMeanOpType(const std::string &TypeName, const MachEnv *Env,
 
       for (I4 i = 0; i < Dims[0]; ++i) {
          for (I4 j = 0; j < Mesh->NCellsOwned; ++j) {
+            const I4 KMin = VCoord->MinLayerCellH(j);
+            const I4 KMax = VCoord->MaxLayerCellH(j);
             for (I4 k = 0; k < VCoord->NVertLayers; ++k) {
                Real ComputedValue = ResultHost(i, j, k);
-               if (std::abs(ComputedValue - ExpectedMean) >
+               bool Active        = (k >= KMin && k <= KMax);
+               Real Expected      = Active ? ExpectedMean : FillValueReal;
+               if (std::abs(ComputedValue - Expected) >
                    static_cast<Real>(Helper::getTolerance())) {
                   Passed = false;
-                  LOG_ERROR("  At index ({}, {}, {}): Expected {}, Got {}", i,
-                            j, k, ExpectedMean, ComputedValue);
+                  LOG_ERROR("  At index ({}, {}, {}) [active={}]: Expected {}, "
+                            "Got {}",
+                            i, j, k, Active, Expected, ComputedValue);
                   break;
                }
             }
