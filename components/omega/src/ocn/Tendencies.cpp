@@ -1055,8 +1055,6 @@ void Tendencies::computeTracerTendenciesOnly(
             }
          }
       } else {
-         const auto &NormalTransportVelocity =
-             AuxState->TransportAux.NormalTransportVelocity;
          const Array2DReal &FluxPseudoThickEdge =
              AuxState->PseudoThicknessAux.FluxPseudoThickEdge;
 
