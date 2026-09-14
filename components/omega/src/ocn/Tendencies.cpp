@@ -965,7 +965,7 @@ void Tendencies::computeTracerTendenciesOnly(
        AuxState->PseudoThicknessAux.FluxPseudoThickEdge;
 
    OMEGA_SCOPE(LocPseudoThickCell, PseudoThickCell);
-   OMEGA_SCOPE(LocNormalVelEdge, NormalVelEdge);
+   OMEGA_SCOPE(LocNormalTransportVelocity, AuxState->TransportAux.NormalTransportVelocity);
    OMEGA_SCOPE(LocFluxPseudoThickEdge, FluxPseudoThickEdge);
 
    Pacer::start("Tend:computeTracerTendenciesOnly", 1);
