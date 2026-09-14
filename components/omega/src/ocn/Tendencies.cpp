@@ -1008,7 +1008,7 @@ void Tendencies::computeTracerTendenciesOnly(
                 "Tend:FCTHighAndLowOrderFlux", {Mesh->NEdgesHaloH(1)},
                 KOKKOS_LAMBDA(int IEdge, const TeamMember &Team) {
                    LocTracerHorzAdv.FCTHighAndLowOrderFlux(
-                       Team, IEdge, LocFluxPseudoThickEdge, LocNormalVelEdge);
+                       Team, IEdge, LocFluxPseudoThickEdge, LocNormalTransportVelocity);
                 });
             parallelForOuter(
                 "Tend:FCTFluxInOut", {Mesh->NCellsHaloH(0)},
