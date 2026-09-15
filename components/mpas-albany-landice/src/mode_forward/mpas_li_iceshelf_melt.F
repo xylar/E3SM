@@ -1482,7 +1482,8 @@ module li_iceshelf_melt
       integer :: iCell, ksup, kinf, kk
       integer, pointer :: nOceanLayers, nCellsSolve
       real (kind=RKIND), pointer :: rhoi, rhosw
-      real (kind=RKIND), pointer :: meltK, sinSlope, coriolis
+      real (kind=RKIND), pointer :: sinSlope, coriolis
+      real (kind=RKIND), pointer :: meltK
       real (kind=RKIND), pointer :: constSalinity
       character (len=StrKIND), pointer :: salinitySource
       logical :: useDataSalinity
@@ -1504,7 +1505,6 @@ module li_iceshelf_melt
 
       call mpas_pool_get_config(liConfigs, 'config_ice_density', rhoi)
       call mpas_pool_get_config(liConfigs, 'config_ocean_density', rhosw)
-      call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_K', meltK)
       call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_sin_slope', sinSlope)
       call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_coriolis', coriolis)
       call mpas_pool_get_config(liConfigs, 'config_ismip7_melt_salinity', constSalinity)
@@ -1532,25 +1532,6 @@ module li_iceshelf_melt
          return
       endif
 
-      ! Everything in the melt expression except the salinity and the two
-      ! thermal-forcing factors.  Grouped as in protocol Eq. (1):
-      !   K sin(theta) (rho_o/rho_i) (c_o/L_i)^2 beta_S (g / (2 |f|))
-      ! The result multiplies S * |TF| * TF to give m of ice per second, so a
-      ! further factor of rho_i converts to the kg m^-2 s^-1 that MALI uses.
-      !
-      ! The two rho_i therefore cancel and the melt is independent of the ice
-      ! density.  Both are kept explicit so the expression can be read against
-      ! Eq. (1); do not "simplify" by dropping one of them.  (The protocol's
-      ! own worked example takes 917 in the formula and 918 in the conversion,
-      ! so they do not quite cancel there.)
-      coef = meltK * sinSlope * (rhosw / rhoi) &
-           * (cp_seawater / latent_heat_ice)**2 &
-           * haline_contraction_coeff &
-           * gravity / (2.0_RKIND * abs(coriolis)) &
-           * rhoi
-
-      call mpas_log_write("iceshelf_melt_ismip7: K=$r, sin(slope)=$r, |f|=$r", &
-         realArgs=(/meltK, sinSlope, coriolis/))
       call mpas_log_write("iceshelf_melt_ismip7: local form, Eq. (1)")
       if (useDataSalinity) then
          call mpas_log_write("iceshelf_melt_ismip7: salinity from ismip7shelfMelt_3dSalinity, " // &
@@ -1567,6 +1548,40 @@ module li_iceshelf_melt
          call mpas_pool_get_dimension(meshPool, 'nCellsSolve', nCellsSolve)
          call mpas_pool_get_dimension(meshPool, 'nISMIP6OceanLayers', nOceanLayers)
          call mpas_pool_get_array(meshPool, 'indexToCellID', indexToCellID)
+
+         ! K is read from the parameter input stream, like gamma0 for the
+         ! ISMIP6 method, so that one parameter file carries a complete
+         ! calibration.  Its Registry default is zero, which would silently
+         ! zero the melt field, so a missing value is an error here.
+         call mpas_pool_get_array(geometryPool, 'ismip7shelfMelt_K', meltK)
+         if (meltK <= 0.0_RKIND) then
+            call mpas_log_write("iceshelf_melt_ismip7: ismip7shelfMelt_K=$r is not positive.  It must be " // &
+               "supplied through an input stream, as ismip6shelfMelt_gamma0 is for the ISMIP6 method.", &
+               MPAS_LOG_ERR, realArgs=(/meltK/))
+            err = ior(err, 1)
+            return
+         endif
+
+         ! Everything in the melt expression except the salinity and the two
+         ! thermal-forcing factors.  Grouped as in protocol Eq. (1):
+         !   K sin(theta) (rho_o/rho_i) (c_o/L_i)^2 beta_S (g / (2 |f|))
+         ! The result multiplies S * |TF| * TF to give m of ice per second, so
+         ! a further factor of rho_i converts to the kg m^-2 s^-1 that MALI
+         ! uses.
+         !
+         ! The two rho_i therefore cancel and the melt is independent of the
+         ! ice density.  Both are kept explicit so the expression can be read
+         ! against Eq. (1); do not "simplify" by dropping one of them.  (The
+         ! protocol's own worked example takes 917 in the formula and 918 in
+         ! the conversion, so they do not quite cancel there.)
+         coef = meltK * sinSlope * (rhosw / rhoi) &
+              * (cp_seawater / latent_heat_ice)**2 &
+              * haline_contraction_coeff &
+              * gravity / (2.0_RKIND * abs(coriolis)) &
+              * rhoi
+
+         call mpas_log_write("iceshelf_melt_ismip7: K=$r, sin(slope)=$r, |f|=$r", &
+            realArgs=(/meltK, sinSlope, coriolis/))
 
          call mpas_pool_get_array(geometryPool, 'ismip6shelfMelt_3dThermalForcing', TFocean3d)
          call mpas_pool_get_array(geometryPool, 'ismip7shelfMelt_3dSalinity', Socean3d)
