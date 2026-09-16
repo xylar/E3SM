@@ -95,6 +95,7 @@ int ocnRun(TimeInstant &CurrTime, ///< [inout] current sim time
    Forcing *DefForcing         = Forcing::getDefault();
    VertCoord *DefVertCoord     = VertCoord::getDefault();
    SfcCoupling *DefSfcCoupling = SfcCoupling::getDefault();
+   Analysis *DefAnalysis       = Analysis::getDefault();
 
    // get simulation time and other time info
    Clock *OmegaClock     = DefTimeStepper->getClock();
@@ -132,10 +133,12 @@ int ocnRun(TimeInstant &CurrTime, ///< [inout] current sim time
          Pacer::stop("Stepper:doStep", 1);
       }
 
+      // Update fields exported to the coupler
+      DefSfcCoupling->updateExportFields(DefOceanState, Tracers::getAll(0));
+      // Compute analysis fields whose alarms are ringing
+      DefAnalysis->computeAll();
       // Write any IOStreams with their alarms ringing
       IOStream::writeAll(OmegaClock);
-
-      DefSfcCoupling->updateExportFields(DefOceanState, Tracers::getAll(0));
 
       LOG_INFO("ocnRun: Time step {} complete, clock time: {}", IStep,
                SimTime.getString(4, 4, "-"));
