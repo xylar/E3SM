@@ -1562,12 +1562,13 @@ module li_iceshelf_melt
             return
          endif
 
-         ! Everything in the melt expression except the salinity and the two
-         ! thermal-forcing factors.  Grouped as in protocol Eq. (1):
+         ! coef collects every factor in the melt expression except the
+         ! salinity and the two thermal-forcing factors, grouped as in
+         ! protocol Eq. (1):
          !   K sin(theta) (rho_o/rho_i) (c_o/L_i)^2 beta_S (g / (2 |f|))
-         ! The result multiplies S * |TF| * TF to give m of ice per second, so
-         ! a further factor of rho_i converts to the kg m^-2 s^-1 that MALI
-         ! uses.
+         ! Multiplying coef by S * |TF| * TF gives the melt rate in m of ice
+         ! per second; the trailing factor of rho_i then converts that to the
+         ! kg m^-2 s^-1 that MALI uses.
          !
          ! The two rho_i therefore cancel and the melt is independent of the
          ! ice density.  Both are kept explicit so the expression can be read
