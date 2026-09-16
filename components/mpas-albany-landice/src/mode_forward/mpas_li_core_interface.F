@@ -189,10 +189,11 @@ module li_core_interface
             (config_use_3d_thermal_forcing_for_face_melt)) .or. &
             (config_ocean_data_extrapolation) ) then
          ismip6ShelfMeltActive = .true.
-         call mpas_log_write("The 'ismip6Melt' package and assocated variables have been enabled because " // &
-              "'config_basal_mass_bal_float' is set to 'ismip6' or 'config_front_mass_bal_grounded' is set to 'ismip6' // &
-              and 'config_use_3d_thermal_forcing_for_face_melt' is set to .true. " // &
-              "or 'config_ocean_data_extrapolation' is set to .true.")
+         call mpas_log_write("The 'ismip6ShelfMelt' package and associated variables have been enabled " // &
+              "because the configuration needs 3-D ocean thermal forcing: 'config_basal_mass_bal_float' " // &
+              "is 'ismip6' or 'ismip7', 'config_front_mass_bal_grounded' is 'ismip6' with " // &
+              "'config_use_3d_thermal_forcing_for_face_melt' = .true., or " // &
+              "'config_ocean_data_extrapolation' = .true.")
       endif
 
       if (trim(config_basal_mass_bal_float) == 'ismip7') then
