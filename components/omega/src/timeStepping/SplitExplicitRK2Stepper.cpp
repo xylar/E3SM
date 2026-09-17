@@ -417,18 +417,18 @@ void SplitExplicitRK2Stepper::initializeNextState(
    Array1DReal NormalBtrVelCur  = State->getNormalBarotropicVelocity(CurLevel);
    Array1DReal NormalBtrVelNext = State->getNormalBarotropicVelocity(NextLevel);
 
-   OMEGA_SCOPE(MinLayerEdgeBot, VCoord->MinLayerEdgeBot);
-   OMEGA_SCOPE(MaxLayerEdgeTop, VCoord->MaxLayerEdgeTop);
+   OMEGA_SCOPE(MinLayerEdgeTop, VCoord->MinLayerEdgeTop);
+   OMEGA_SCOPE(MaxLayerEdgeBot, VCoord->MaxLayerEdgeBot);
 
    if (!RecomputeSplit) {
       parallelForOuter(
           "initializeNormalBaroclinicVelocity", {Mesh->NEdgesAll},
           KOKKOS_LAMBDA(int IEdge, const TeamMember &Team) {
-             const int KMin = MinLayerEdgeBot(IEdge);
-             const int KMax = MaxLayerEdgeTop(IEdge);
+             const int KTop = MinLayerEdgeTop(IEdge);
+             const int KBot = MaxLayerEdgeBot(IEdge);
 
              parallelForInner(
-                 Team, Range{KMin, KMax}, INNER_LAMBDA(int K) {
+                 Team, Range{KTop, KBot}, INNER_LAMBDA(const int K) {
                     NormalBclVelCur(IEdge, K) =
                         NormalVelCur(IEdge, K) - NormalBtrVelCur(IEdge);
                  });
