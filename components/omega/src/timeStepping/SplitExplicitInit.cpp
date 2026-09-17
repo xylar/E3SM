@@ -214,6 +214,8 @@ void SplitExplicitInit::computeVelocitySplit(OceanState *State,
    OMEGA_SCOPE(CellsOnEdge, Mesh->CellsOnEdge);
    OMEGA_SCOPE(MinLayerEdgeBot, VCoord->MinLayerEdgeBot);
    OMEGA_SCOPE(MaxLayerEdgeTop, VCoord->MaxLayerEdgeTop);
+   OMEGA_SCOPE(MinLayerEdgeTop, VCoord->MinLayerEdgeTop);
+   OMEGA_SCOPE(MaxLayerEdgeBot, VCoord->MaxLayerEdgeBot);
    OMEGA_SCOPE(EdgeMask, VCoord->EdgeMask);
 
    deepCopy(NormalBaroclinicVelocity, 0.);
@@ -224,6 +226,8 @@ void SplitExplicitInit::computeVelocitySplit(OceanState *State,
        KOKKOS_LAMBDA(I4 IEdge, const TeamMember &Team) {
           const I4 KMin = MinLayerEdgeBot(IEdge);
           const I4 KMax = MaxLayerEdgeTop(IEdge);
+          const I4 KTop = MinLayerEdgeTop(IEdge);
+          const I4 KBot = MaxLayerEdgeBot(IEdge);
 
           Real BarotropicVelocity = 0._Real;
 
@@ -262,7 +266,7 @@ void SplitExplicitInit::computeVelocitySplit(OceanState *State,
           }
 
           parallelForInner(
-              Team, Range{KMin, KMax}, INNER_LAMBDA(I4 K) {
+              Team, Range{KTop, KBot}, INNER_LAMBDA(const int K) {
                  NormalBaroclinicVelocity(IEdge, K) =
                      NormalVelocity(IEdge, K) - BarotropicVelocity;
               });
