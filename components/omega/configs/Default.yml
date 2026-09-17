@@ -36,9 +36,9 @@ Omega:
   Advection:
     Coef3rdOrder: 0.25
     FluxThicknessType: Center
-    HorzTracerFluxOrder: 2
+    HorzTracerFluxOrder: 3
     VerticalTracerFluxLimiterEnable: true
-    HorzTracerFluxLimiterEnable: false
+    HorzTracerFluxLimiterEnable: true
     HorzTracerFluxLimiterBudgetsEnable: false
     HorzTracerFluxLimiterMonotonicityCheckEnable: false
     VerticalTracerFluxOrder: 3
