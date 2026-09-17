@@ -237,9 +237,15 @@ void SubmesoEddies::computeDenMixLayerDepth(const Array2DReal &SpecVol) {
              const Real FactorKDenM1 =
                  ReferenceSpecVol / SpecVol(ICell, KDenM1) - 1;
 
-             const Real MixedLayerDepth =
+             Real MixedLayerDepth =
                  linearInterp(DenThreshold * ReferenceSpecVol, DepthKDen,
                               FactorKDen, DepthKDenM1, FactorKDenM1);
+
+             // guarantee MLD between DepthKDenM1 and DepthKDen
+             // this can happen because density difference in the first layer
+             // can already be above the threshold
+             MixedLayerDepth =
+                 Kokkos::clamp(MixedLayerDepth, DepthKDenM1, DepthKDen);
 
              DenMixLayerIndex(ICell) = KDen;
              DenMixLayerDepth(ICell) = MixedLayerDepth;
