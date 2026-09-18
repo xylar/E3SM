@@ -372,29 +372,73 @@ tandem, and maintaining redirects would have been ongoing cost for no reader.
 
 ### 6.7 Configuration reference
 
-The configuration reference is generated (principle 5). The source of truth for
-*values* is `configs/Default.yml`, which already exists and is what
-`omega_buildnml` validates against. The source of truth for *meaning* is a
-sidecar file, `configs/ConfigDescriptions.yml`, mirroring the structure of
-`Default.yml`, in which every option carries a description and may carry a
-type, units and allowed values or range, and every section carries a
-description and the anchor of the User Guide page that discusses it.
+The configuration reference is generated (principle 5) from two files that
+parallel each other:
 
-At documentation build time a script merges the two into a generated page
-(one section per top-level configuration group, one table per section) that is
-included in the User Guide. The strict build fails if any option in
-`Default.yml` lacks a description, or if the descriptions file names an option
-that does not exist: this is what keeps the reference from rotting (principle
-7). The same file is available to `omega_buildnml` for validation and to any
-future tooling.
+- `configs/Default.yml`, which already exists, holds the default *value* of
+  every option and is what `omega_buildnml` validates a case's configuration
+  against.
+- `configs/ConfigDescriptions.yml`, a new companion file with the same nesting
+  as `Default.yml`, holds the *meaning* of every option: a description, and
+  optionally a type, units and the allowed values or range. Each section also
+  carries a description and the anchor of the User Guide page that discusses
+  it.
+
+For example, the `Decomp` section of `Default.yml`,
+
+```yaml
+Decomp:
+  HaloWidth: 3
+  DecompMethod: MetisKWay
+```
+
+would be paired with
+
+```yaml
+Decomp:
+  description: Horizontal domain decomposition across MPI tasks.
+  doc: omega-user-config-parallel
+  HaloWidth:
+    description: Number of halo layers around each subdomain. Must be at least 3 for higher-order tracer advection.
+    type: int
+    range: [1, null]
+  DecompMethod:
+    description: Partitioning algorithm.
+    type: string
+    values: [MetisKWay, ParMetisKWay]
+```
+
+A Python script, run by Sphinx at the start of every documentation build,
+reads both files and writes the reference page: one section per top-level
+configuration group, one table per section with the option name, default,
+type, units, allowed values and description. The generated page is not
+committed; it is rebuilt every time.
+
+The script also checks the two files against each other, and any failure is a
+build error, so the pull-request documentation build fails (principle 7):
+
+- every option in `Default.yml` has a description;
+- every entry in `ConfigDescriptions.yml` names an option that exists in
+  `Default.yml`;
+- every default value satisfies its own `type`, `values` or `range`;
+- every `doc` anchor exists.
+
+This is what keeps the reference from rotting: a pull request that adds an
+option to `Default.yml` cannot pass CI without describing it, and one that
+removes or renames an option cannot leave a stale description behind.
+
+The descriptions file is also useful beyond the documentation build, because
+it is ordinary YAML that any tool can read. `omega_buildnml` can use `values`
+and `range` to reject a `user_nl_omega` override that names a real option but
+gives it an illegal value, at `case.setup` time rather than at run time. The
+model itself could do the same check at startup later.
 
 Three approaches were considered:
 
-1. *Descriptions as comments in `Default.yml`*: no new file, but comments are
-   fragile to parse and easy to leave stale.
-2. *A sidecar descriptions file* (chosen): explicit, validated, and usable by
-   other tools; costs a second file that must be kept in step, which the build
-   check enforces.
+1. *Descriptions as comments in `Default.yml`*: no new file, but comments have
+   no structure to check against and are easy to leave stale.
+2. *A companion descriptions file* (chosen): explicit and checkable, at the
+   cost of a second file that the build check keeps in step with the first.
 3. *MOM6-style descriptions in the C++ `Config::get` calls*, dumped by a
    documentation mode of the executable: keeps each description next to the
    code that reads the option, but requires touching every module and building
@@ -402,7 +446,7 @@ Three approaches were considered:
 
 Option 3 remains attractive and is an open discussion item (§8); the generator
 is written so that its input could later come from such a dump instead of the
-sidecar file.
+companion file.
 
 Only the design, the placeholder page and the tracking issue are part of the
 initial reorganization; the descriptions file, generator and build check
@@ -480,8 +524,8 @@ Deferred to tracked issues:
 - **Descriptions in code (option 3 of §6.7).** Keeping the description next
   to the `Config::get` call that reads an option is the most robust way to keep
   the two in step, at the cost of a documentation mode in the executable. Worth
-  revisiting once the sidecar approach is in place and its maintenance cost is
-  known.
+  revisiting once the companion-file approach is in place and its maintenance
+  cost is known.
 - **Where coupled-run documentation ultimately lives.** Owned by Omega for now
   (§6.2); a coupled-model documentation space in E3SM may be the right home
   later.
