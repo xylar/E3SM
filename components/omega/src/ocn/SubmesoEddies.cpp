@@ -71,8 +71,6 @@ void SubmesoEddies::init() {
 
 SubmesoEddies::SubmesoEddies(const HorzMesh *Mesh, const VertCoord *VCoord)
     : Mesh(Mesh), VCoord(VCoord), TimeScale("TimeScale", Mesh->NEdgesSize),
-      DenMixLayerDepth("DenMixLayerDepth", Mesh->NCellsSize),
-      DenMixLayerIndex("DenMixLayerIndex", Mesh->NCellsSize),
       GradBuoyEdgeInterface("GradBuoyEdgeInterface", Mesh->NEdgesSize,
                             VCoord->NVertLayersP1),
       EddyVelocity("EddyVelocity", Mesh->NEdgesSize, VCoord->NVertLayers) {
@@ -85,28 +83,6 @@ void SubmesoEddies::defineFields() {
 
    // Create a group for the submesoscale eddy parametrization fields
    auto SubmesoGroup = FieldGroup::create("Submeso");
-
-   // Create and add mixed layer depth field
-   {
-      int NDims = 1;
-      std::vector<std::string> DimNames(NDims);
-      DimNames[0] = "NCells";
-
-      auto DenMixLayerDepthField =
-          Field::create(DenMixLayerDepth.label(),         // Field name
-                        "Mixed Layer Depth",              // Long Name
-                        "m",                              // Units
-                        "",                               // CF-ish Name
-                        0.0,                              // Min valid value
-                        std::numeric_limits<Real>::max(), // Max valid value
-                        NDims,   // Number of dimensions
-                        DimNames // Dimension names
-          );
-
-      DenMixLayerDepthField->attachData<Array1DReal>(DenMixLayerDepth);
-
-      SubmesoGroup->addField(DenMixLayerDepth.label());
-   }
 
    // Create and add buoyancy gradient field
    {
@@ -166,90 +142,6 @@ void SubmesoEddies::computeTimeScale() {
        {Mesh->NEdgesAll}, KOKKOS_LAMBDA(int IEdge) {
           TimeScale(IEdge) =
               Kokkos::sqrt(FEdge(IEdge) * FEdge(IEdge) + 1._Real / (Tau * Tau));
-       });
-}
-
-void SubmesoEddies::computeDenMixLayerDepth(const Array2DReal &SpecVol) {
-   const auto &MinLayerCell = VCoord->MinLayerCell;
-   const auto &MaxLayerCell = VCoord->MaxLayerCell;
-
-   const auto &GeomZInterface = VCoord->GeomZInterface;
-   const auto &GeomZMid       = VCoord->GeomZMid;
-
-   OMEGA_SCOPE(ReferenceDepth, this->ReferenceDepth);
-   OMEGA_SCOPE(DenThreshold, this->DenThreshold);
-   OMEGA_SCOPE(DenMixLayerDepth, this->DenMixLayerDepth);
-   OMEGA_SCOPE(DenMixLayerIndex, this->DenMixLayerIndex);
-
-   parallelForOuter(
-       {Mesh->NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
-          const Real SSH = GeomZInterface(ICell, MinLayerCell(ICell));
-
-          const int KMin = MinLayerCell(ICell);
-          const int KMax = MaxLayerCell(ICell);
-
-          // Find first interface where depth >= reference depth
-          int KRef;
-          parallelSearchInner(
-              Team, Range{KMin + 1, KMax},
-              INNER_LAMBDA(int K) {
-                 const Real Depth = SSH - GeomZInterface(ICell, K);
-                 return Depth >= ReferenceDepth;
-              },
-              KRef);
-
-          // Not found, setting to KMax
-          if (KRef == -1) {
-             KRef = KMax;
-          }
-
-          const int KRefM1 = Kokkos::max(KRef - 1, MinLayerCell(ICell));
-
-          const Real DepthKRef   = SSH - GeomZMid(ICell, KRef);
-          const Real DepthKRefM1 = SSH - GeomZMid(ICell, KRefM1);
-
-          const Real ReferenceSpecVol =
-              linearInterp(ReferenceDepth, SpecVol(ICell, KRef), DepthKRef,
-                           SpecVol(ICell, KRefM1), DepthKRefM1);
-
-          // Start searching from reference level - 1
-          int KDen;
-          parallelSearchInner(
-              Team, Range{KRefM1, KMax},
-              INNER_LAMBDA(int K) {
-                 return (ReferenceSpecVol / SpecVol(ICell, K) - 1) >=
-                        DenThreshold * ReferenceSpecVol;
-              },
-              KDen);
-
-          // Not found. Setting to the depth of the deepest layer
-          if (KDen == -1) {
-             DenMixLayerIndex(ICell) = KMax;
-             DenMixLayerDepth(ICell) = SSH - GeomZMid(ICell, KMax);
-          } else { // Found
-             const int KDenM1 = Kokkos::max(KDen - 1, MinLayerCell(ICell));
-
-             const Real DepthKDen   = SSH - GeomZMid(ICell, KDen);
-             const Real DepthKDenM1 = SSH - GeomZMid(ICell, KDenM1);
-
-             const Real FactorKDen =
-                 ReferenceSpecVol / SpecVol(ICell, KDen) - 1;
-             const Real FactorKDenM1 =
-                 ReferenceSpecVol / SpecVol(ICell, KDenM1) - 1;
-
-             Real MixedLayerDepth =
-                 linearInterp(DenThreshold * ReferenceSpecVol, DepthKDen,
-                              FactorKDen, DepthKDenM1, FactorKDenM1);
-
-             // guarantee MLD between DepthKDenM1 and DepthKDen
-             // this can happen because density difference in the first layer
-             // can already be above the threshold
-             MixedLayerDepth =
-                 Kokkos::clamp(MixedLayerDepth, DepthKDenM1, DepthKDen);
-
-             DenMixLayerIndex(ICell) = KDen;
-             DenMixLayerDepth(ICell) = MixedLayerDepth;
-          }
        });
 }
 
@@ -385,12 +277,11 @@ void SubmesoEddies::computeBuoyGrad(const Array2DReal &SpecVol,
 }
 
 void SubmesoEddies::computeEddyVelocity(
+    const Array1DReal &DenMixLayerDepth, const Array1DI4 &DenMixLayerIndex,
     const Array2DReal &BruntVaisalaFreqSq,
     const Array2DReal &MeanPseudoThickEdge) {
 
    OMEGA_SCOPE(GradBuoyEdgeInterface, this->GradBuoyEdgeInterface);
-   OMEGA_SCOPE(DenMixLayerIndex, this->DenMixLayerIndex);
-   OMEGA_SCOPE(DenMixLayerDepth, this->DenMixLayerDepth);
    OMEGA_SCOPE(TimeScale, this->TimeScale);
    OMEGA_SCOPE(LfMin, this->LfMin);
    OMEGA_SCOPE(DsMax, this->DsMax);

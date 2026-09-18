@@ -31,7 +31,8 @@ AuxiliaryState::AuxiliaryState(const std::string &Name, const HorzMesh *Mesh,
       VelocityDel2Aux(stripDefault(Name), Mesh, VCoord),
       SurfTracerRestAux(stripDefault(Name), Mesh, NTracers),
       TracerAux(stripDefault(Name), Mesh, VCoord, NTracers),
-      TransportAux(stripDefault(Name), Mesh, VCoord), TimeStep(TimeStep) {
+      TransportAux(stripDefault(Name), Mesh, VCoord),
+      MixedLayerAux(stripDefault(Name), Mesh, VCoord), TimeStep(TimeStep) {
 
    GroupName = "AuxiliaryState";
    if (Name != "Default") {
@@ -48,6 +49,7 @@ AuxiliaryState::AuxiliaryState(const std::string &Name, const HorzMesh *Mesh,
    SurfTracerRestAux.registerFields(GroupName, AuxMeshName);
    TracerAux.registerFields(GroupName, AuxMeshName);
    TransportAux.registerFields(GroupName, AuxMeshName);
+   MixedLayerAux.registerFields(GroupName, AuxMeshName);
 }
 
 // Destructor. Unregisters the fields with IOStreams and destroys this auxiliary
@@ -60,6 +62,7 @@ AuxiliaryState::~AuxiliaryState() {
    SurfTracerRestAux.unregisterFields();
    TracerAux.unregisterFields();
    TransportAux.unregisterFields();
+   MixedLayerAux.unregisterFields();
 
    FieldGroup::destroy(GroupName);
 }
@@ -107,6 +110,18 @@ void AuxiliaryState::computeMomVertAux(const OceanState *State,
    // compute target thickness
    VCoord->computeTargetThickness();
 
+   // compute displaced spec volume for mixed layer depth
+   EosInstance->computeSpecVolDisp(ConservTemp, AbsSalinity,
+                                   MixedLayerAux.ReferencePressure, 0);
+
+   // compute mixed layer depth
+   const auto &SpecVolDisplaced = EosInstance->SpecVolDisplaced;
+   OMEGA_SCOPE(LocMixedlLayerAux, this->MixedLayerAux);
+   parallelForOuter(
+       {Mesh->NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
+          LocMixedlLayerAux.computeVarsOnCell(Team, ICell, SpecVolDisplaced);
+       });
+
    Pacer::stop("AuxState:computeMomVertAux", 2);
 }
 
@@ -134,11 +149,13 @@ void AuxiliaryState::computeTransportVelocity(
       const auto &GeomZMid            = VCoord->GeomZMid;
       const auto &MinLayerEdgeBot     = VCoord->MinLayerEdgeBot;
       const auto &MaxLayerEdgeTop     = VCoord->MaxLayerEdgeTop;
+      const auto &DenMixLayerDepth    = MixedLayerAux.DenMixLayerDepth;
+      const auto &DenMixLayerIndex    = MixedLayerAux.DenMixLayerIndex;
 
-      SubEddies->computeDenMixLayerDepth(SpecVol);
       SubEddies->computeBuoyGrad(SpecVol, MeanPseudoThickEdge, GeomZMid,
                                  BVFreqSq);
-      SubEddies->computeEddyVelocity(BVFreqSq, MeanPseudoThickEdge);
+      SubEddies->computeEddyVelocity(DenMixLayerDepth, DenMixLayerIndex,
+                                     BVFreqSq, MeanPseudoThickEdge);
 
       EddyVelocity = SubEddies->EddyVelocity;
    }

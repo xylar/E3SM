@@ -7,6 +7,7 @@
 #include "OceanTestCommon.h"
 #include "Pacer.h"
 #include "TimeStepper.h"
+#include "auxiliaryVars/MixedLayerAuxVars.h"
 
 #include "mpi.h"
 #include <limits>
@@ -392,13 +393,13 @@ Error testDenMixedLayerDepth(bool SetupExact) {
    auto &GeomZMid           = VCoord->GeomZMid;
    auto &GeomZInterface     = VCoord->GeomZInterface;
 
-   auto *SubEddies = SubmesoEddies::getInstance();
+   MixedLayerAuxVars MixedLayerAux("", Mesh, VCoord);
 
    Array2DReal ReferenceSpecVol("ReferenceSpecVol", Mesh->NCellsAll,
                                 VCoord->NVertLayers);
    Array1DReal ExactMixLayerDepth("ExactMixLayerDepth", Mesh->NCellsAll);
 
-   const Real DenThreshold = SubEddies->DenThreshold;
+   const Real DenThreshold = MixedLayerAux.DenThreshold;
 
    parallelForOuter(
        {Mesh->NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
@@ -437,8 +438,11 @@ Error testDenMixedLayerDepth(bool SetupExact) {
           ExactMixLayerDepth(ICell) = KDenValid ? ExactDepth : MaxDepth;
        });
 
-   SubEddies->computeDenMixLayerDepth(ReferenceSpecVol);
-   const auto &NumMixLayerDepth = SubEddies->DenMixLayerDepth;
+   parallelForOuter(
+       {Mesh->NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
+          MixedLayerAux.computeVarsOnCell(Team, ICell, ReferenceSpecVol);
+       });
+   const auto &NumMixLayerDepth = MixedLayerAux.DenMixLayerDepth;
 
    ErrorMeasures MixLayerDepthErrors;
    computeErrors(MixLayerDepthErrors, NumMixLayerDepth, ExactMixLayerDepth,
@@ -546,10 +550,10 @@ Error testEddyVelocity(const Array2DReal &GeomZInterfaceEdge,
    SubEddies->LfMin = LfMin;
    const Real DsMax = SubEddies->DsMax;
 
-   const auto &DenMixLayerDepth = SubEddies->DenMixLayerDepth;
-   const auto &DenMixLayerIndex = SubEddies->DenMixLayerIndex;
-   const auto &TimeScale        = SubEddies->TimeScale;
-   const Real Ce                = SubEddies->Ce;
+   Array1DReal DenMixLayerDepth("DenMixLayerDepth", Mesh->NCellsSize);
+   Array1DI4 DenMixLayerIndex("DenMixLayerIndex", Mesh->NCellsSize);
+   const auto &TimeScale = SubEddies->TimeScale;
+   const Real Ce         = SubEddies->Ce;
 
    // Pick initial mixed layer indices arbitrarily
    Array1DI4 DenMixLayerIndexTmp("DenMixLayerIndexTmp", Mesh->NCellsSize);
@@ -600,7 +604,8 @@ Error testEddyVelocity(const Array2DReal &GeomZInterfaceEdge,
        GeomZInterface);
 
    // Compute numerical eddy velocity
-   SubEddies->computeEddyVelocity(BVFreqSq, MeanPseudoThickEdge);
+   SubEddies->computeEddyVelocity(DenMixLayerDepth, DenMixLayerIndex, BVFreqSq,
+                                  MeanPseudoThickEdge);
 
    const auto &EddyVelocity = SubEddies->EddyVelocity;
 
