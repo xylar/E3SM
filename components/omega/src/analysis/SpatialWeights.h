@@ -112,6 +112,89 @@ class SpatialWeights {
    /// NVertLayers or NVertLayers + 1), masked
    Array2DReal MassWeights;
 
+   /// Computes the mass of each active layer of each entity from the
+   /// current pseudo-thickness into Layer
+   void computeLayerMass();
+
+   /// Global sum over owned entities, active layers and leading extra
+   /// dimensions of the weight times (Data - Center)^Power, for Power 1 or 2
+   template <typename ArrayT>
+   Real moment(const ArrayT &Data, Real Center, int Power) {
+
+      checkExtents(Data);
+      constexpr int Rank = ArrayT::rank;
+
+      OMEGA_SCOPE(LocTerms, Terms);
+      OMEGA_SCOPE(LocAreaWeights, AreaWeights);
+      OMEGA_SCOPE(LocMassWeights, MassWeights);
+      OMEGA_SCOPE(LocActive, Active);
+      const I4 LocNVert = NVert;
+
+      if constexpr (Rank == 1) {
+         parallelFor(
+             {NOwned}, KOKKOS_LAMBDA(int I) {
+                Real Sum = 0;
+                if (LocActive(I, 0) > 0) {
+                   Real Dev = static_cast<Real>(Data(I)) - Center;
+                   Sum = LocAreaWeights(I) * (Power == 2 ? Dev * Dev : Dev);
+                }
+                LocTerms(I) = Sum;
+             });
+      } else if constexpr (Rank == 2) {
+         parallelFor(
+             {NOwned}, KOKKOS_LAMBDA(int I) {
+                Real Sum = 0;
+                for (I4 K = 0; K < LocNVert; ++K) {
+                   if (LocActive(I, K) > 0) {
+                      Real Dev = static_cast<Real>(Data(I, K)) - Center;
+                      Sum +=
+                          LocMassWeights(I, K) * (Power == 2 ? Dev * Dev : Dev);
+                   }
+                }
+                LocTerms(I) = Sum;
+             });
+      } else if constexpr (Rank == 3) {
+         const I4 N0 = Data.extent(0);
+         parallelFor(
+             {NOwned}, KOKKOS_LAMBDA(int I) {
+                Real Sum = 0;
+                for (I4 L = 0; L < N0; ++L) {
+                   for (I4 K = 0; K < LocNVert; ++K) {
+                      if (LocActive(I, K) > 0) {
+                         Real Dev = static_cast<Real>(Data(L, I, K)) - Center;
+                         Sum += LocMassWeights(I, K) *
+                                (Power == 2 ? Dev * Dev : Dev);
+                      }
+                   }
+                }
+                LocTerms(I) = Sum;
+             });
+      } else {
+         const I4 N0 = Data.extent(0);
+         const I4 N1 = Data.extent(1);
+         parallelFor(
+             {NOwned}, KOKKOS_LAMBDA(int I) {
+                Real Sum = 0;
+                for (I4 L0 = 0; L0 < N0; ++L0) {
+                   for (I4 L1 = 0; L1 < N1; ++L1) {
+                      for (I4 K = 0; K < LocNVert; ++K) {
+                         if (LocActive(I, K) > 0) {
+                            Real Dev =
+                                static_cast<Real>(Data(L0, L1, I, K)) - Center;
+                            Sum += LocMassWeights(I, K) *
+                                   (Power == 2 ? Dev * Dev : Dev);
+                         }
+                      }
+                   }
+                }
+                LocTerms(I) = Sum;
+             });
+      }
+
+      std::vector<I4> Range = {0, NOwned - 1};
+      return globalSum(Terms, Comm, &Range);
+   }
+
  private:
    const HorzMesh *Mesh;    ///< horizontal mesh
    const VertCoord *VCoord; ///< vertical coordinate
@@ -132,10 +215,6 @@ class SpatialWeights {
 
    Real WeightSum;  ///< global sum of the weights
    bool SumIsValid; ///< true once the sum of constant weights is known
-
-   /// Computes the mass of each active layer of each entity from the
-   /// current pseudo-thickness into Layer
-   void computeLayerMass();
 
    /// Checks that an input array has the extents the weights were built for
    template <typename ArrayT> void checkExtents(const ArrayT &Data) const {
@@ -158,71 +237,6 @@ class SpatialWeights {
       OMEGA_REQUIRE(
           static_cast<I4>(Data.extent(Rank == 1 ? 0 : Rank - 2)) >= NOwned,
           "SpatialWeights: field {} has fewer entities than owned", InputName);
-   }
-
-   /// Global sum over owned entities, active layers and leading extra
-   /// dimensions of the weight times (Data - Center)^Power, for Power 1 or 2
-   template <typename ArrayT>
-   Real moment(const ArrayT &Data, Real Center, int Power) {
-
-      checkExtents(Data);
-      constexpr int Rank = ArrayT::rank;
-
-      OMEGA_SCOPE(LocTerms, Terms);
-      OMEGA_SCOPE(LocAreaWeights, AreaWeights);
-      OMEGA_SCOPE(LocMassWeights, MassWeights);
-      OMEGA_SCOPE(LocActive, Active);
-      const I4 LocNVert = NVert;
-
-      // Each owned entity accumulates its own terms in a fixed order
-      parallelFor(
-          {NOwned}, KOKKOS_LAMBDA(int I) {
-             Real Sum = 0;
-             if constexpr (Rank == 1) {
-                if (LocActive(I, 0) > 0) {
-                   Real Dev = static_cast<Real>(Data(I)) - Center;
-                   Sum = LocAreaWeights(I) * (Power == 2 ? Dev * Dev : Dev);
-                }
-             } else if constexpr (Rank == 2) {
-                for (I4 K = 0; K < LocNVert; ++K) {
-                   if (LocActive(I, K) > 0) {
-                      Real Dev = static_cast<Real>(Data(I, K)) - Center;
-                      Sum +=
-                          LocMassWeights(I, K) * (Power == 2 ? Dev * Dev : Dev);
-                   }
-                }
-             } else if constexpr (Rank == 3) {
-                const I4 N0 = Data.extent(0);
-                for (I4 L = 0; L < N0; ++L) {
-                   for (I4 K = 0; K < LocNVert; ++K) {
-                      if (LocActive(I, K) > 0) {
-                         Real Dev = static_cast<Real>(Data(L, I, K)) - Center;
-                         Sum += LocMassWeights(I, K) *
-                                (Power == 2 ? Dev * Dev : Dev);
-                      }
-                   }
-                }
-             } else {
-                const I4 N0 = Data.extent(0);
-                const I4 N1 = Data.extent(1);
-                for (I4 L0 = 0; L0 < N0; ++L0) {
-                   for (I4 L1 = 0; L1 < N1; ++L1) {
-                      for (I4 K = 0; K < LocNVert; ++K) {
-                         if (LocActive(I, K) > 0) {
-                            Real Dev =
-                                static_cast<Real>(Data(L0, L1, I, K)) - Center;
-                            Sum += LocMassWeights(I, K) *
-                                   (Power == 2 ? Dev * Dev : Dev);
-                         }
-                      }
-                   }
-                }
-             }
-             LocTerms(I) = Sum;
-          });
-
-      std::vector<I4> Range = {0, NOwned - 1};
-      return globalSum(Terms, Comm, &Range);
    }
 
 }; // end class SpatialWeights
