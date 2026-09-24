@@ -17,7 +17,9 @@ VelocityReconAuxVars::VelocityReconAuxVars(const std::string &AuxStateSuffix,
       ReconStencilCell(Mesh->ReconStencilCell),
       ReconWeightsCell(Mesh->ReconWeightsCell), LatCell(Mesh->LatCell),
       LonCell(Mesh->LonCell), MinLayerCell(VCoord->MinLayerCell),
-      MaxLayerCell(VCoord->MaxLayerCell) {}
+      MaxLayerCell(VCoord->MaxLayerCell),
+      MinLayerEdgeBot(VCoord->MinLayerEdgeBot),
+      MaxLayerEdgeTop(VCoord->MaxLayerEdgeTop) {}
 
 void VelocityReconAuxVars::registerFields(
     const std::string &AuxGroupName, // name of Auxiliary field group

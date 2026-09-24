@@ -44,7 +44,15 @@ class VelocityReconAuxVars {
       Real Ux = 0._Real, Uy = 0._Real, Uz = 0._Real;
 
       for (int J = 0; J < NEdgesReconOnCell(ICell); ++J) {
-         const I4 JEdge   = ReconStencilCell(ICell, J);
+         const I4 JEdge = ReconStencilCell(ICell, J);
+
+         // The stencil reaches beyond the cell's own edges, so it can include
+         // edges that are not active in this layer even when the cell is.
+         // Their normal velocity is zero or the fill value, so treat them as
+         // zero rather than reading them.
+         if (K < MinLayerEdgeBot(JEdge) || K > MaxLayerEdgeTop(JEdge))
+            continue;
+
          const Real Field = NormalVelEdge(JEdge, K);
 
          Ux += ReconWeightsCell(ICell, 0, J) * Field;
@@ -81,6 +89,8 @@ class VelocityReconAuxVars {
    Array1DReal LonCell;
    Array1DI4 MinLayerCell;
    Array1DI4 MaxLayerCell;
+   Array1DI4 MinLayerEdgeBot;
+   Array1DI4 MaxLayerEdgeTop;
 };
 
 } // namespace OMEGA
