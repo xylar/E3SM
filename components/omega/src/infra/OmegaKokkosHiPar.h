@@ -31,8 +31,8 @@ constexpr int OMEGA_TEAMSIZE = 64;
 constexpr int OMEGA_TEAMSIZE = 1;
 #endif
 
-#define INNER_LAMBDA [=]
-// #define INNER_LAMBDA [&]
+#define INNER_LAMBDA [&]
+// #define INNER_LAMBDA [=]
 
 // Workaround for ICE with the Intel classic compiler
 // To be removed as soon as Omega stops supporting it
