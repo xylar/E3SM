@@ -89,17 +89,19 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       InputField->getMetadata("Description", InputDescr);
       InputField->getMetadata("Units", InputUnits);
       InputField->getMetadata("StdName", InputStdName);
+      InputField->getMetadata("ValidMin", InputValidMin);
+      InputField->getMetadata("ValidMax", InputValidMax);
 
       // Register output Field with same dimensions as input but Real type
       auto OutputField =
           Field::create(OutputNames[0],
-                        "Time average of " + InputDescr,   // Description
-                        InputUnits,                        // Units
-                        InputStdName,                      // Standard name
-                        -std::numeric_limits<Real>::max(), // Min valid value
-                        std::numeric_limits<Real>::max(),  // Max valid value
-                        NDims,                             // Rank
-                        DimNames                           // Dimension names
+                        "Time average of " + InputDescr,  // Description
+                        InputUnits,                       // Units
+                        InputStdName,                     // Standard name
+                        static_cast<Real>(InputValidMin), // Min valid value
+                        static_cast<Real>(InputValidMax), // Max valid value
+                        NDims,                            // Rank
+                        DimNames                          // Dimension names
           );
 
       // Stamp CF-compliant cell_methods for time-mean output.
