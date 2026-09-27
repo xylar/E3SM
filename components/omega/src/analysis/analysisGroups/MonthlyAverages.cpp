@@ -42,8 +42,15 @@ MonthlyAverages::MonthlyAverages(const std::string &GroupName,
    }
 
    // This group produces temporal reductions, not instantaneous snapshots, so
-   // remove any SnapshotPeriod option. remove() is a no-op if it is absent.
-   AnalysisGroupOptions.remove("SnapshotPeriod");
+   // remove any SnapshotPeriod option.
+   std::vector<std::string> SnapshotPeriods;
+   Error SnapshotErr =
+       AnalysisGroupOptions.get("SnapshotPeriod", SnapshotPeriods);
+   if (!SnapshotErr.isFail() && !SnapshotPeriods.empty()) {
+      LOG_WARN("MonthlyAverages AnalysisGroup ignores SnapshotPeriod; "
+               "no instantaneous snapshots will be produced");
+      AnalysisGroupOptions.remove("SnapshotPeriod");
+   }
 
    // No spatial operator: the chain stems are simply the field names. The base
    // class appends the TimeMean operator to each stem.
