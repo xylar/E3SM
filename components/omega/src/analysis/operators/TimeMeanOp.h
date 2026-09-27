@@ -129,9 +129,11 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    /// Initializes the operator after all Fields exist. Determines the index
    /// space (cells, edges, or vertices) from the input field's horizontal
    /// dimension name and, for rank >= 2 mesh fields, stores the appropriate
-   /// MinLayer/MaxLayer arrays from VertCoord. TimeMeanOp does NOT abort on an
-   /// unrecognized index space: it simply falls back to the flat parallel
-   /// dispatch path.
+   /// MinLayer/MaxLayer arrays from VertCoord. Fields defined on vertical
+   /// interfaces add 1 to KMax to include the interface on the bottommost
+   /// active layer. TimeMeanOp does NOT abort on an unrecognized index space
+   /// or final dimension: it simply falls back to the flat parallel dispatch
+   /// path.
    void initialize(const MachEnv *Env, const HorzMesh *InMesh,
                    const VertCoord *InVCoord, Config Options) override {
 
@@ -149,7 +151,9 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       if constexpr (InputRank == 1) {
          IndexSpaceName = DimNames[0];
       } else {
-         IndexSpaceName = DimNames[InputRank - 2];
+         IndexSpaceName                     = DimNames[InputRank - 2];
+         const std::string &VerticalDimName = DimNames[InputRank - 1];
+         LayerBoundOffset = (VerticalDimName == "NVertLayersP1") ? 1 : 0;
       }
 
       IsMeshDimension =
@@ -256,13 +260,14 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
          OMEGA_SCOPE(LocMinLayer, MinLayer);
          OMEGA_SCOPE(LocMaxLayer, MaxLayer);
          OMEGA_SCOPE(LocInputData, InputData);
+         const I4 LocLayerBoundOffset = LayerBoundOffset;
 
          if constexpr (InputRank == 2) {
             parallelForOuter(
                 "TimeMeanInit2D", LaunchConfig({NHorizOwned}),
                 KOKKOS_LAMBDA(int IHoriz, const TeamMember &Team) {
                    const I4 KMin   = LocMinLayer(IHoriz);
-                   const I4 KMax   = LocMaxLayer(IHoriz);
+                   const I4 KMax   = LocMaxLayer(IHoriz) + LocLayerBoundOffset;
                    const I4 KRange = vertRange(KMin, KMax);
                    parallelForInner(
                        Team, KRange, INNER_LAMBDA(int KIdx) {
@@ -277,7 +282,7 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
                 "TimeMeanInit3D", LaunchConfig({Dim0, NHorizOwned}),
                 KOKKOS_LAMBDA(int I0, int IHoriz, const TeamMember &Team) {
                    const I4 KMin   = LocMinLayer(IHoriz);
-                   const I4 KMax   = LocMaxLayer(IHoriz);
+                   const I4 KMax   = LocMaxLayer(IHoriz) + LocLayerBoundOffset;
                    const I4 KRange = vertRange(KMin, KMax);
                    parallelForInner(
                        Team, KRange, INNER_LAMBDA(int KIdx) {
@@ -308,13 +313,14 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
          OMEGA_SCOPE(LocMinLayer, MinLayer);
          OMEGA_SCOPE(LocMaxLayer, MaxLayer);
          OMEGA_SCOPE(LocInputData, InputData);
+         const I4 LocLayerBoundOffset = LayerBoundOffset;
 
          if constexpr (InputRank == 2) {
             parallelForOuter(
                 "TimeMeanAdd2D", LaunchConfig({NHorizOwned}),
                 KOKKOS_LAMBDA(int IHoriz, const TeamMember &Team) {
                    const I4 KMin   = LocMinLayer(IHoriz);
-                   const I4 KMax   = LocMaxLayer(IHoriz);
+                   const I4 KMax   = LocMaxLayer(IHoriz) + LocLayerBoundOffset;
                    const I4 KRange = vertRange(KMin, KMax);
                    parallelForInner(
                        Team, KRange, INNER_LAMBDA(int KIdx) {
@@ -329,7 +335,7 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
                 "TimeMeanAdd3D", LaunchConfig({Dim0, NHorizOwned}),
                 KOKKOS_LAMBDA(int I0, int IHoriz, const TeamMember &Team) {
                    const I4 KMin   = LocMinLayer(IHoriz);
-                   const I4 KMax   = LocMaxLayer(IHoriz);
+                   const I4 KMax   = LocMaxLayer(IHoriz) + LocLayerBoundOffset;
                    const I4 KRange = vertRange(KMin, KMax);
                    parallelForInner(
                        Team, KRange, INNER_LAMBDA(int KIdx) {
@@ -360,13 +366,14 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       if (IsMeshDimension && InputRank >= 2) {
          OMEGA_SCOPE(LocMinLayer, MinLayer);
          OMEGA_SCOPE(LocMaxLayer, MaxLayer);
+         const I4 LocLayerBoundOffset = LayerBoundOffset;
 
          if constexpr (InputRank == 2) {
             parallelForOuter(
                 "TimeMeanFinal2D", LaunchConfig({NHorizOwned}),
                 KOKKOS_LAMBDA(int IHoriz, const TeamMember &Team) {
                    const I4 KMin   = LocMinLayer(IHoriz);
-                   const I4 KMax   = LocMaxLayer(IHoriz);
+                   const I4 KMax   = LocMaxLayer(IHoriz) + LocLayerBoundOffset;
                    const I4 KRange = vertRange(KMin, KMax);
                    parallelForInner(
                        Team, KRange, INNER_LAMBDA(int KIdx) {
@@ -380,7 +387,7 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
                 "TimeMeanFinal3D", LaunchConfig({Dim0, NHorizOwned}),
                 KOKKOS_LAMBDA(int I0, int IHoriz, const TeamMember &Team) {
                    const I4 KMin   = LocMinLayer(IHoriz);
-                   const I4 KMax   = LocMaxLayer(IHoriz);
+                   const I4 KMax   = LocMaxLayer(IHoriz) + LocLayerBoundOffset;
                    const I4 KRange = vertRange(KMin, KMax);
                    parallelForInner(
                        Team, KRange, INNER_LAMBDA(int KIdx) {
@@ -416,6 +423,9 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    /// Whether the horizontal dimension is a recognized mesh dimension
    /// (NCells/NEdges/NVertices). When false, the flat fallback path is used.
    bool IsMeshDimension;
+
+   /// Additional upper bound offset for interface fields on NVertLayersP1.
+   I4 LayerBoundOffset = 0;
 
    /// Min active layer index for each horizontal point (rank >= 2 mesh fields)
    Array1DI4 MinLayer;

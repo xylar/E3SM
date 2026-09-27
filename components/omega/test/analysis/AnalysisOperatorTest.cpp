@@ -869,6 +869,80 @@ void testTimeMeanOpType(const std::string &TypeName, const MachEnv *Env,
 }
 
 //------------------------------------------------------------------------------
+// Verify that TimeMeanOp includes the bottom interface for NVertLayersP1 fields
+void testTimeMeanOpInterfaceField(const MachEnv *Env, const HorzMesh *Mesh,
+                                  const VertCoord *VCoord, Clock *ModelClock) {
+
+   using ArrayType = Array2DR8;
+
+   const std::string FieldName = "TestFieldTimeMeanInterface";
+   const std::vector<I4> Dims  = {Mesh->NCellsSize, VCoord->NVertLayersP1};
+   auto TestField =
+       Field::create(FieldName, "Test interface field for TimeMeanOp", "", "",
+                     -1.0e30, 1.0e30, 2, {"NCells", "NVertLayersP1"});
+   ArrayType TestData(FieldName + "_data", Dims[0], Dims[1]);
+   TestField->attachData<ArrayType>(TestData);
+
+   const int NumSteps        = 5;
+   TimeInterval StepInterval = ModelClock->getTimeStep();
+   R8 StepSeconds;
+   StepInterval.get(StepSeconds, TimeUnits::Seconds);
+   R8 PeriodSeconds = StepSeconds * NumSteps;
+   TimeInterval PeriodInterval(PeriodSeconds, TimeUnits::Seconds);
+   std::string PeriodLabel =
+       std::to_string(static_cast<int>(PeriodSeconds)) + "seconds";
+
+   auto TimeMeanOp = AnalysisOpFactory::createOp(
+       "TimeMean", {FieldName}, makeOpConfig(opParam("Period", PeriodLabel)));
+   TimeMeanOp->initialize(Env, Mesh, VCoord, Config{});
+
+   TimeInstant StartTime = ModelClock->getCurrentTime();
+   Alarm PeriodAlarm("TestPeriodAlarmInterface", PeriodInterval, StartTime);
+   TimeMeanOp->setPeriodAlarm(&PeriodAlarm);
+
+   for (int Step = 0; Step < NumSteps; ++Step) {
+      const Real CurrentValue = 5.0_Real + static_cast<Real>(Step);
+      auto TestDataHost       = createHostMirrorCopy(TestData);
+      for (I4 ICell = 0; ICell < Dims[0]; ++ICell) {
+         for (I4 K = 0; K < Dims[1]; ++K) {
+            TestDataHost(ICell, K) = CurrentValue;
+         }
+      }
+      deepCopy(TestData, TestDataHost);
+
+      ModelClock->advance();
+      TimeInstant CurrentTime = ModelClock->getCurrentTime();
+      PeriodAlarm.updateStatus(CurrentTime);
+      TimeMeanOp->compute(CurrentTime);
+   }
+
+   const Real ExpectedMean = 7.0_Real;
+   auto ResultField        = Field::get(FieldName + "_TimeMean" + PeriodLabel);
+   auto ResultData         = ResultField->getDataArray<Array2D_t<Real>>();
+   auto ResultHost         = createHostMirrorCopy(ResultData);
+
+   bool Passed = true;
+   for (I4 ICell = 0; ICell < Mesh->NCellsOwned && Passed; ++ICell) {
+      const I4 KMin = VCoord->MinLayerCellH(ICell);
+      const I4 KMax = VCoord->MaxLayerCellH(ICell) + 1;
+      for (I4 K = 0; K < VCoord->NVertLayersP1; ++K) {
+         const bool Active   = (K >= KMin && K <= KMax);
+         const Real Expected = Active ? ExpectedMean : FillValueReal;
+         const Real Actual   = ResultHost(ICell, K);
+         if (std::abs(Actual - Expected) > 1.0e-8) {
+            Passed = false;
+            LOG_ERROR("  Interface field at ({}, {}) [active={}]: Expected {}, "
+                      "Got {}",
+                      ICell, K, Active, Expected, Actual);
+            break;
+         }
+      }
+   }
+
+   reportTest("TimeMeanOp: NVertLayersP1 interface field", Passed);
+}
+
+//------------------------------------------------------------------------------
 // Creates a 2D Real field on the given entities with the given vertical
 // dimension, filled with a pattern of values on active owned entries and
 // NaN everywhere else (inactive layers and halo entities), so that a
@@ -1162,6 +1236,8 @@ void testTimeMeanOp(const MachEnv *Env, const HorzMesh *Mesh,
    testTimeMeanOpType<Array3DI8>("3D-I8", Env, Mesh, VCoord, ModelClock);
    testTimeMeanOpType<Array3DR4>("3D-R4", Env, Mesh, VCoord, ModelClock);
    testTimeMeanOpType<Array3DR8>("3D-R8", Env, Mesh, VCoord, ModelClock);
+
+   testTimeMeanOpInterfaceField(Env, Mesh, VCoord, ModelClock);
 }
 
 //------------------------------------------------------------------------------
