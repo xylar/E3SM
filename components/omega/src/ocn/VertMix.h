@@ -210,7 +210,7 @@ class OneTwoOneFilter {
       const I4 MaxLyrCell = MaxLayerCell(ICell);
 
       parallelForInner(
-          Team, Range{MinLyrCell + 1, MaxLyrCell - 1}, INNER_LAMBDA(int K) {
+          Team, Range{MinLyrCell + 1, MaxLyrCell}, INNER_LAMBDA(int K) {
              // apply 1-2-1 filter
              VarOut(ICell, K) =
                  (VarIn(ICell, K - 1) + 2.0_Real * VarIn(ICell, K) +
@@ -220,9 +220,7 @@ class OneTwoOneFilter {
 
       Kokkos::single(
           PerTeam(Team), INNER_LAMBDA() {
-             VarOut(ICell, MinLyrCell) = VarIn(ICell, MinLyrCell);
-
-             VarOut(ICell, MaxLyrCell)     = VarIn(ICell, MaxLyrCell);
+             VarOut(ICell, MinLyrCell)     = VarIn(ICell, MinLyrCell);
              VarOut(ICell, MaxLyrCell + 1) = VarIn(ICell, MaxLyrCell + 1);
           });
    }

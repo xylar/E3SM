@@ -350,7 +350,7 @@ void testOneTwoOneFilter() {
               Team, KRange,
               INNER_LAMBDA(int KOff, int &InnerCount) {
                  const int K = KMin + KOff;
-                 if (K > MinLayerCell(ICell) && K < MaxLayerCell(ICell)) {
+                 if (K > MinLayerCell(ICell) && K <= MaxLayerCell(ICell)) {
                     // Interior layers should be smoothed to 0.0
                     if (!isApprox(GradRichNumSmoothed(ICell, K), 0.0_Real,
                                   RTol))
