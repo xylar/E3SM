@@ -2766,11 +2766,6 @@ void IOStream::writeStream(
       TimeBndsID = defineVar(OutFileID, "time_bnds", IO::IOTypeR8, 2, BndsDims);
 
       if (Frame < 1) { // only write metadata for a new file
-         // Reuse the same units as the time variable (seconds since start).
-         std::string UnitString =
-             "seconds since " + StartTime.getString(4, 0, " ");
-         IO::writeMeta("units", UnitString, OutFileID, TimeBndsID);
-
          // Point the time variable at its bounds via the CF bounds attribute.
          IO::writeMeta("bounds", std::string("time_bnds"), OutFileID,
                        FieldIDs["time"]);
