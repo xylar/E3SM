@@ -577,7 +577,7 @@ Tendencies::Tendencies(const std::string &Name_, ///< [in] Name for tendencies
       SfcTracerForcing(Mesh, VCoord, Tracers::IndxTemp, Tracers::IndxSalt,
                        EqState),
       TracerDiffusion(Mesh, VCoord), KPPNonLocalTracerFlux(Mesh, VCoord),
-      TracerHyperDiff(Mesh, VCoord), TracerHorzAdv(Mesh, VCoord),
+      TracerHyperDiff(Mesh, VCoord), TracerHorzAdv(Mesh, VCoord, VAdv_),
       SurfaceTracerRestoring(Mesh), CustomThicknessTend(InCustomThicknessTend),
       CustomVelocityTend(InCustomVelocityTend), EqState(EqState), PGrad(PGrad),
       VMix(VMix) {
@@ -1048,8 +1048,8 @@ void Tendencies::computeTracerTendenciesOnly(
    if (LocKPPNonLocalTracerDiagnosticsEnable) {
       parallelForOuter(
           {Mesh->NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
-             const int KMin = MinLayerCell(ICell);
-             const int KMax = MaxLayerCell(ICell);
+             const int KMin = LocMinLayerCell(ICell);
+             const int KMax = LocMaxLayerCell(ICell);
              parallelForInner(
                  Team, Range{KMin, KMax}, INNER_LAMBDA(int K) {
                     LocKPPNonLocalTracerTempTendDiag(ICell, K) = 0.0_Real;
@@ -1280,8 +1280,8 @@ void Tendencies::computeTracerTendenciesOnly(
             parallelForOuter(
                 {Mesh->NCellsAll},
                 KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
-                   const int KMin = MinLayerCell(ICell);
-                   const int KMax = MaxLayerCell(ICell);
+                   const int KMin = LocMinLayerCell(ICell);
+                   const int KMax = LocMaxLayerCell(ICell);
                    parallelForInner(
                        Team, Range{KMin, KMax}, INNER_LAMBDA(int K) {
                           LocKPPNonLocalTracerTempTendDiag(ICell, K) +=
@@ -1294,8 +1294,8 @@ void Tendencies::computeTracerTendenciesOnly(
             parallelForOuter(
                 {Mesh->NCellsAll},
                 KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
-                   const int KMin = MinLayerCell(ICell);
-                   const int KMax = MaxLayerCell(ICell);
+                   const int KMin = LocMinLayerCell(ICell);
+                   const int KMax = LocMaxLayerCell(ICell);
                    Real Sum       = 0.0_Real;
                    parallelReduceInner(
                        Team, Range{KMin, KMax},
