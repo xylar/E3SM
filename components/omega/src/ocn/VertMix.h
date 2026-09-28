@@ -66,7 +66,6 @@ class ShearMix {
    Real ShearRiCrit = 0.7;      ///< Critical Richardson number of LMD94
    Real ShearExponent =
        3.0; /// Exponent value used interior shear mixing calculation of LMD94
-   I4 RiSmoothLoops = 2; ///< Number of smoothing loops for Richardson number
 
    /// Constructor for ShearMix
    ShearMix(const VertCoord *VCoord);
@@ -198,6 +197,8 @@ class GradRichardsonNum {
 /// Class for Gradient Richardson Number calculation
 class OneTwoOneFilter {
  public:
+   I4 RiSmoothLoops = 2; ///< Number of smoothing loops for Richardson number
+
    /// constructor declaration
    OneTwoOneFilter(const VertCoord *VCoord);
    //   The functor takes the full arrays of Richardson number (inout),
@@ -209,23 +210,46 @@ class OneTwoOneFilter {
       const I4 MinLyrCell = MinLayerCell(ICell);
       const I4 MaxLyrCell = MaxLayerCell(ICell);
 
-      parallelForInner(
-          Team, Range{MinLyrCell + 1, MaxLyrCell}, INNER_LAMBDA(int K) {
-             // apply 1-2-1 filter
-             VarOut(ICell, K) =
-                 (VarIn(ICell, K - 1) + 2.0_Real * VarIn(ICell, K) +
-                  VarIn(ICell, K + 1)) /
-                 4.0_Real;
-          });
+      ScratchArray2DReal VarTmp(teamScratch(Team), 2, NVertLayersP1);
 
-      Kokkos::single(
-          PerTeam(Team), INNER_LAMBDA() {
-             VarOut(ICell, MinLyrCell)     = VarIn(ICell, MinLyrCell);
-             VarOut(ICell, MaxLyrCell + 1) = VarIn(ICell, MaxLyrCell + 1);
-          });
+      int Cur  = 0;
+      int Next = 1;
+
+      parallelForInner(
+          Team, Range{MinLyrCell, MaxLyrCell + 1},
+          INNER_LAMBDA(int K) { VarTmp(Cur, K) = VarIn(ICell, K); });
+
+      teamBarrier(Team);
+
+      for (int SmoothLoop = 0; SmoothLoop < RiSmoothLoops; ++SmoothLoop) {
+         parallelForInner(
+             Team, Range{MinLyrCell + 1, MaxLyrCell}, INNER_LAMBDA(int K) {
+                // apply 1-2-1 filter
+                VarTmp(Next, K) =
+                    (VarTmp(Cur, K - 1) + 2.0_Real * VarTmp(Cur, K) +
+                     VarTmp(Cur, K + 1)) /
+                    4.0_Real;
+             });
+
+         Kokkos::single(
+             PerTeam(Team), INNER_LAMBDA() {
+                VarTmp(Next, MinLyrCell)     = VarTmp(Cur, MinLyrCell);
+                VarTmp(Next, MaxLyrCell + 1) = VarTmp(Cur, MaxLyrCell + 1);
+             });
+
+         teamBarrier(Team);
+
+         Cur ^= 1;
+         Next ^= 1;
+      }
+
+      parallelForInner(
+          Team, Range{MinLyrCell, MaxLyrCell + 1},
+          INNER_LAMBDA(int K) { VarOut(ICell, K) = VarTmp(Cur, K); });
    }
 
  private:
+   I4 NVertLayersP1;
    Array1DI4 MinLayerCell;
    Array1DI4 MaxLayerCell;
 };

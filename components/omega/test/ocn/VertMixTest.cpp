@@ -331,11 +331,21 @@ void testOneTwoOneFilter() {
 
    // Apply the 1-2-1 filter to each cell
    OMEGA_SCOPE(ComputeOneTwoOneFilter, TestVertMix->ComputeOneTwoOneFilter);
+
+   const int RiSmoothLoopsOrig = ComputeOneTwoOneFilter.RiSmoothLoops;
+   // Perform only one smoothing iteration for this test
+   ComputeOneTwoOneFilter.RiSmoothLoops = 1;
+
    parallelForOuter(
-       "ApplyOneTwoOneFilter", {Mesh->NCellsAll},
+       "ApplyOneTwoOneFilter",
+       LaunchConfig({Mesh->NCellsAll},
+                    TeamScratch<Real>(2 * VCoord->NVertLayersP1)),
        KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
           ComputeOneTwoOneFilter(Team, GradRichNumSmoothed, ICell, GradRichNum);
        });
+
+   // Restore original number of smoothing iterations
+   ComputeOneTwoOneFilter.RiSmoothLoops = RiSmoothLoopsOrig;
 
    /// Check all array values against expected value
    int NumMismatches = 0;
