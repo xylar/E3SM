@@ -74,4 +74,4 @@ Then there are three jobs to submit:
 
 ## What to report back
 
-Per row: Polaris hash; Omega hashes for baseline and PR, and whether #574 was merged in; both `-p` build paths; CTest pass count; `omega_pr` result for each task, including any baseline differences. Known and not caused by this PR: property checks can fail silently while the task still reports PASS, so read the log for `FAIL` lines inside passing tasks rather than trusting the summary alone.
+Per row: Polaris hash; Omega hashes for baseline and PR, and whether #574 was merged in; both `-p` build paths; CTest pass count; `omega_pr` result for each task, including any baseline differences. Failing property checks are not a concern and can be ignored for now. On Chrysalis, the develop baseline has three in `ocean/column/vmix_unstable` (`forward`, `forward_no_hadv`, `forward_no_hadv_restoring`) while the task still reports PASS.
