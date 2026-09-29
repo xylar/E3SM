@@ -63,10 +63,15 @@ endmacro()
 
 macro(read_cime_config)
 
+  # --output-root keeps the case's EXEROOT and RUNDIR inside this build
+  # directory. Otherwise they are $CIME_OUTPUT_ROOT/e3smcase/{bld,run}, shared
+  # by every standalone build on the machine, and --handle-preexisting-dirs r
+  # lets concurrent builds delete each other's directories.
   set(NEWCASE_COMMAND "${E3SM_ROOT}/cime/scripts/create_newcase \
     --res T62_oQU120 \
     --compset CMPASO-NYF \
     --handle-preexisting-dirs r \
+    --output-root ${OMEGA_BUILD_DIR} \
     --case ${CASEROOT}")
 
   if(NOT "${OMEGA_CIME_MACHINE}" STREQUAL "")
