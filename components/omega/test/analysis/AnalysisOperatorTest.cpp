@@ -810,14 +810,21 @@ void testTimeMeanOpType(const std::string &TypeName, const MachEnv *Env,
       auto ResultData = ResultField->getDataArray<Array2D_t<Real>>();
       auto ResultHost = createHostMirrorCopy(ResultData);
 
+      // Active layers [MinLayerCell, MaxLayerCell] must equal the analytic
+      // time-mean; inactive layers must retain FillValueReal (the refactored
+      // TimeMeanOp only writes active layers, preserving fill values).
       for (I4 i = 0; i < Mesh->NCellsOwned; ++i) {
+         const I4 KMin = VCoord->MinLayerCellH(i);
+         const I4 KMax = VCoord->MaxLayerCellH(i);
          for (I4 j = 0; j < VCoord->NVertLayers; ++j) {
             Real ComputedValue = ResultHost(i, j);
-            if (std::abs(ComputedValue - ExpectedMean) >
+            bool Active        = (j >= KMin && j <= KMax);
+            Real Expected      = Active ? ExpectedMean : FillValueReal;
+            if (std::abs(ComputedValue - Expected) >
                 static_cast<Real>(Helper::getTolerance())) {
                Passed = false;
-               LOG_ERROR("  At index ({}, {}): Expected {}, Got {}", i, j,
-                         ExpectedMean, ComputedValue);
+               LOG_ERROR("  At index ({}, {}) [active={}]: Expected {}, Got {}",
+                         i, j, Active, Expected, ComputedValue);
                break;
             }
          }
@@ -830,13 +837,18 @@ void testTimeMeanOpType(const std::string &TypeName, const MachEnv *Env,
 
       for (I4 i = 0; i < Dims[0]; ++i) {
          for (I4 j = 0; j < Mesh->NCellsOwned; ++j) {
+            const I4 KMin = VCoord->MinLayerCellH(j);
+            const I4 KMax = VCoord->MaxLayerCellH(j);
             for (I4 k = 0; k < VCoord->NVertLayers; ++k) {
                Real ComputedValue = ResultHost(i, j, k);
-               if (std::abs(ComputedValue - ExpectedMean) >
+               bool Active        = (k >= KMin && k <= KMax);
+               Real Expected      = Active ? ExpectedMean : FillValueReal;
+               if (std::abs(ComputedValue - Expected) >
                    static_cast<Real>(Helper::getTolerance())) {
                   Passed = false;
-                  LOG_ERROR("  At index ({}, {}, {}): Expected {}, Got {}", i,
-                            j, k, ExpectedMean, ComputedValue);
+                  LOG_ERROR("  At index ({}, {}, {}) [active={}]: Expected {}, "
+                            "Got {}",
+                            i, j, k, Active, Expected, ComputedValue);
                   break;
                }
             }
@@ -854,6 +866,80 @@ void testTimeMeanOpType(const std::string &TypeName, const MachEnv *Env,
       LOG_ERROR("  Expected mean: {}", ExpectedMean);
       LOG_ERROR("  Period label: {}", PeriodLabel);
    }
+}
+
+//------------------------------------------------------------------------------
+// Verify that TimeMeanOp includes the bottom interface for NVertLayersP1 fields
+void testTimeMeanOpInterfaceField(const MachEnv *Env, const HorzMesh *Mesh,
+                                  const VertCoord *VCoord, Clock *ModelClock) {
+
+   using ArrayType = Array2DR8;
+
+   const std::string FieldName = "TestFieldTimeMeanInterface";
+   const std::vector<I4> Dims  = {Mesh->NCellsSize, VCoord->NVertLayersP1};
+   auto TestField =
+       Field::create(FieldName, "Test interface field for TimeMeanOp", "", "",
+                     -1.0e30, 1.0e30, 2, {"NCells", "NVertLayersP1"});
+   ArrayType TestData(FieldName + "_data", Dims[0], Dims[1]);
+   TestField->attachData<ArrayType>(TestData);
+
+   const int NumSteps        = 5;
+   TimeInterval StepInterval = ModelClock->getTimeStep();
+   R8 StepSeconds;
+   StepInterval.get(StepSeconds, TimeUnits::Seconds);
+   R8 PeriodSeconds = StepSeconds * NumSteps;
+   TimeInterval PeriodInterval(PeriodSeconds, TimeUnits::Seconds);
+   std::string PeriodLabel =
+       std::to_string(static_cast<int>(PeriodSeconds)) + "seconds";
+
+   auto TimeMeanOp = AnalysisOpFactory::createOp(
+       "TimeMean", {FieldName}, makeOpConfig(opParam("Period", PeriodLabel)));
+   TimeMeanOp->initialize(Env, Mesh, VCoord, Config{});
+
+   TimeInstant StartTime = ModelClock->getCurrentTime();
+   Alarm PeriodAlarm("TestPeriodAlarmInterface", PeriodInterval, StartTime);
+   TimeMeanOp->setPeriodAlarm(&PeriodAlarm);
+
+   for (int Step = 0; Step < NumSteps; ++Step) {
+      const Real CurrentValue = 5.0_Real + static_cast<Real>(Step);
+      auto TestDataHost       = createHostMirrorCopy(TestData);
+      for (I4 ICell = 0; ICell < Dims[0]; ++ICell) {
+         for (I4 K = 0; K < Dims[1]; ++K) {
+            TestDataHost(ICell, K) = CurrentValue;
+         }
+      }
+      deepCopy(TestData, TestDataHost);
+
+      ModelClock->advance();
+      TimeInstant CurrentTime = ModelClock->getCurrentTime();
+      PeriodAlarm.updateStatus(CurrentTime);
+      TimeMeanOp->compute(CurrentTime);
+   }
+
+   const Real ExpectedMean = 7.0_Real;
+   auto ResultField        = Field::get(FieldName + "_TimeMean" + PeriodLabel);
+   auto ResultData         = ResultField->getDataArray<Array2D_t<Real>>();
+   auto ResultHost         = createHostMirrorCopy(ResultData);
+
+   bool Passed = true;
+   for (I4 ICell = 0; ICell < Mesh->NCellsOwned && Passed; ++ICell) {
+      const I4 KMin = VCoord->MinLayerCellH(ICell);
+      const I4 KMax = VCoord->MaxLayerCellH(ICell) + 1;
+      for (I4 K = 0; K < VCoord->NVertLayersP1; ++K) {
+         const bool Active   = (K >= KMin && K <= KMax);
+         const Real Expected = Active ? ExpectedMean : FillValueReal;
+         const Real Actual   = ResultHost(ICell, K);
+         if (std::abs(Actual - Expected) > 1.0e-8) {
+            Passed = false;
+            LOG_ERROR("  Interface field at ({}, {}) [active={}]: Expected {}, "
+                      "Got {}",
+                      ICell, K, Active, Expected, Actual);
+            break;
+         }
+      }
+   }
+
+   reportTest("TimeMeanOp: NVertLayersP1 interface field", Passed);
 }
 
 //------------------------------------------------------------------------------
@@ -1150,6 +1236,8 @@ void testTimeMeanOp(const MachEnv *Env, const HorzMesh *Mesh,
    testTimeMeanOpType<Array3DI8>("3D-I8", Env, Mesh, VCoord, ModelClock);
    testTimeMeanOpType<Array3DR4>("3D-R4", Env, Mesh, VCoord, ModelClock);
    testTimeMeanOpType<Array3DR8>("3D-R8", Env, Mesh, VCoord, ModelClock);
+
+   testTimeMeanOpInterfaceField(Env, Mesh, VCoord, ModelClock);
 }
 
 //------------------------------------------------------------------------------
