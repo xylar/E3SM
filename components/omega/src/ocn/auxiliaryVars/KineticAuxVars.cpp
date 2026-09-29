@@ -41,7 +41,7 @@ void KineticAuxVars::registerFields(
        "kinetic energy of horizontal velocity on cells", // long name/describe
        "m^2 s^-2",                                       // units
        "specific_kinetic_energy_of_sea_water",           // CF standard Name
-       0,                                                // min valid value
+       0.0,                                              // min valid value
        std::numeric_limits<Real>::max(),                 // max valid value
        2,                                                // number of dimensions
        DimNames                                          // dim names
