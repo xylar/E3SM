@@ -1074,7 +1074,6 @@ void Tendencies::computeTracerTendenciesOnly(
              KOKKOS_LAMBDA(int L, int ICell, const TeamMember &Team) {
                 LocTracerHorzAdv(Team, LocTracerTend, L, ICell);
              });
-
       }
       Pacer::stop("Tend:tracerHorzAdv", 2);
    }
