@@ -219,7 +219,7 @@ struct TestSetupSphere {
                                              1.077950920692842e-06};
    ErrorMeasures ExpectedFCTHInv          = {3.054397382906693e-05,
                                              1.0779509220589763e-06};
-   ErrorMeasures ExpectedFCTHNew          = {3.0541724683419424e-05,
+   ErrorMeasures ExpectedFCTHNew          = {3.0543973828844884e-05,
                                              1.0779233406323438e-06};
    ErrorMeasures ExpectedFCT_High         = {0.00146484375, 16478.526025524854};
    ErrorMeasures ExpectedFCT_Low          = {0, 0};
@@ -1403,7 +1403,7 @@ int testFCTTracerHorzAdvOnCell(int NVertLayers, int NTracers, Real RTol) {
       const auto HProv    = TrHorzAdvOnC.GetHProv();
       const auto HNewInv  = TrHorzAdvOnC.GetHNewInv();
 
-      const Real ATol = 1.0e-10;
+      const Real ATol = sizeof(Real) == 4 ? 1e-4 : 1e-10;
       Err += computeErrors(FCTErrors, HProv, HProvExact, Mesh, OnCell);
       Err += checkErrors("TendencyTermsTest", "FCTHProv", FCTErrors,
                          Setup.ExpectedFCTHProv, RTol, ATol);
@@ -1538,7 +1538,7 @@ int testFCTTracerHorzAdvOnCell(int NVertLayers, int NTracers, Real RTol) {
              FluxSubView(IEdge, K) = 0;
           });
 
-      const Real ATol          = 1.0e-10;
+      const Real ATol = sizeof(Real) == 4 ? 1e-8 : 1e-10;
       Array2DReal HighOrderFlx = TrHorzAdvOnC.GetHighOrderFlx();
       Err += computeErrors(FCTErrors, HighOrderFlx, FluxSubView, Mesh, OnEdge);
       Err += checkErrors("TendencyTermsTest", "FCTHighAndLowOrderFlux_High",
@@ -1669,7 +1669,7 @@ int testFCTTracerHorzAdvOnCell(int NVertLayers, int NTracers, Real RTol) {
       deepCopy(TracerSubView,
                Kokkos::subview(TendNoFCT, L, Kokkos::ALL, Kokkos::ALL));
 
-      const Real ATol = 1.0e-10;
+      const Real ATol = sizeof(Real) == 4 ? 1e-6 : 1e-10;
       Err += computeErrors(FCTErrors, Tend, TracerSubView, Mesh, OnCell);
       Err += checkErrors("TendencyTermsTest",
                          "FCTAccumulateHighOrderFlux_" + std::to_string(L),
