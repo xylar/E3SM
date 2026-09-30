@@ -63,9 +63,12 @@ class MixedLayerAuxVars {
           },
           KRef);
 
-      // Not found, setting to KMax
+      // Not found, set mixed layer depth to to the depth of the deepest layer
+      // and return early
       if (KRef == -1) {
-         KRef = KMax;
+         DenMixLayerIndex(ICell) = KMax;
+         DenMixLayerDepth(ICell) = SSH - GeomZMid(ICell, KMax);
+         return;
       }
 
       const int KRefM1 = Kokkos::max(KRef - 1, MinLayerCell(ICell));
