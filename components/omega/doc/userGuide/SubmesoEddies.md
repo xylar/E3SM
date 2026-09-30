@@ -5,7 +5,7 @@
 Omega includes an optional submesoscale mixed layer instability (MLI)
 parameterization through the `SubmesoEddies` class. When enabled, the model
 computes an eddy-induced transport velocity on edges and adds it to the normal
-transport velocity used by thickness and tracer advection.
+transport velocity used by thickness and tracer advection to represent the transport due to the unresolved submesoscale eddies.
 
 The current implementation follows the Fox-Kemper et al. (2011) (FK11) closure
 described in the
