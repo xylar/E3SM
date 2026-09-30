@@ -1060,7 +1060,6 @@ void Tendencies::computeTracerTendenciesOnly(
          const Array2DReal &FluxPseudoThickEdge =
              AuxState->PseudoThicknessAux.FluxPseudoThickEdge;
 
-         Pacer::start("Tend:tracerHorzAdv", 2);
          parallelForOuter(
              LaunchConfig({NTracers, Mesh->NEdgesAll},
                           TeamScratch<Real>(VCoord->NVertLayers)),
@@ -1075,9 +1074,8 @@ void Tendencies::computeTracerTendenciesOnly(
              KOKKOS_LAMBDA(int L, int ICell, const TeamMember &Team) {
                 LocTracerHorzAdv(Team, LocTracerTend, L, ICell);
              });
-
-         Pacer::stop("Tend:tracerHorzAdv", 2);
       }
+      Pacer::stop("Tend:tracerHorzAdv", 2);
    }
    // compute tracer diffusion
    const Array2DReal &MeanPseudoThickEdge =
