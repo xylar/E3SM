@@ -72,6 +72,10 @@ getTimeStepperStartTypeFromStr(const std::string &InString) {
       StartChoice = TimeStepperStartType::Continue;
    } else if (StartStr == "branch") {
       StartChoice = TimeStepperStartType::Branch;
+   } else if (StartStr == "hybrid") {
+      StartChoice = TimeStepperStartType::Hybrid;
+   } else if (StartStr == "coupled") {
+      StartChoice = TimeStepperStartType::Coupled;
    } else {
       StartChoice = TimeStepperStartType::Invalid;
       ABORT_ERROR("Invalid StartType {}", InString);
@@ -85,7 +89,8 @@ getTimeStepperStartTypeFromStr(const std::string &InString) {
 TimeStepperStartType getTimeStepperStartTypeFromE3SM(const int E3SMOption) {
 
    // Translate the integer start option from the E3SM coupler to the
-   // internal enum
+   // internal enum. For coupled simulations, the run type and continue
+   // options have been translated by CIME into these three startup choices.
 
    TimeStepperStartType StartChoice;
    switch (E3SMOption) {
@@ -119,8 +124,8 @@ TimeStepperStopType getTimeStepperStopTypeFromStr(const std::string &InString) {
       StopChoice = TimeStepperStopType::AtTime;
    } else if (StopStr == "afterduration") {
       StopChoice = TimeStepperStopType::AfterDuration;
-   } else if (StopStr == "onsignal") {
-      StopChoice = TimeStepperStopType::OnSignal;
+   } else if (StopStr == "coupled") {
+      StopChoice = TimeStepperStopType::Coupled;
    } else {
       StopChoice = TimeStepperStopType::Invalid;
       ABORT_ERROR("Invalid StopType {}", InString);
@@ -234,14 +239,14 @@ TimeStepper::TimeStepper(
                      Name);
       }
       break;
-   case TimeStepperStopType::OnSignal: {
+   case TimeStepperStopType::Coupled: {
       // Simulation will stop on an external signal so no StopTime
       // or Duration are needed.
-      std::string StopTimeStr = "9999-12-31_00:00:00";
-      // Set Duration and StopTime with long future values for a dummy
-      // EndAlarm
+      TimeInstant CurrentTime = StepClock->getCurrentTime();
+      // Set Duration and StopTime with long future
+      // values for a dummy EndAlarm
       Duration = TimeInterval(1.e16, TimeUnits::Seconds);
-      StopTime = TimeInstant(StopTimeStr);
+      StopTime = CurrentTime + Duration;
       EndAlarm = std::make_unique<Alarm>(Alarm(AlarmName, StopTime));
       StepClock->attachAlarm(EndAlarm.get());
    } break;
@@ -533,7 +538,7 @@ void TimeStepper::init1(const TimeStepperStartType InStartType,
       InDuration = DurationTmp;
       break;
    }
-   case TimeStepperStopType::OnSignal:
+   case TimeStepperStopType::Coupled:
       // Neither StopTime or Duration needed
       break;
    default:
@@ -675,7 +680,7 @@ void TimeStepper::resetEndAlarm() {
       EndAlarm->reset(StopTime);
       break;
    }
-   case TimeStepperStopType::OnSignal:
+   case TimeStepperStopType::Coupled:
       // Simulation will stop on an external signal and EndTime has been
       // set far in the future. No reset is needed.
       break;

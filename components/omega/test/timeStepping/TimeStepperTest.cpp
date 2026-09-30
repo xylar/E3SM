@@ -433,7 +433,7 @@ int testOptionalStopTime(const std::string &Name, TimeStepperType Type) {
 
    // 2-phase create without StopTime — used by the coupled driver
    TimeStepperStartType StartType = TimeStepperStartType::StartUp;
-   TimeStepperStopType StopType   = TimeStepperStopType::OnSignal;
+   TimeStepperStopType StopType   = TimeStepperStopType::Coupled;
    auto *Stepper = TimeStepper::create("CoupledTestStepper", Type, TimeStep,
                                        StartType, TimeStart, StopType);
 

@@ -130,7 +130,7 @@ Clock *ModelClock = Stepper->getClock();
 Alarm *EndAlarm = Stepper->getEndAlarm();
 ```
 Note that StopTime, Duration and EndAlarm are set to appropriate values
-no matter what the StopType is (though for the OnSignal option, they are
+no matter what the StopType is (though for the Coupled option, they are
 set far into the future).
 
 #### Removal of time steppers

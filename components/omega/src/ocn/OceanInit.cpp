@@ -156,14 +156,15 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
    switch (StartType) {
 
    // Starting from scratch using an initial state
-   case (TimeStepperStartType::StartUp):
+   case TimeStepperStartType::StartUp:
       Err1 = IOStream::read("InitialState", ModelClock, ReqMeta);
       CHECK_ERROR_ABORT(Err1, "Error reading InitialState file");
       break;
 
    // Continue simulation from a restart file and reset current time
    // to the restart time read from restart metadata
-   case (TimeStepperStartType::Continue): {
+   case TimeStepperStartType::Branch:
+   case TimeStepperStartType::Continue: {
       ReqMeta["SimulationTime"] = SimTimeStr; // request current sim time
       Err1        = IOStream::read("RestartRead", ModelClock, ReqMeta);
       ReadRestart = true;
@@ -180,11 +181,17 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
 
    // Branch a simulation from a previous restart file but keep the
    // simulation StartTime rather than the restart time
-   case (TimeStepperStartType::Branch):
+   case TimeStepperStartType::Hybrid:
       Err1 = IOStream::read("RestartRead", ModelClock, ReqMeta);
       CHECK_ERROR_ABORT(Err1, "Error reading restart file for branch run");
       ReadRestart = true;
       break;
+
+   // If the type is coupler, we have reached here in error. For coupled
+   // simulations the input coupled start type is translated into one of the
+   // above, so we only reached here if it's coupled but in standalone mode
+   case TimeStepperStartType::Coupled:
+      ABORT_ERROR("Attempted use of Coupled StartType for Standalone run");
 
    default:
       ABORT_ERROR("Unknown StartType in OcnInit");
@@ -218,6 +225,8 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
    OMEGA_REQUIRE(DefEnv, "Null default MachEnv pointer in ocnInit1");
 
    // Read config file into Config object
+   // Note that most info comes from the coupler in this case, so only timing
+   // configuration is read from the actual config file
    Config("Omega");
    Config::readAll(ConfigFile);
    Config *OmegaConfig = Config::getOmegaConfig();
@@ -252,7 +261,7 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
    switch (StartType) {
 
    // Starting from scratch using an initial state
-   case (TimeStepperStartType::StartUp):
+   case TimeStepperStartType::StartUp:
       Err1 = IOStream::read("InitialState", ModelClock, ReqMeta);
       CHECK_ERROR_ABORT(Err1, "Error reading InitialState file");
       CoupledReadRestart = false;
@@ -260,7 +269,8 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
 
    // Continue simulation from a restart file and reset current time
    // to the restart time read from restart metadata
-   case (TimeStepperStartType::Continue): {
+   case TimeStepperStartType::Branch:
+   case TimeStepperStartType::Continue: {
       ReqMeta["SimulationTime"] = SimTimeStr; // request current sim time
       Err1               = IOStream::read("RestartRead", ModelClock, ReqMeta);
       CoupledReadRestart = true;
@@ -275,13 +285,11 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
       DefStepper->resetEndAlarm();
    } break;
 
-   // Branch a simulation from a previous restart file but keep the
-   // simulation StartTime rather than the restart time
-   case (TimeStepperStartType::Branch):
-      Err1 = IOStream::read("RestartRead", ModelClock, ReqMeta);
-      CHECK_ERROR_ABORT(Err1, "Error reading restart file for branch run");
-      CoupledReadRestart = true;
-      break;
+   // For coupled simulations, these two options are translated elsewhere
+   // into one of the above options, so if we have reached here, it is an error
+   case TimeStepperStartType::Hybrid:
+   case TimeStepperStartType::Coupled:
+      ABORT_ERROR("Incorrect translation of StartType by coupled OcnInit");
 
    default:
       ABORT_ERROR("Unknown StartType in OcnInit");
@@ -384,6 +392,7 @@ static int initOmegaModulesImpl() {
 } // end initOmegaModulesImpl
 
 //------------------------------------------------------------------------------
+// Initializes time stepper and other modules using Config inputs (standalone)
 int initOmegaModules(MPI_Comm Comm) {
    // Initialize the default time stepper (phase 1) that includes the
    // calendar, model clock and start/stop times and alarms with all options
@@ -394,6 +403,7 @@ int initOmegaModules(MPI_Comm Comm) {
 }
 
 //------------------------------------------------------------------------------
+// Initializes time stepper and other modules using coupler provided inputs
 int initOmegaModules(MPI_Comm Comm, TimeStepperStartType StartType,
                      const TimeInstant &StartTime,
                      const CouplingInitParams &CParams,

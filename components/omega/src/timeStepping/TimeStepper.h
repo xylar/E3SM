@@ -25,8 +25,9 @@
 ///    TimeStep: 0000_00:10:00
 ///    # Start type. Options are StartUp (for starting a simulation from scratch
 ///    # with an initial state), Continue (for continuing a simulation from a
-///    # restart file, and Branch (for starting a simulation from a restart file
-///    # but resetting the clock to the StartTime)
+///    # restart file, Branch (for starting a simulation from a restart file
+///    # but possibly changing case name) or Hybrid (for starting a simulation
+///    # from restart but changing the simulation start time to a new time)
 ///    StartType: StartUp
 ///    # Start time of full simulation (YYYY-MM-DD_hh:mm:ss)
 ///    StartTime: 0001-01-01_00:00:00
@@ -35,8 +36,7 @@
 ///    # stop at a specific time instant), AfterDuration (to stop after a
 ///    # specified time interval - typical of a production simulation when the
 ///    # simulation is advanced for a time that fits within a queue limit), and
-///    # OnSignal (to stop based on an external alarm or signal - eg while
-///    # coupling).
+///    # Coupled (to stop based on a signal from the coupled model driver).
 ///    StopType: AtTime
 ///    # Stop criterion is a time string that determines, based on the
 ///    # StopType above, when to stop the simulation. If StopType is
@@ -44,7 +44,7 @@
 ///    # specifies the time instant at which to stop. If StopType is
 ///    # AfterDuration, the string is any supported TimeInterval string
 ///    # (typically DDDD_HH:MM:SS) that represents the duration of the segment
-///    # of a simulation. For the OnSignal StopType, the criterion string is
+///    # of a simulation. For the Coupled StopType, the criterion string is
 ///    # ignored and not required.
 ///    StopCriterion: 0001-01-01_02:00:00
 ///    # Options shared by the split time steppers SplitExplicitRK2 and
@@ -100,7 +100,9 @@ enum class TimeStepperType {
 enum class TimeStepperStartType {
    StartUp,  // Simulation will start from an initial state at sim start time
    Continue, // Simulation will start from a restart at the restart time
-   Branch,   // Simulation will start from a restart but reset to start time
+   Branch,   // Identical to continue, though case or sim name can change
+   Hybrid,   // Simulation will start from a restart but reset to start time
+   Coupled,  // Omega will receive start type from coupler based on E3SM opts
    Invalid   // Invalid or undefined stop option
 };
 
@@ -108,7 +110,7 @@ enum class TimeStepperStartType {
 enum class TimeStepperStopType {
    AtTime,        // Simulation will stop at specified time
    AfterDuration, // Simulation will stop after a specified time interval
-   OnSignal,      // Simulation will stop based on an external signal/alarm
+   Coupled,       // Simulation will stop based on an a signal from coupler
    Invalid        // Invalid or undefined stop option
 };
 

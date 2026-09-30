@@ -41,6 +41,9 @@ BLOCKED_STREAMS = frozenset(
 BLOCKED_OPTIONS = frozenset(
     {f"IOStreams.{stream}" for stream in BLOCKED_STREAMS}
     | {
+        # start and stop types must be coupled
+        "TimeIntegration.StartType",
+        "TimeIntegration.StopType",
         # start time is provided by the coupler at runtime
         "TimeIntegration.StartTime",
         # stop criterion is ignored for coupled sims
