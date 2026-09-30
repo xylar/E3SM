@@ -159,17 +159,25 @@ void SubmesoEddies::computeBuoyGrad(const Array2DReal &SpecVol,
    const auto NVertLayers      = VCoord->NVertLayers;
    const auto NVertLayersP1    = VCoord->NVertLayersP1;
 
+   // We use six scratch arrays in the loop below
+   // Three for layer data and three for interface data
+   const auto ScratchMem =
+       TeamScratch<Real>(3 * NVertLayers + 3 * NVertLayersP1);
    parallelForOuter(
-       LaunchConfig({Mesh->NEdgesAll},
-                    TeamScratch<Real>(3 * NVertLayers + 3 * NVertLayersP1)),
+       LaunchConfig({Mesh->NEdgesAll}, ScratchMem),
        KOKKOS_LAMBDA(int IEdge, const TeamMember &Team) {
           int MinLyrEdgeBot = MinLayerEdgeBot(IEdge);
           int MaxLyrEdgeTop = MaxLayerEdgeTop(IEdge);
 
           ScratchArray1DReal GradBuoyEdge(teamScratch(Team), NVertLayers);
-          ScratchArray1DReal GradGeomZMidEdge(teamScratch(Team), NVertLayers);
-          ScratchArray1DReal BVFSqEdge(teamScratch(Team), NVertLayersP1);
           ScratchArray1DReal SpecVolEdge(teamScratch(Team), NVertLayers);
+          ScratchArray1DReal GradGeomZMidEdge(teamScratch(Team), NVertLayers);
+
+          ScratchArray1DReal BVFSqEdge(teamScratch(Team), NVertLayersP1);
+          ScratchArray1DReal GradGeomZMidEdgeInterface(teamScratch(Team),
+                                                       NVertLayersP1);
+          ScratchArray1DReal SpecVolEdgeInterface(teamScratch(Team),
+                                                  NVertLayersP1);
 
           // Horizontal interpolations and gradients
           parallelForInner(
@@ -196,7 +204,8 @@ void SubmesoEddies::computeBuoyGrad(const Array2DReal &SpecVol,
                                    (SpecVol(JCell1, K) - SpecVol(JCell0, K));
               });
 
-          // Interpolate Brunt-Vaisala freq to edges at the bottom interface
+          // Brunt-Vaisala freq is located on interfaces
+          // Handle one remaining interpolation to edges at the bottom interface
           Kokkos::single(
               PerTeam(Team), INNER_LAMBDA() {
                  const int K      = MaxLyrEdgeTop + 1;
@@ -207,11 +216,6 @@ void SubmesoEddies::computeBuoyGrad(const Array2DReal &SpecVol,
               });
 
           teamBarrier(Team);
-
-          ScratchArray1DReal GradGeomZMidEdgeInterface(teamScratch(Team),
-                                                       NVertLayersP1);
-          ScratchArray1DReal SpecVolEdgeInterface(teamScratch(Team),
-                                                  NVertLayersP1);
 
           // Vertical interpolations
 
