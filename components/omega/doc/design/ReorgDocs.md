@@ -377,12 +377,15 @@ parallel each other:
 
 - `configs/Default.yml`, which already exists, holds the default *value* of
   every option and is what `omega_buildnml` validates a case's configuration
-  against.
+  against. It is unchanged by this design: no descriptions are added to it, so
+  the file a developer edits to change a default stays as short as it is today.
 - `configs/ConfigDescriptions.yml`, a new companion file with the same nesting
   as `Default.yml`, holds the *meaning* of every option: a description, and
   optionally a type, units and the allowed values or range. Each section also
   carries a description and the anchor of the User Guide page that discusses
-  it.
+  it. It never holds a default value, so the two files cannot disagree about
+  one; what they share is the option names and nesting, which is what the
+  build check compares.
 
 For example, the `Decomp` section of `Default.yml`,
 
@@ -406,6 +409,19 @@ Decomp:
     description: Partitioning algorithm.
     type: string
     values: [MetisKWay, ParMetisKWay]
+```
+
+A description is aimed at one or two sentences; there is no limit, and YAML
+folds longer text over as many lines as needed without continuation
+characters:
+
+```yaml
+HaloWidth:
+  description: >-
+    Number of halo layers around each subdomain. Must be at least 3 so that
+    all baroclinic and higher-order tracer advection terms can be computed
+    without communication.
+  type: int
 ```
 
 A Python script, run by Sphinx at the start of every documentation build,
