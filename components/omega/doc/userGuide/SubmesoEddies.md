@@ -25,7 +25,7 @@ Submeso:
 ```
 
 - `Enable`: turns the parameterization on/off.
-- `Tau`: MLI timescale parameter (s).
+- `Tau`: MLI timescale parameter (s), used to prevent division by zero at the equator.
 - `Ce`: nondimensional efficiency coefficient.
 - `LfMin`: minimum frontal width limiter (m).
 - `DsMax`: maximum grid-length limiter used in the closure (m).
