@@ -34,6 +34,5 @@ Submeso:
 
 When enabled, the following fields are available in the `Submeso` field group:
 
-- `DenMixLayerDepth` (m): density-threshold mixed-layer depth.
 - `GradBuoyEdgeInterface` (s^-2): buoyancy gradient on edge interfaces.
 - `EddyVelocity` (m/s): eddy-induced transport velocity.
