@@ -1045,6 +1045,9 @@ void TimeStepper::finalizeTracersUpdate(const Array3DReal &NextTracers,
 void TimeStepper::updateKPPFields(OceanState *State, int TracerTimeLevel,
                                   int ThickTimeLevel, int VelTimeLevel) const {
 
+   if (!Tend->VelVertMixTendencyEnable && !Tend->TracerVertMixTendencyEnable)
+      return;
+
    KPPMix *KPPInstance = KPPMix::getInstance();
    if (!KPPInstance || !KPPInstance->Enabled)
       return;

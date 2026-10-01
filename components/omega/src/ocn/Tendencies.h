@@ -103,6 +103,10 @@ class Tendencies {
    // Enable diagnostics that isolate temperature non-local terms.
    bool KPPNonLocalTracerDiagnosticsEnable = true;
 
+   // Enable vertical mixing tendencies
+   bool VelVertMixTendencyEnable = false;
+   bool TracerVertMixTendencyEnable = false;
+
    std::string Name;
 
    /// Configure the velocity tendency for a mode-split time stepper

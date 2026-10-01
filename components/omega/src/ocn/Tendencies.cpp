@@ -411,9 +411,10 @@ void Tendencies::readConfig(Config *OmegaConfig ///< [in] Omega config
 
    // Validate VertMix tendency
    Err += TendConfig.get("VelVertMixTendencyEnable",
-                         this->VMix->VelVertMixSetup.Enabled);
+                         this->VelVertMixTendencyEnable);
    CHECK_ERROR_ABORT(
        Err, "Tendencies: VelVertMixTendencyEnable not found in TendConfig");
+   this->VMix->VelVertMixSetup.Enabled = this->VelVertMixTendencyEnable;
 
    if (this->VMix->VelVertMixSetup.ImplicitBottomDragEnabled &&
        !this->VMix->VelVertMixSetup.Enabled) {
@@ -422,9 +423,10 @@ void Tendencies::readConfig(Config *OmegaConfig ///< [in] Omega config
    }
 
    Err += TendConfig.get("TracerVertMixTendencyEnable",
-                         this->VMix->TracerVertMixSetup.Enabled);
+                         this->TracerVertMixTendencyEnable);
    CHECK_ERROR_ABORT(
        Err, "Tendencies: TracerVertMixTendencyEnable not found in TendConfig");
+   this->VMix->TracerVertMixSetup.Enabled = this->TracerVertMixTendencyEnable;
 
    if (this->VMix->VelVertMixSetup.Enabled ||
        this->VMix->TracerVertMixSetup.Enabled) {
@@ -581,6 +583,11 @@ Tendencies::Tendencies(const std::string &Name_, ///< [in] Name for tendencies
       SurfaceTracerRestoring(Mesh), CustomThicknessTend(InCustomThicknessTend),
       CustomVelocityTend(InCustomVelocityTend), EqState(EqState), PGrad(PGrad),
       VMix(VMix) {
+
+   if (this->VMix) {
+      VelVertMixTendencyEnable    = this->VMix->VelVertMixSetup.Enabled;
+      TracerVertMixTendencyEnable = this->VMix->TracerVertMixSetup.Enabled;
+   }
 
    // Tendency arrays
    PseudoThicknessTend = Array2DReal("PseudoThicknessTend", Mesh->NCellsSize,
