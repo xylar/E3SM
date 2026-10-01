@@ -14,6 +14,7 @@
 #include "HorzMesh.h"
 #include "IO.h"
 #include "IOStream.h"
+#include "KPPMix.h"
 #include "Logging.h"
 #include "MachEnv.h"
 #include "OceanTestCommon.h"
@@ -57,6 +58,7 @@ constexpr int NVertLayers = 60;
 
 int testSfcTracerForcing();
 int testSfcThicknessForcing();
+int testKPPNonLocalVerticalMixGate();
 
 int initState() {
    int Err = 0;
@@ -329,6 +331,9 @@ int testTendencies() {
    const int ThicknessForcingErr = testSfcThicknessForcing();
    Err += ThicknessForcingErr;
 
+   // Verify that the KPP non-local tracer flux is gated by vertical mixing.
+   Err += testKPPNonLocalVerticalMixGate();
+
    // check that everything got computed correctly
    int NCellsOwned = Mesh->NCellsOwned;
    int NTracers    = Tracers::getNumTracers();
@@ -562,6 +567,145 @@ int testSfcTracerForcing() {
    return Err;
 }
 
+int testKPPNonLocalVerticalMixGate() {
+   int Err = 0;
+
+   auto *DefTendencies = Tendencies::getDefault();
+   auto *State         = OceanState::getDefault();
+   auto *AuxState      = AuxiliaryState::getDefault();
+   auto *DefForcing    = Forcing::getDefault();
+   auto *VMix          = VertMix::getInstance();
+   auto *KPPInstance   = KPPMix::getInstance();
+   if (!KPPInstance) {
+      KPPMix::init();
+      KPPInstance = KPPMix::getInstance();
+   }
+   if (!KPPInstance || !DefTendencies || !State || !AuxState || !DefForcing ||
+       !VMix) {
+      LOG_ERROR("TendenciesTest: KPP non-local gate setup failed");
+      return 1;
+   }
+
+   const auto *VCoord      = VertCoord::getDefault();
+   const auto *Mesh        = HorzMesh::getDefault();
+   Array3DReal TracerArray = Tracers::getAll(0);
+   const I4 TempIndex      = Tracers::IndxTemp;
+   const I4 ICellTest      = 0;
+   const I4 KTest          = VCoord->MinLayerCellH(ICellTest);
+   if (TempIndex < 0 || KTest > VCoord->MaxLayerCellH(ICellTest)) {
+      LOG_ERROR("TendenciesTest: invalid cell or temperature tracer for KPP "
+                "gate test");
+      return 1;
+   }
+
+   const bool OriginalVelMixEnabled = DefTendencies->VelVertMixTendencyEnable;
+   const bool OriginalTracerMixEnabled =
+       DefTendencies->TracerVertMixTendencyEnable;
+   const bool OriginalVelSetupEnabled    = VMix->VelVertMixSetup.Enabled;
+   const bool OriginalTracerSetupEnabled = VMix->TracerVertMixSetup.Enabled;
+   const bool OriginalKPPEnabled         = KPPInstance->Enabled;
+   const bool OriginalNonLocalEnabled =
+       DefTendencies->KPPNonLocalTracerFlux.Enabled;
+   const bool OriginalSfcTracerEnabled =
+       DefTendencies->SfcTracerForcing.Enabled;
+
+   DefTendencies->VelVertMixTendencyEnable      = false;
+   DefTendencies->TracerVertMixTendencyEnable   = false;
+   VMix->VelVertMixSetup.Enabled                = false;
+   VMix->TracerVertMixSetup.Enabled             = false;
+   DefTendencies->KPPNonLocalTracerFlux.Enabled = true;
+   DefTendencies->SfcTracerForcing.Enabled      = true;
+   KPPInstance->Enabled                         = true;
+
+   DefForcing->resetArrays();
+   deepCopy(DefForcing->TracerForcing.SnowFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.RainFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.EvaporationFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.SeaIceFreshWaterFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.IceRunoffFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.RiverRunoffFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.LatentHeatFluxEvapCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.SensibleHeatFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.LongWaveHeatFluxUpCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.LongWaveHeatFluxDownCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.SeaIceHeatFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.ShortWaveHeatFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.SeaIceSaltFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.SurfaceTracerFluxCell, 0.0_Real);
+   deepCopy(DefForcing->TracerForcing.SensibleHeatFluxCell, 100.0_Real);
+   DefForcing->computeAll();
+
+   Array2DReal VertNonLocalFlux = KPPInstance->VertNonLocalFlux;
+   parallelFor(
+       {Mesh->NCellsSize, VCoord->NVertLayersP1},
+       KOKKOS_LAMBDA(I4 ICell, I4 K) { VertNonLocalFlux(ICell, K) = Real(K); });
+
+   TimeInstant Time;
+   TimeInterval Interval(1.0, TimeUnits::Seconds);
+   AuxState->computeAll(State, TracerArray, 0, 0, Interval);
+
+   const auto ComputeTempTendency = [&]() {
+      deepCopy(DefTendencies->TracerTend, 0.0_Real);
+      DefTendencies->computeTracerTendenciesOnly(State, AuxState, TracerArray,
+                                                 0, 0, Time);
+      auto TendencyHost = createHostMirrorCopy(DefTendencies->TracerTend);
+      deepCopy(TendencyHost, DefTendencies->TracerTend);
+      return TendencyHost(TempIndex, ICellTest, KTest);
+   };
+
+   DefTendencies->KPPNonLocalTracerFlux.Enabled = false;
+   const Real BaselineTendency                  = ComputeTempTendency();
+   DefTendencies->KPPNonLocalTracerFlux.Enabled = true;
+   const Real BothDisabledTendency              = ComputeTempTendency();
+
+   if (!isApprox(BothDisabledTendency, BaselineTendency, 1.0e-10_Real,
+                 1.0e-12_Real)) {
+      Err++;
+      LOG_ERROR("TendenciesTest: KPP non-local flux was applied with both "
+                "vertical mixing flags disabled");
+   }
+
+   DefTendencies->VelVertMixTendencyEnable = true;
+   const Real VelocityOnlyTendency         = ComputeTempTendency();
+   if (!isApprox(VelocityOnlyTendency, BaselineTendency, 1.0e-10_Real,
+                 1.0e-12_Real)) {
+      Err++;
+      LOG_ERROR("TendenciesTest: KPP non-local flux was applied with only "
+                "velocity vertical mixing enabled");
+   }
+
+   DefTendencies->VelVertMixTendencyEnable    = false;
+   DefTendencies->TracerVertMixTendencyEnable = true;
+   const Real EnabledTendency                 = ComputeTempTendency();
+   const auto SurfaceFluxHost =
+       createHostMirrorCopy(DefForcing->TracerForcing.SurfaceTracerFluxCell);
+   deepCopy(SurfaceFluxHost, DefForcing->TracerForcing.SurfaceTracerFluxCell);
+   const Real ExpectedTendencyDelta =
+       SurfaceFluxHost(TempIndex, ICellTest) * (Real(KTest) - Real(KTest + 1));
+   const Real ComputedTendencyDelta = EnabledTendency - BaselineTendency;
+   if (isApprox(ExpectedTendencyDelta, 0.0_Real, 0.0_Real, 1.0e-12_Real) ||
+       !isApprox(ComputedTendencyDelta, ExpectedTendencyDelta, 1.0e-10_Real,
+                 1.0e-12_Real)) {
+      Err++;
+      LOG_ERROR("TendenciesTest: KPP non-local flux did not run with tracer "
+                "vertical mixing enabled (expected {}, got {})",
+                ExpectedTendencyDelta, ComputedTendencyDelta);
+   }
+
+   DefTendencies->VelVertMixTendencyEnable      = OriginalVelMixEnabled;
+   DefTendencies->TracerVertMixTendencyEnable   = OriginalTracerMixEnabled;
+   VMix->VelVertMixSetup.Enabled                = OriginalVelSetupEnabled;
+   VMix->TracerVertMixSetup.Enabled             = OriginalTracerSetupEnabled;
+   KPPInstance->Enabled                         = OriginalKPPEnabled;
+   DefTendencies->KPPNonLocalTracerFlux.Enabled = OriginalNonLocalEnabled;
+   DefTendencies->SfcTracerForcing.Enabled      = OriginalSfcTracerEnabled;
+
+   if (Err == 0) {
+      LOG_INFO("TendenciesTest: KPP non-local vertical-mixing gate PASS");
+   }
+   return Err;
+}
+
 int testSfcThicknessForcing() {
    int Err = 0;
 
@@ -727,6 +871,7 @@ void finalizeTendenciesTest() {
    Forcing::clear();
    Tracers::clear();
    PressureGrad::clear();
+   KPPMix::destroyInstance();
    VertMix::destroyInstance();
    Eos::destroyInstance();
    AuxiliaryState::clear();

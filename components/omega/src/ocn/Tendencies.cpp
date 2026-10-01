@@ -1266,7 +1266,8 @@ void Tendencies::computeTracerTendenciesOnly(
    }
 
    // Compute KPP non-local tracer tendency
-   if (LocKPPNonLocalTracerFlux.Enabled && LocSfcTracerForcing.Enabled) {
+   if (TracerVertMixTendencyEnable && LocKPPNonLocalTracerFlux.Enabled &&
+       LocSfcTracerForcing.Enabled) {
       KPPMix *KPPInstance = KPPMix::getInstance();
       if (KPPInstance && KPPInstance->Enabled) {
          const auto *ForcingState = Forcing::getDefault();

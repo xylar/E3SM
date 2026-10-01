@@ -82,6 +82,9 @@ implemented as the functors above, but they are enabled from the same
 The non-local options are only read when velocity or tracer vertical mixing is
 enabled. If omitted, `KPPNonLocalTracerFluxTendencyEnable` defaults to disabled
 and `KPPNonLocalTracerDiagnosticsEnable` defaults to enabled.
+The non-local tracer tendency is applied only when
+`TracerVertMixTendencyEnable` is also enabled; velocity-only vertical mixing
+does not apply a tracer mixing tendency.
 
 Two further flags control tendency sources rather than individual terms:
 `UseCustomTendency` enables user-supplied tendencies and
