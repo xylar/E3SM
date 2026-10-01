@@ -104,7 +104,7 @@ class Tendencies {
    bool KPPNonLocalTracerDiagnosticsEnable = true;
 
    // Enable vertical mixing tendencies
-   bool VelVertMixTendencyEnable = false;
+   bool VelVertMixTendencyEnable    = false;
    bool TracerVertMixTendencyEnable = false;
 
    std::string Name;
