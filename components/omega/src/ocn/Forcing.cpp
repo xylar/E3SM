@@ -222,9 +222,8 @@ void Forcing::readConfigOptions(Config *OmegaConfig) {
       KPPNonLocalTracerFluxErr.reset();
    }
 
-   TracerForcingFieldsEnabled = SfcThicknessForcingEnabled ||
-                                SfcTracerForcingEnabled ||
-                                KPPNonLocalTracerFluxEnabled;
+   TracerForcingFieldsEnabled =
+       SfcThicknessForcingEnabled || SfcTracerForcingEnabled;
 
    Config KPPConfig("KPP");
    Config VertMixConfig("VertMix");
