@@ -84,7 +84,7 @@ Omega:
     VelVertMixTendencyEnable: true
     TracerVertMixTendencyEnable: true
     KPPNonLocalTracerFluxTendencyEnable: true
-    KPPNonLocalTracerDiagnosticsEnable: true
+    KPPNonLocalTracerDiagnosticsEnable: false
   ManufacturedSolution:
     WavelengthX: 5.0e6
     WavelengthY: 4.33013e6
