@@ -55,6 +55,7 @@ userGuide/PGrad
 userGuide/Timing
 userGuide/VerticalMixingCoeff
 userGuide/RayleighDamping
+userGuide/KPPMix
 userGuide/VertAdv
 userGuide/Forcing
 userGuide/SfcCoupling
@@ -106,6 +107,7 @@ devGuide/PGrad
 devGuide/Timing
 devGuide/VerticalMixingCoeff
 devGuide/RayleighDamping
+devGuide/KPPMix
 devGuide/VertAdv
 devGuide/Forcing
 devGuide/SfcCoupling
@@ -151,6 +153,7 @@ design/TimeStepping
 design/SplitTimeStepping
 design/Tracers
 design/TridiagonalSolver
+design/KPPMix
 design/VertAdv
 design/VertCoord
 design/VerticalMixingCoeff
