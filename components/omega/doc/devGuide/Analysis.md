@@ -291,6 +291,22 @@ auto Meta  = inheritMetadata(InputNames[0],
 Meta.Units = CFUnits::multiply(Meta.Units, "m2");
 Meta.StdName.clear();
 ```
+The other operators derive their units the same way:
+
+- `BinaryMultiply` multiplies the units of its two inputs (a velocity in
+  `m s-1` times an area in `m2` is `m3 s-1`) and has no standard name or cell
+  methods, since the product is a new quantity.
+- `ScalarMultiply` scales the units by the reciprocal of its scalar with
+  `CFUnits::scale()`, so a flux in `m3 s-1` multiplied by `1e-6` is in
+  `1e+06 m3 s-1` (Sverdrups). A negative scalar also clears the standard
+  name, since it reverses the quantity.
+- `HorzMean` inherits the units and standard name and appends `area: mean`.
+- `BinnedAccumulator`, `TransectAccumulator` and `PrefixSum` sum their input,
+  and `ExtractRegion` and `PseudoToGeometric` multiply it by a mask or a
+  dimensionless factor, so all of them inherit its units. `PrefixSum` aborts
+  if its boundary condition field has different units from its input.
+- `CoordinateBinning` outputs a bin index, which is dimensionless (`1`).
+
 A field without units yields outputs without units, never with invented ones,
 and a malformed units string aborts the run when the operator is constructed.
 

@@ -144,28 +144,27 @@ class TransectAccumulatorOp : public AnalysisOperator {
       OutputNames  = {OutputFieldName};
       InstanceName = OutputFieldName;
 
-      // Get input metadata
-      std::string TransportDescr, TransportUnits, TransportStdName;
+      // Get input metadata. A signed sum of the transport through the
+      // transect edges has the units of the transport.
+      std::string TransportDescr;
       ScalarT TransportValidMin, TransportValidMax;
       TransportField->getMetadata("Description", TransportDescr);
-      TransportField->getMetadata("Units", TransportUnits);
-      TransportField->getMetadata("StdName", TransportStdName);
       TransportField->getMetadata("ValidMin", TransportValidMin);
       TransportField->getMetadata("ValidMax", TransportValidMax);
+      auto Meta = inheritMetadata(InputNames[0]);
 
       // Create output Field dimensions (1D: NVertLayers only)
       std::vector<std::string> OutputDimNames = {TransportDimNames[1]};
 
       // Create output Field
-      auto OutputField = Field::create(
+      auto OutputField = createOutputField(
           OutputNames[0],
           "Transect " + TransectName + " accumulated transport", // Description
-          TransportUnits,                                        // Units
-          TransportStdName,  // Standard name
-          TransportValidMin, // Min valid
-          TransportValidMax, // Max valid
-          1,                 // Rank (1D)
-          OutputDimNames     // Dimension names
+          Meta,                                                  // CF metadata
+          TransportValidMin,                                     // Min valid
+          TransportValidMax,                                     // Max valid
+          1,                                                     // Rank (1D)
+          OutputDimNames                                         // Dim names
       );
 
       // Allocate output and local accumulation arrays (both 1D)

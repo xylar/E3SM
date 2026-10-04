@@ -1231,6 +1231,68 @@ void testInheritedMetadata(const MachEnv *Env, const HorzMesh *Mesh,
                        "area: depth: maximum");
 }
 
+//------------------------------------------------------------------------------
+// Tests the units operators derive along a chain like the MOC's: a velocity
+// times an area is a volume flux, and multiplying the flux by 1e-6 to get
+// Sverdrups scales its units by 1e6. Also tests that a product with a field
+// without units has no units, and that a negative scalar drops the standard
+// name of the quantity it reverses.
+void testDerivedUnits(const MachEnv *Env, const HorzMesh *Mesh,
+                      const VertCoord *VCoord) {
+
+   std::vector<std::string> DimNames = {"NCells"};
+   auto createUnitsField             = [&](const std::string &Name,
+                               const std::string &Units,
+                               const std::string &StdName) {
+      auto NewField = Field::create(Name, "Derived units test field", Units,
+                                                StdName, -1.0e30, 1.0e30, 1, DimNames);
+      Array1DReal Data(Name + "_data", Mesh->NCellsSize);
+      NewField->attachData<Array1DReal>(Data);
+   };
+   createUnitsField("TestUnitsVelocity", "m s-1", "upward_sea_water_velocity");
+   createUnitsField("TestUnitsArea", "m2", "cell_area");
+   createUnitsField("TestUnitsBare", "", "");
+
+   Config EmptyConfig;
+   auto scalarConfig = [](const std::string &Scalar) {
+      return makeOpConfig(opParam("Scalar", Scalar));
+   };
+
+   // A velocity times an area is a volume flux with no standard name
+   std::string FluxName = "TestUnitsVelocity_BinaryMultiply(TestUnitsArea)";
+   auto FluxOp          = AnalysisOpFactory::createOp(
+       "BinaryMultiply", {"TestUnitsVelocity", "TestUnitsArea"}, EmptyConfig);
+   checkOutputMetadata("BinaryMultiply of velocity and area", FluxName,
+                       "m3 s-1", "", "");
+
+   // Values multiplied by 1e-6 are in units of 1e6 m3 s-1
+   auto SvOp = AnalysisOpFactory::createOp("ScalarMultiply", {FluxName},
+                                           scalarConfig("1.0e-6"));
+   checkOutputMetadata("ScalarMultiply of flux to Sverdrups",
+                       FluxName + "_ScalarMultiply(1.0e-6)", "1e+06 m3 s-1", "",
+                       "");
+
+   // A scalar of 1 keeps the units and standard name; -1 keeps the units but
+   // reverses the quantity, so it drops the standard name
+   auto OneOp = AnalysisOpFactory::createOp(
+       "ScalarMultiply", {"TestUnitsVelocity"}, scalarConfig("1"));
+   checkOutputMetadata("ScalarMultiply by 1",
+                       "TestUnitsVelocity_ScalarMultiply(1)", "m s-1",
+                       "upward_sea_water_velocity", "");
+   auto NegOp = AnalysisOpFactory::createOp(
+       "ScalarMultiply", {"TestUnitsVelocity"}, scalarConfig("-1"));
+   checkOutputMetadata("ScalarMultiply by -1",
+                       "TestUnitsVelocity_ScalarMultiply(-1)", "m s-1", "", "");
+
+   // A product with a field without units has no units, rather than the
+   // units of the other field
+   auto BareOp = AnalysisOpFactory::createOp(
+       "BinaryMultiply", {"TestUnitsVelocity", "TestUnitsBare"}, EmptyConfig);
+   checkOutputMetadata("BinaryMultiply with a field without units",
+                       "TestUnitsVelocity_BinaryMultiply(TestUnitsBare)", "",
+                       "", "");
+}
+
 //===----------------------------------------------------------------------===//
 // Main Test Functions
 //===----------------------------------------------------------------------===//
@@ -1452,6 +1514,9 @@ void testScalarMultiplyOpType(const std::string &TypeName, const MachEnv *Env,
    }
 
    reportTest("ScalarMultiplyOp: " + TypeName, Passed);
+   checkOutputMetadata("ScalarMultiplyOp: " + TypeName,
+                       FieldName + "_ScalarMultiply(" + ScalarStr + ")",
+                       "0.4 m", TestStdName, "");
 
    if (!Passed) {
       LOG_ERROR("  Expected: {}, Scalar: {}", static_cast<Real>(ExpectedValue),
@@ -1583,6 +1648,9 @@ void testBinaryMultiplyOpSameRank(const std::string &TypeName,
    }
 
    reportTest("BinaryMultiplyOp (same-rank): " + TypeName, Passed);
+   checkOutputMetadata("BinaryMultiplyOp (same-rank): " + TypeName,
+                       Field1Name + "_BinaryMultiply(" + Field2Name + ")", "m2",
+                       "", "");
 
    if (!Passed) {
       LOG_ERROR("  Expected: {}, Value1: {}, Value2: {}",
@@ -1663,6 +1731,9 @@ void testBinaryMultiplyOpVerticalExpansion(const std::string &TypeName,
    }
 
    reportTest("BinaryMultiplyOp (vertical expansion): " + TypeName, Passed);
+   checkOutputMetadata("BinaryMultiplyOp (vertical expansion): " + TypeName,
+                       Field2DName + "_BinaryMultiply(" + Field1DName + ")",
+                       "m2", "", "");
 
    if (!Passed) {
       LOG_ERROR("  Expected: {}, Value2D: {}, Value1D: {}",
@@ -1857,6 +1928,8 @@ void testPrefixSumOpType(const std::string &TypeName, const MachEnv *Env,
             break;
       }
       reportTest("PrefixSumOp: " + TypeName, Passed);
+      checkOutputMetadata("PrefixSumOp: " + TypeName, FieldName + "_PrefixSum",
+                          "units", "", "");
    }
 }
 
@@ -1989,6 +2062,9 @@ void testPrefixSumOpWithBCType(const std::string &TypeName, const MachEnv *Env,
    }
 
    reportTest("PrefixSumOpWithBC: " + TypeName, Passed);
+   checkOutputMetadata("PrefixSumOpWithBC: " + TypeName,
+                       InputFieldName + "_PrefixSum(BC=" + BCFieldName + ")",
+                       "m3/s", "", "");
 }
 
 //------------------------------------------------------------------------------
@@ -2082,6 +2158,8 @@ void testCoordinateBinningOp(const MachEnv *Env, const HorzMesh *Mesh,
    }
 
    reportTest("CoordinateBinningOp", Passed);
+   checkOutputMetadata("CoordinateBinningOp", FieldName + "_BinIndex", "1", "",
+                       "");
 }
 
 //------------------------------------------------------------------------------
@@ -2182,6 +2260,10 @@ void testBinnedAccumulatorOp(const MachEnv *Env, const HorzMesh *Mesh,
    }
 
    reportTest("BinnedAccumulatorOp", Passed);
+   checkOutputMetadata("BinnedAccumulatorOp",
+                       ValueFieldName + "_BinnedAccumulator(" +
+                           BinIndexFieldName + ")",
+                       "m3/s", "", "");
 }
 
 //------------------------------------------------------------------------------
@@ -2343,6 +2425,9 @@ void testPseudoToGeometricOpType(const std::string &TypeName,
    }
 
    reportTest("PseudoToGeometricOp: " + TypeName, Passed);
+   checkOutputMetadata("PseudoToGeometricOp: " + TypeName,
+                       FieldName + "_PseudoToGeometric", TestUnits, TestStdName,
+                       "");
 
    if (!Passed) {
       LOG_ERROR("PseudoToGeometricOp {} test failed after verifying {} points",
@@ -2545,6 +2630,8 @@ void testExtractRegionOpType(const std::string &TypeName, const MachEnv *Env,
    }
 
    reportTest("ExtractRegionOp: " + TypeName, Passed);
+   checkOutputMetadata("ExtractRegionOp: " + TypeName, OutputNames[0],
+                       TestUnits, TestStdName, "");
 
    if (!Passed) {
       LOG_ERROR("ExtractRegionOp {} test failed after verifying {} points",
@@ -2664,6 +2751,8 @@ void testHorzMeanOp(const MachEnv *Env, const HorzMesh *Mesh,
    }
 
    reportTest("HorzMeanOp", Passed);
+   checkOutputMetadata("HorzMeanOp", OutputNames[0], TestUnits, TestStdName,
+                       "area: mean");
 
    Field::destroy(OutputNames[0]);
 
@@ -2949,6 +3038,7 @@ void testTransectAccumulatorOp(const MachEnv *Env, const HorzMesh *Mesh,
    }
 
    reportTest("TransectAccumulatorOp", Passed);
+   checkOutputMetadata("TransectAccumulatorOp", OutputNames[0], "m3/s", "", "");
 }
 
 //===----------------------------------------------------------------------===//
@@ -3128,6 +3218,8 @@ int main(int argc, char *argv[]) {
       testTransectAccumulatorOp(DefEnv, Mesh, VCoord);
 
       testInheritedMetadata(DefEnv, Mesh, VCoord, ModelClock);
+
+      testDerivedUnits(DefEnv, Mesh, VCoord);
 
       if (NumFailed > 0) {
          Err = 1;

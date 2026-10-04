@@ -161,7 +161,9 @@ Computes the Meridional Overturning Circulation (MOC) streamfunction using two
 methods: latitude-binned regional MOC and transect-based MOC. The MOC
 represents zonally integrated meridional mass transport as a function of
 latitude and depth (regional MOC) or depth alone (transect MOC). Output is in
-Sverdrups (Sv), where 1 Sv = 10⁶ m³/s.
+Sverdrups (Sv), where 1 Sv = 10⁶ m³/s, so its `units` attribute is
+`1e+06 m3 s-1`, the udunits spelling of a Sverdrup (udunits reads `Sv` as the
+sievert).
 
 **Example:**
 

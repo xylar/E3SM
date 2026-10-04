@@ -125,14 +125,14 @@ template <typename ArrayT> class BinnedAccumulatorOp : public AnalysisOperator {
       OutputNames  = {OutputFieldName};
       InstanceName = OutputFieldName;
 
-      // Get input metadata
-      std::string ValueDescr, ValueUnits, ValueStdName;
+      // Get input metadata. A sum over the entities in each bin has the
+      // units of the values summed.
+      std::string ValueDescr;
       ScalarT ValueValidMin, ValueValidMax;
       ValueField->getMetadata("Description", ValueDescr);
-      ValueField->getMetadata("Units", ValueUnits);
-      ValueField->getMetadata("StdName", ValueStdName);
       ValueField->getMetadata("ValidMin", ValueValidMin);
       ValueField->getMetadata("ValidMax", ValueValidMax);
+      auto Meta = inheritMetadata(InputNames[0]);
 
       // Create output Field dimensions
       std::string NumBinsDimName = "NumBins" + InputNames[1];
@@ -147,16 +147,15 @@ template <typename ArrayT> class BinnedAccumulatorOp : public AnalysisOperator {
       }
 
       // Create output Field
-      auto OutputField =
-          Field::create(OutputNames[0],
-                        "Binned accumulation of " + ValueDescr, // Description
-                        ValueUnits,                             // Units
-                        ValueStdName,                           // Standard name
-                        ValueValidMin,                          // Min valid
-                        ValueValidMax,                          // Max valid
-                        InputRank,                              // Rank
-                        OutputDimNames // Dimension names
-          );
+      auto OutputField = createOutputField(
+          OutputNames[0],
+          "Binned accumulation of " + ValueDescr, // Description
+          Meta,                                   // CF metadata
+          ValueValidMin,                          // Min valid
+          ValueValidMax,                          // Max valid
+          InputRank,                              // Rank
+          OutputDimNames                          // Dimension names
+      );
 
       // Allocate output and local accumulation arrays
       if (InputRank == 1) {
