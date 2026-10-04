@@ -1,0 +1,40 @@
+schema_version: 1
+requester: xylar
+pull_request: 548
+pr_head: 150e2437856eff7c5caedc3cc77de5ad7596692c
+base_branch: develop
+base_head: fc9eaef2bffac2cb43c49f1274679d2133cd614f
+test_commit: 7153a34b3fc0500c553d663315df2a165b0d3c21
+baseline:
+  commit: 73469eb9eda59d52811e41f6049ffebaf23faefd
+  source: polaris-submodule
+  reason:
+  polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+extra_merges: []
+rows:
+- machine: aurora
+  compiler: oneapi-ifx
+  mpi: mpich
+  template: aurora, oneapi-ifx, mpich
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, oneapi-ifx, openmpi
+- machine: frontier
+  compiler: craygnu
+  mpi: mpich
+  template: frontier, craygnu, mpich
+- machine: frontier
+  compiler: craygnu-mphipcc
+  mpi: mpich
+  template: frontier, craygnu-mphipcc, mpich
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
