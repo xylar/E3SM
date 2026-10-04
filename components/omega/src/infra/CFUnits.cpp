@@ -5,22 +5,63 @@
 // factors, and each factor into a unit symbol and an optional integer
 // exponent. Factors are kept in order of first appearance so that the
 // formatted result reads like the conventional spelling (kg m-3, not
-// m-3 kg).
+// m-3 kg). A leading number is the scale factor of a scaled unit.
 //
 //===----------------------------------------------------------------------===//
 
 #include "CFUnits.h"
 #include "Logging.h"
 
+#include <algorithm>
 #include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <map>
 #include <sstream>
 
 namespace OMEGA {
 
+namespace {
+
+// Relative tolerance for comparing scale factors, which pick up rounding
+// error in products and powers (1/1e-6 is not exactly 1e6)
+constexpr double ScaleTol = 1.0e-12;
+
+bool sameScale(double A, double B) {
+   return std::abs(A - B) <= ScaleTol * std::max(std::abs(A), std::abs(B));
+}
+
+// Formats a scale factor with the fewest significant digits that reproduce
+// it to within rounding, so 1/1e-6 is written 1e+06, not 999999.9999999999,
+// and without an exponent when that is no longer (1000, not 1e+03)
+std::string formatScale(double Value) {
+   char Buffer[32];
+   int Digits = 1;
+   for (; Digits < 17; ++Digits) {
+      std::snprintf(Buffer, sizeof(Buffer), "%.*g", Digits, Value);
+      if (sameScale(std::strtod(Buffer, nullptr), Value))
+         break;
+   }
+   std::string Shortest = Buffer;
+
+   // %g uses an exponent once the integer part has more digits than the
+   // precision; asking for all of them gives the fixed spelling instead
+   int Exponent =
+       static_cast<int>(std::floor(std::log10(std::strtod(Buffer, nullptr))));
+   if (Exponent >= Digits) {
+      std::snprintf(Buffer, sizeof(Buffer), "%.*g", Exponent + 1, Value);
+      if (std::string(Buffer).size() <= Shortest.size())
+         return Buffer;
+   }
+   return Shortest;
+}
+
+} // namespace
+
 //------------------------------------------------------------------------------
 // Default constructor creates unknown units
-CFUnits::CFUnits() : Known(false) {}
+CFUnits::CFUnits() : Known(false), Scale(1.0) {}
 
 //------------------------------------------------------------------------------
 // Parses a units string into its factors
@@ -56,6 +97,7 @@ Error CFUnits::parse(const std::string &UnitsStr, // [in] units string
    std::string Segment;
    std::istringstream Segments(Trimmed);
    bool FirstSegment = true;
+   bool FirstToken   = true;
    while (std::getline(Segments, Segment, '/')) {
 
       // A slash with nothing before or after it is malformed
@@ -64,6 +106,27 @@ Error CFUnits::parse(const std::string &UnitsStr, // [in] units string
       bool AnyToken = false;
       while (Tokens >> Token) {
          AnyToken = true;
+
+         // A number other than 1 is a scale factor, which udunits allows
+         // only before the unit symbols
+         bool IsNumber = std::isdigit(static_cast<unsigned char>(Token[0])) ||
+                         Token[0] == '.';
+         if (IsNumber && Token != "1") {
+            double Value = 1.0;
+            if (!FirstToken || !parseScale(Token, Value)) {
+               Result = CFUnits();
+               RETURN_ERROR(Err, ErrorCode::Fail,
+                            "CFUnits: cannot parse units string '{}': "
+                            "'{}' is not a positive scale factor before the "
+                            "unit symbols",
+                            UnitsStr, Token);
+            }
+            Result.Scale = Value;
+            FirstToken   = false;
+            continue;
+         }
+         FirstToken = false;
+
          if (!Result.parseFactor(Token, Sign)) {
             Result = CFUnits();
             RETURN_ERROR(Err, ErrorCode::Fail,
@@ -136,6 +199,19 @@ bool CFUnits::parseFactor(const std::string &Token, // [in] one factor
 } // end parseFactor
 
 //------------------------------------------------------------------------------
+// Parses a scale factor: the whole token must be a positive, finite number
+bool CFUnits::parseScale(const std::string &Token, // [in] numeric token
+                         double &Value             // [out] scale factor
+) {
+
+   char *End = nullptr;
+   Value     = std::strtod(Token.c_str(), &End);
+   return End == Token.c_str() + Token.size() && std::isfinite(Value) &&
+          Value > 0.0;
+
+} // end parseScale
+
+//------------------------------------------------------------------------------
 // Multiplies in one symbol raised to a power
 void CFUnits::multiplyFactor(const std::string &Symbol, // [in] unit symbol
                              int Exponent               // [in] its power
@@ -186,6 +262,12 @@ std::string CFUnits::power(const std::string &UnitsA, // [in] units
    return parseOrAbort(UnitsA).pow(Exponent).str();
 }
 
+std::string CFUnits::scale(const std::string &UnitsA, // [in] units
+                           double Factor // [in] positive scale factor
+) {
+   return parseOrAbort(UnitsA).scaled(Factor).str();
+}
+
 //------------------------------------------------------------------------------
 // Queries
 bool CFUnits::isUnknown() const { return !Known; }
@@ -198,10 +280,12 @@ std::string CFUnits::str() const {
 
    if (!Known)
       return "";
-   if (Factors.empty())
-      return "1";
 
-   std::string Result;
+   bool Unscaled = sameScale(Scale, 1.0);
+   if (Factors.empty())
+      return Unscaled ? "1" : formatScale(Scale);
+
+   std::string Result = Unscaled ? "" : formatScale(Scale);
    for (int Pass = 0; Pass < 2; ++Pass) {
       for (const auto &Factor : Factors) {
          bool Positive = Factor.second > 0;
@@ -226,6 +310,7 @@ CFUnits CFUnits::operator*(const CFUnits &Other) const {
       return CFUnits();
 
    CFUnits Result = *this;
+   Result.Scale *= Other.Scale;
    for (const auto &Factor : Other.Factors)
       Result.multiplyFactor(Factor.first, Factor.second);
    return Result;
@@ -242,8 +327,22 @@ CFUnits CFUnits::pow(int Exponent) const {
 
    CFUnits Result;
    Result.Known = true;
+   Result.Scale = std::pow(Scale, Exponent);
    for (const auto &Factor : Factors)
       Result.multiplyFactor(Factor.first, Factor.second * Exponent);
+   return Result;
+}
+
+CFUnits CFUnits::scaled(double Factor) const {
+
+   OMEGA_REQUIRE(std::isfinite(Factor) && Factor > 0.0,
+                 "CFUnits: scale factor {} is not positive and finite", Factor);
+
+   if (!Known)
+      return CFUnits();
+
+   CFUnits Result = *this;
+   Result.Scale *= Factor;
    return Result;
 }
 
@@ -256,7 +355,7 @@ bool CFUnits::operator==(const CFUnits &Other) const {
    std::map<std::string, int> Mine(Factors.begin(), Factors.end());
    std::map<std::string, int> Theirs(Other.Factors.begin(),
                                      Other.Factors.end());
-   return Mine == Theirs;
+   return Mine == Theirs && sameScale(Scale, Other.Scale);
 }
 
 bool CFUnits::operator!=(const CFUnits &Other) const {

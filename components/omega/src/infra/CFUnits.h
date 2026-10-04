@@ -14,6 +14,12 @@
 /// factors, supports the product, quotient and integer power of two such
 /// expressions, and formats the result back in the plain form.
 ///
+/// A units string may start with a positive number, the scale factor of a
+/// scaled unit in udunits (1e+06 m3 s-1 is a million cubic meters per
+/// second). Rescaling a field's values, for example to report a transport in
+/// units of 10^6 m3 s-1, rescales its units the other way, so CFUnits carries
+/// the scale factor through every operation.
+///
 /// A field with no units attribute has unknown units, represented by an empty
 /// string. Unknown units propagate: any expression involving them is unknown,
 /// so a derived field never claims units its inputs did not have. Parsing
@@ -69,16 +75,26 @@ class CFUnits {
                             int Exponent               ///< [in] power
    );
 
+   /// Returns a units string multiplied by a positive scale factor in the CF
+   /// plain form (scale("m3 s-1", 1e6) is "1e+06 m3 s-1"), or an empty string
+   /// if it is unknown. Aborts if the string is invalid or the factor is not
+   /// positive and finite.
+   static std::string scale(const std::string &UnitsA, ///< [in] units
+                            double Factor ///< [in] positive scale factor
+   );
+
    //---------------------------------------------------------------------------
    /// True if the units are unknown (the field has no units attribute)
    bool isUnknown() const;
 
-   /// True if the units are known and dimensionless
+   /// True if the units are known and dimensionless (a pure number, which
+   /// may be scaled)
    bool isDimensionless() const;
 
-   /// Formats the units in the CF plain form: symbols with positive exponents
-   /// first, then those with negative exponents, each in order of first
-   /// appearance; "1" if dimensionless; an empty string if unknown
+   /// Formats the units in the CF plain form: the scale factor if it is not
+   /// 1, then symbols with positive exponents, then those with negative
+   /// exponents, each in order of first appearance; "1" if dimensionless and
+   /// unscaled; an empty string if unknown
    std::string str() const;
 
    //---------------------------------------------------------------------------
@@ -91,8 +107,12 @@ class CFUnits {
    /// Units expression raised to an integer power; unknown if unknown
    CFUnits pow(int Exponent) const;
 
+   /// Units expression multiplied by a positive scale factor; unknown if
+   /// unknown. Aborts if the factor is not positive and finite.
+   CFUnits scaled(double Factor) const;
+
    /// True if both are unknown, or both are known with the same factors in
-   /// any order
+   /// any order and the same scale factor to within rounding
    bool operator==(const CFUnits &Other) const;
    bool operator!=(const CFUnits &Other) const;
 
@@ -102,6 +122,9 @@ class CFUnits {
 
    /// Unit symbols and their non-zero exponents, in order of first appearance
    std::vector<std::pair<std::string, int>> Factors;
+
+   /// Positive scale factor multiplying the unit symbols, 1 if unscaled
+   double Scale;
 
    /// Parses a units string, aborting on failure, for the string interfaces
    static CFUnits parseOrAbort(const std::string &UnitsStr);
@@ -115,6 +138,11 @@ class CFUnits {
    /// exponent, or the digit 1) and multiplies it in with the given sign on
    /// the exponent. Returns false if the token is malformed.
    bool parseFactor(const std::string &Token, int Sign);
+
+   /// Parses a token that starts with a digit or a decimal point as a scale
+   /// factor. Returns false unless the whole token is a positive, finite
+   /// number.
+   static bool parseScale(const std::string &Token, double &Value);
 
 }; // end class CFUnits
 

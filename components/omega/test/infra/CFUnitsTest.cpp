@@ -5,8 +5,9 @@
 ///
 /// Checks that units strings in the CF plain form and the udunits caret and
 /// slash spellings parse and format as expected, that products, quotients
-/// and powers give the plain form with merged exponents, that unknown
-/// (empty) units propagate, and that malformed strings are rejected.
+/// and powers give the plain form with merged exponents, that scale factors
+/// of scaled units are carried through, that unknown (empty) units
+/// propagate, and that malformed strings are rejected.
 //
 //===----------------------------------------------------------------------===//
 
@@ -111,6 +112,16 @@ int main(int argc, char **argv) {
    checkParse("kg m-3/s", "kg m-3 s-1");
    checkParse("m^2/s", "m2 s-1");
 
+   // A leading positive number is the scale factor of a scaled unit
+   checkParse("1e6 m3 s-1", "1e+06 m3 s-1");
+   checkParse("1e+06 m3/s", "1e+06 m3 s-1");
+   checkParse("2 m", "2 m");
+   checkParse("0.001 kg", "0.001 kg");
+   checkParse(".5 m", "0.5 m");
+   checkParse("1.0 m", "m");
+   checkParse("1e6", "1e+06");
+   checkParse("1e3/s", "1000 s-1");
+
    // Malformed strings are rejected and leave unknown units
    checkInvalid("N m^{-2}");
    checkInvalid("m*s");
@@ -119,8 +130,13 @@ int main(int argc, char **argv) {
    checkInvalid("m^+2");
    checkInvalid("m--1");
    checkInvalid("m2s");
-   checkInvalid("2 m");
-   checkInvalid("1e6 m3 s-1");
+   checkInvalid("m 2");
+   checkInvalid("m/2");
+   checkInvalid("1e6 1e6 m");
+   checkInvalid("0 m");
+   checkInvalid("-1 m");
+   checkInvalid("1e400 m");
+   checkInvalid("1e6e m");
    checkInvalid("m/");
    checkInvalid("/s");
    checkInvalid("m//s");
@@ -152,6 +168,18 @@ int main(int argc, char **argv) {
       checkTrue("m s-1 != m s-2", A != C);
       checkTrue("m s-1 != unknown", A != Unknown);
       checkTrue("unknown == unknown", Unknown == CFUnits());
+
+      // Scale factors must agree, to within rounding
+      CFUnits Mega, Kilo;
+      CFUnits::parse("1e6 m s-1", Mega);
+      CFUnits::parse("1e3 m s-1", Kilo);
+      checkTrue("1e6 m s-1 != m s-1", Mega != A);
+      checkTrue("1e6 m s-1 != 1e3 m s-1", Mega != Kilo);
+      checkTrue("1e3 m s-1 * 1e3 == 1e6 m s-1", Kilo.scaled(1.0e3) == Mega);
+      checkTrue("m s-1 / 1e-6 == 1e6 m s-1", A.scaled(1.0 / 1.0e-6) == Mega);
+      CFUnits Number;
+      CFUnits::parse("1e6", Number);
+      checkTrue("1e6 is dimensionless", Number.isDimensionless());
    }
 
    // Products, quotients and powers of strings
@@ -178,6 +206,22 @@ int main(int argc, char **argv) {
    checkResult("m2 / unknown", CFUnits::divide("m2", ""), "");
    checkResult("unknown^3", CFUnits::power("", 3), "");
    checkResult("unknown^0", CFUnits::power("", 0), "");
+   checkResult("unknown scaled", CFUnits::scale("", 1.0e6), "");
+
+   // Scale factors multiply through products, quotients and powers. Values
+   // multiplied by 1e-6 have units scaled by 1/1e-6, which is not exactly
+   // 1e6 in floating point but is written as 1e+06.
+   checkResult("scale m3 s-1 by 1/1e-6", CFUnits::scale("m3 s-1", 1.0 / 1.0e-6),
+               "1e+06 m3 s-1");
+   checkResult("scale m by 0.5", CFUnits::scale("m", 0.5), "0.5 m");
+   checkResult("scale 1e6 m by 1e-6", CFUnits::scale("1e6 m", 1.0e-6), "m");
+   checkResult("scale 1 by 1e3", CFUnits::scale("1", 1.0e3), "1000");
+   checkResult("1e3 m * 1e3 s-1", CFUnits::multiply("1e3 m", "1e3 s-1"),
+               "1e+06 m s-1");
+   checkResult("1e6 m3 / 1e3 m", CFUnits::divide("1e6 m3", "1e3 m"), "1000 m2");
+   checkResult("(1e3 m)^2", CFUnits::power("1e3 m", 2), "1e+06 m2");
+   checkResult("(1e3 m)^-1", CFUnits::power("1e3 m", -1), "0.001 m-1");
+   checkResult("(2 m)^0", CFUnits::power("2 m", 0), "1");
 
    // The same algebra on parsed values
    {
