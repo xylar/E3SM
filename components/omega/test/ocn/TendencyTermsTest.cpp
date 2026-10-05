@@ -1538,7 +1538,7 @@ int testFCTTracerHorzAdvOnCell(int NVertLayers, int NTracers, Real RTol) {
              FluxSubView(IEdge, K) = 0;
           });
 
-      const Real ATol = sizeof(Real) == 4 ? 1e-8 : 1e-10;
+      const Real ATol          = sizeof(Real) == 4 ? 1e-8 : 1e-10;
       Array2DReal HighOrderFlx = TrHorzAdvOnC.GetHighOrderFlx();
       Err += computeErrors(FCTErrors, HighOrderFlx, FluxSubView, Mesh, OnEdge);
       Err += checkErrors("TendencyTermsTest", "FCTHighAndLowOrderFlux_High",
