@@ -37,6 +37,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "AnalysisOperator.h"
+#include "Reductions.h"
 #include "mpi.h"
 
 namespace OMEGA {
@@ -287,9 +288,18 @@ template <typename ArrayT> class BinnedAccumulatorOp : public AnalysisOperator {
 
       auto OutputDataHost = createHostMirrorCopy(OutputData);
 
-      // Sum local accumulations across all ranks
-      MPI_Allreduce(LocalAccumHost.data(), OutputDataHost.data(), NumBins,
-                    MPI_DOUBLE, MPI_SUM, Comm);
+      // Sum local accumulations across all ranks element-wise. Use the
+      // reproducible Omega globalSum (multifield) helper, which performs an
+      // element-wise reduction across ranks using the same communicator and
+      // avoids a direct MPI_Allreduce call here.
+      std::vector<R8> LocalBins(NumBins);
+      for (I4 IBin = 0; IBin < NumBins; ++IBin)
+         LocalBins[IBin] = static_cast<R8>(LocalAccumHost(IBin));
+
+      std::vector<R8> GlobalBins = globalSum(LocalBins, Comm);
+
+      for (I4 IBin = 0; IBin < NumBins; ++IBin)
+         OutputDataHost(IBin) = GlobalBins[IBin];
 
       // Copy global totals back to device
       deepCopy(OutputData, OutputDataHost);
@@ -345,10 +355,22 @@ template <typename ArrayT> class BinnedAccumulatorOp : public AnalysisOperator {
 
       auto OutputDataHost = createHostMirrorCopy(OutputData);
 
-      // Sum local accumulations across all ranks
+      // Sum local accumulations across all ranks element-wise. Flatten the
+      // (NumBins x VertSize) local array into a single vector, reduce with the
+      // reproducible Omega globalSum (multifield) helper, then unflatten into
+      // the output host mirror.
       I4 TotalSize = NumBins * VertSize;
-      MPI_Allreduce(LocalAccumHost.data(), OutputDataHost.data(), TotalSize,
-                    MPI_DOUBLE, MPI_SUM, Comm);
+      std::vector<R8> LocalFlat(TotalSize);
+      for (I4 IBin = 0; IBin < NumBins; ++IBin)
+         for (I4 K = 0; K < VertSize; ++K)
+            LocalFlat[IBin * VertSize + K] =
+                static_cast<R8>(LocalAccumHost(IBin, K));
+
+      std::vector<R8> GlobalFlat = globalSum(LocalFlat, Comm);
+
+      for (I4 IBin = 0; IBin < NumBins; ++IBin)
+         for (I4 K = 0; K < VertSize; ++K)
+            OutputDataHost(IBin, K) = GlobalFlat[IBin * VertSize + K];
 
       // Copy global totals back to device
       deepCopy(OutputData, OutputDataHost);
