@@ -1656,13 +1656,15 @@ int testFCTTracerHorzAdvOnCell(int NVertLayers, int NTracers, Real RTol) {
       const auto &MinLayerCell    = VCoord->MinLayerCell;
       const auto &MaxLayerCell    = VCoord->MaxLayerCell;
       parallelForOuter(
-          "Tend:TracerHorzAdv.init", {Mesh->NEdgesAll},
+          "Tend:TracerHorzAdv.init",
+          LaunchConfig({Mesh->NEdgesAll}, TeamScratch<Real>(NVertLayers)),
           KOKKOS_LAMBDA(int IEdge, const TeamMember &Team) {
              TrHorzAdvOnC(Team, L, IEdge, TrCell, FluxPseudoThickEdge,
                           NormalVelocity);
           });
       parallelForOuter(
-          "Tend:TracerHorzAdv.exec", {Mesh->NCellsAll},
+          "Tend:TracerHorzAdv.exec",
+          LaunchConfig({Mesh->NCellsAll}, TeamScratch<Real>(NVertLayers)),
           KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
              TrHorzAdvOnC(Team, TendNoFCT, L, ICell);
           });
