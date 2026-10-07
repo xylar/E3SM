@@ -1,0 +1,30 @@
+schema_version: 1
+requester: xylar
+pull_request: 566
+pr_head: 6dc4280a2dd71e1f40f15c660157be4cd814ca71
+base_branch: develop
+base_head: b42d50838270e278587d00491cdfbf7c2e4ae4a6
+test_commit: 0f26a81857fb210c53c770d5f5f19c70553e6c6a
+baseline:
+  commit: b42d50838270e278587d00491cdfbf7c2e4ae4a6
+  source: develop
+  reason: the requester asked to compare against develop, which this PR merges 
+    E3SM master into
+  polaris_commit: 8fe479ec3b4ada6c2c31090bba5488ca50e54d82
+polaris_commit: 38f7b13790b59c33ef7779867a3063088b5c55a1
+extra_merges: []
+rows:
+- machine: aurora
+  compiler: intel
+  mpi: mpich
+  template: aurora, oneapi-ifx, mpich
+- machine: aurora
+  compiler: intelgpu
+  mpi: mpich
+  template:
+notes: "PR 566 conflicts with develop, so the test commit is the requester's own merge
+  of the PR head into develop (xylar/E3SM test-merge), with the conflicts resolved.
+  This PR renames Aurora's compilers to intel and intelgpu, so the PR runs with Polaris
+  #835 (mache 5.0.0rc1, with a test Spack deployment), and the baseline with Polaris
+  before that rename. Aurora intelgpu runs without a baseline, since develop's Kokkos
+  cannot run on Aurora's GPUs."
