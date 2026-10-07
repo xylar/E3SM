@@ -1,0 +1,41 @@
+schema_version: 1
+requester: xylar
+pull_request: 593
+pr_head: 69259cd8cda26bf6e0884ab12bfac55bf9ccbcf0
+base_branch: develop
+base_head: b42d50838270e278587d00491cdfbf7c2e4ae4a6
+test_commit: b87e9e1115cf0b85ad1b32f5e981836dd3cd016d
+baseline:
+  commit: b42d50838270e278587d00491cdfbf7c2e4ae4a6
+  source: develop
+  reason: 'this fixes a failure that #566 exposes, so it is compared against develop,
+    as #566 was'
+  polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+extra_merges: []
+rows:
+- machine: aurora
+  compiler: oneapi-ifx
+  mpi: mpich
+  template: aurora, oneapi-ifx, mpich
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, oneapi-ifx, openmpi
+- machine: frontier
+  compiler: craygnu
+  mpi: mpich
+  template: frontier, craygnu, mpich
+- machine: frontier
+  compiler: craygnu-mphipcc
+  mpi: mpich
+  template: frontier, craygnu-mphipcc, mpich
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
