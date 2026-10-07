@@ -124,7 +124,10 @@ KOKKOS_INLINE_FUNCTION void teamBarrier(const TeamMember &Team) {
 }
 
 KOKKOS_INLINE_FUNCTION decltype(auto) teamScratch(const TeamMember &Team) {
-   return Team.team_scratch(OMEGA_SCRATCH_LEVEL);
+   // team_scratch takes the level by reference, so pass a local copy
+   // rather than the namespace-scope constant, which device code can't use
+   const int Level = OMEGA_SCRATCH_LEVEL;
+   return Team.team_scratch(Level);
 }
 
 // parallelForOuter: with label and with launch config
