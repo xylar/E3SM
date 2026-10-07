@@ -1,0 +1,41 @@
+schema_version: 1
+requester: xylar
+pull_request: 587
+pr_head: b0b38836435feaef265f34465f931a60bd381886
+base_branch: develop
+base_head: b42d50838270e278587d00491cdfbf7c2e4ae4a6
+test_commit: 0ba261cde183065806df2f69df649ff959258490
+baseline:
+  commit: b42d50838270e278587d00491cdfbf7c2e4ae4a6
+  source: develop
+  reason: "Polaris' Omega submodule is behind develop, which has since merged answer-changing
+    PRs (#512, #575, #405) that would obscure this PR's effect"
+  polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+extra_merges: []
+rows:
+- machine: aurora
+  compiler: oneapi-ifx
+  mpi: mpich
+  template: aurora, oneapi-ifx, mpich
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, oneapi-ifx, openmpi
+- machine: frontier
+  compiler: craygnu
+  mpi: mpich
+  template: frontier, craygnu, mpich
+- machine: frontier
+  compiler: craygnu-mphipcc
+  mpi: mpich
+  template: frontier, craygnu-mphipcc, mpich
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
