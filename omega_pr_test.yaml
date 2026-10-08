@@ -1,0 +1,41 @@
+schema_version: 1
+requester: xylar
+pull_request: 566
+pr_head: c0cb84fba6ebf2ba93eb80527695d81507d690f4
+base_branch: develop
+base_head: 31393ac215d6fedb456140c640671506d1aaabcb
+test_commit: 94e0c3c23a40afc7b1f709cb88ace49595409575
+baseline:
+  commit: 31393ac215d6fedb456140c640671506d1aaabcb
+  source: develop
+  reason: the requester asked to compare against develop, which this PR merges 
+    E3SM master into
+  polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+extra_merges: []
+rows:
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, oneapi-ifx, openmpi
+- machine: frontier
+  compiler: craygnu
+  mpi: mpich
+  template: frontier, craygnu, mpich
+- machine: frontier
+  compiler: craygnu-mphipcc
+  mpi: mpich
+  template: frontier, craygnu-mphipcc, mpich
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes: "PR 566 conflicts with develop, so the test commit is the requester's own merge
+  of the PR head into develop (xylar/E3SM test-merge), with the conflicts resolved.
+  This round retests after #593 (the Kokkos 5 scratch limit) and #591 (TendencyTermsTest
+  scratch) merged into develop. Aurora was tested in the previous round and is not
+  repeated."
