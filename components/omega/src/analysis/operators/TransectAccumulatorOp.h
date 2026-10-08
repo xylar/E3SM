@@ -36,6 +36,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "AnalysisOperator.h"
+#include "Reductions.h"
 #include "mpi.h"
 
 namespace OMEGA {
@@ -268,9 +269,18 @@ class TransectAccumulatorOp : public AnalysisOperator {
       // Create host mirror for output
       auto OutputDataHost = Kokkos::create_mirror_view(OutputData);
 
-      // Perform MPI_Allreduce to sum across all ranks
-      MPI_Allreduce(LocalAccumHost.data(), OutputDataHost.data(), VertSize,
-                    MPI_DOUBLE, MPI_SUM, Comm);
+      // Sum local accumulations across all ranks element-wise. Use the
+      // reproducible Omega globalSum (multifield) helper, which performs an
+      // element-wise reduction across ranks using the stored communicator and
+      // avoids a direct MPI_Allreduce call here.
+      std::vector<R8> LocalLevels(VertSize);
+      for (I4 K = 0; K < VertSize; ++K)
+         LocalLevels[K] = static_cast<R8>(LocalAccumHost(K));
+
+      std::vector<R8> GlobalLevels = globalSum(LocalLevels, Comm);
+
+      for (I4 K = 0; K < VertSize; ++K)
+         OutputDataHost(K) = GlobalLevels[K];
 
       // Copy global totals back to device
       deepCopy(OutputData, OutputDataHost);
