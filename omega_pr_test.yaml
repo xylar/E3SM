@@ -1,0 +1,29 @@
+schema_version: 1
+requester: xylar
+pull_request: 597
+pr_head: a82aa31f52beda68d8509b3e34cd1ee78fd207d4
+base_branch: develop
+base_head: 31393ac215d6fedb456140c640671506d1aaabcb
+test_commit: 6d4f52f723aec7677234315bd6171b7b40cc9314
+baseline:
+  commit: 31393ac215d6fedb456140c640671506d1aaabcb
+  source: develop
+  reason: 'it fixes a build failure that #566 exposes, so it is compared against develop,
+    as #566 and #593 were'
+  polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+polaris_commit: b81548170982081b011783bb7c5fe7516b0c172d
+extra_merges: []
+rows:
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, oneapi-ifx, openmpi
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
