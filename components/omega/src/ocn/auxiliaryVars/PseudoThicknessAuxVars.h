@@ -34,7 +34,7 @@ class PseudoThicknessAuxVars {
       const int KMin = MinLayerEdgeBot(IEdge);
       const int KMax = MaxLayerEdgeTop(IEdge);
 
-      // Real(0.5) rather than 0.5_Real: nvcc with Kokkos 5 fails to find the
+      // Real(0.5) rather than 0.5_Real: nvcc 12.9 on pm-gpu fails to find the
       // _Real literal operator here
       parallelForInner(
           Team, Range{KMin, KMax}, INNER_LAMBDA(int K) {
