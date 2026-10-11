@@ -22,6 +22,10 @@ Checklist
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
 
+  **aurora, intelgpu, mpich**
+  - [ ] CTests Pass
+  - [ ] Polaris omega_pr Pass
+
   **chrysalis, intel, openmpi**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
