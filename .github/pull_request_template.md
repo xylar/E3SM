@@ -18,11 +18,11 @@ Checklist
   * [ ] CMake build does not produce any new warnings from changes in this PR
 * [ ] Testing
 
-  **aurora, oneapi-ifx, mpich**
+  **aurora, intel, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
 
-  **chrysalis, oneapi-ifx, openmpi**
+  **chrysalis, intel, openmpi**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
 
