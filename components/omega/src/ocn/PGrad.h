@@ -295,14 +295,10 @@ class PressureGrad {
                                  const Array1DReal &BtrPressAnomaly,
                                  const Array1DReal &DepthMeanSpecVol) const;
 
- private:
-   // Construct a new pressure gradient object
-   PressureGrad(const HorzMesh *Mesh, const VertCoord *VCoord, Config *Options);
-
    // Compute the mean-preserving reconstruction slopes of temperature and
    // salinity in pressure, once per cell and layer. These are the per-cell
    // quantities the per-edge work reuses; recomputing them per edge is what
-   // the cost check exists to catch.
+   // the cost check exists to catch. Public because of CUDA requirements.
    void computeReconSlopes(const Array2DReal &ConservTemp,
                            const Array2DReal &AbsSalinity,
                            const Array2DReal &PressureMid) const;
@@ -310,13 +306,18 @@ class PressureGrad {
    // Accumulate the fixed-pressure height difference down each edge's column.
    // This is a prefix sum with edge-dependent coefficients, so it is not
    // expressible as an independent per-vertical-chunk operation and cannot
-   // live in the functor, unlike the rest of the scheme.
+   // live in the functor, unlike the rest of the scheme. Public because of
+   // CUDA requirements.
    void computeColumnScan(const Array2DReal &PressureMid,
                           const Array2DReal &PressureInterface,
                           const Array2DReal &GeomZInterface,
                           const Array2DReal &ConservTemp,
                           const Array2DReal &AbsSalinity,
                           const Eos *EqState) const;
+
+ private:
+   // Construct a new pressure gradient object
+   PressureGrad(const HorzMesh *Mesh, const VertCoord *VCoord, Config *Options);
 
    // forbid copy and move construction
    PressureGrad(const PressureGrad &) = delete;
