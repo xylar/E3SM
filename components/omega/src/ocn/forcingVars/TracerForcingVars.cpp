@@ -116,7 +116,7 @@ void TracerForcingVars::registerFields(const std::string &MeshName) const {
    TracerFluxDims[1]           = "NCells" + DimSuffix;
    auto SurfaceTracerFluxField = Field::create(
        SurfaceTracerFluxCell.label(),
-       "surface tracer flux for KPP non-local mixing", "1", "",
+       "surface tracer flux for KPP non-local mixing", "", "",
        std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::max(),
        NTracerDims, TracerFluxDims);
    SurfaceTracerFluxField->setOptionalRead(true);

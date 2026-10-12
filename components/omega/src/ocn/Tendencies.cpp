@@ -521,16 +521,16 @@ void Tendencies::defineFields() {
    DimNamesTempDiag[1] = "NVertLayers";
    auto KPPNonLocalTracerTempDiagField =
        Field::create(KPPNonLocalTracerTempDiagFieldName,
-                     "Temperature non-local KPP tendency diagnostic", "1", "",
-                     -9.99E+10, 9.99E+10, NDims, DimNamesTempDiag);
+                     "Temperature non-local KPP tendency diagnostic", "K m s-1",
+                     "", -9.99E+10, 9.99E+10, NDims, DimNamesTempDiag);
 
    NDims = 1;
    std::vector<std::string> DimNamesCellOnly(NDims);
-   DimNamesCellOnly[0] = "NCells";
-   auto KPPNonLocalTracerTempColSumField =
-       Field::create(KPPNonLocalTracerTempColSumFieldName,
-                     "Temperature non-local tendency column-sum diagnostic",
-                     "1", "", -9.99E+10, 9.99E+10, NDims, DimNamesCellOnly);
+   DimNamesCellOnly[0]                   = "NCells";
+   auto KPPNonLocalTracerTempColSumField = Field::create(
+       KPPNonLocalTracerTempColSumFieldName,
+       "Temperature non-local tendency column-sum diagnostic", "K m s-1", "",
+       -9.99E+10, 9.99E+10, NDims, DimNamesCellOnly);
 
    std::string TendGroupName = "Tendencies";
    if (Name != "Default") {
