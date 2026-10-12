@@ -63,17 +63,21 @@ struct PGradEdgeEos {
 /// which is exactly the mid-layer pressure of the edge control volume when
 /// that volume is taken as the average of the two columns' interface
 /// pressures.
-KOKKOS_INLINE_FUNCTION PGradEdgeEos buildEdgeEos(
-    const Array2DReal &SpecVol,     ///< [in] specific volume
-    const Array2DReal &SpecVolDCt,  ///< [in] d(alpha)/d(ConservTemp)
-    const Array2DReal &SpecVolDSa,  ///< [in] d(alpha)/d(AbsSalinity)
-    const Array2DReal &SpecVolDP,   ///< [in] d(alpha)/d(Pressure)
-    const Array2DReal &ConservTemp, ///< [in] layer-mean temperature
-    const Array2DReal &AbsSalinity, ///< [in] layer-mean salinity
-    const Array2DReal &PressureMid, ///< [in] mid-layer pressure
-    const I4 ICell0,                ///< [in] first cell on the edge
-    const I4 ICell1,                ///< [in] second cell on the edge
-    const I4 K                      ///< [in] edge layer
+///
+/// Templated on the array type so that the same code is exercised by the
+/// device kernels and by the host-side reference that tests them.
+template <class ArrayType>
+KOKKOS_INLINE_FUNCTION PGradEdgeEos
+buildEdgeEos(const ArrayType &SpecVol,     ///< [in] specific volume
+             const ArrayType &SpecVolDCt,  ///< [in] d(alpha)/d(ConservTemp)
+             const ArrayType &SpecVolDSa,  ///< [in] d(alpha)/d(AbsSalinity)
+             const ArrayType &SpecVolDP,   ///< [in] d(alpha)/d(Pressure)
+             const ArrayType &ConservTemp, ///< [in] layer-mean temperature
+             const ArrayType &AbsSalinity, ///< [in] layer-mean salinity
+             const ArrayType &PressureMid, ///< [in] mid-layer pressure
+             const I4 ICell0,              ///< [in] first cell on the edge
+             const I4 ICell1,              ///< [in] second cell on the edge
+             const I4 K                    ///< [in] edge layer
 ) {
    PGradEdgeEos Eos;
    Eos.SpecVol0   = 0.5_Real * (SpecVol(ICell0, K) + SpecVol(ICell1, K));
