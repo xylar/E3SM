@@ -551,6 +551,10 @@ void Tendencies::defineFields() {
        KPPNonLocalTracerTempTendDiag, false);
    KPPNonLocalTracerTempColSumField->attachData<Array1DReal>(
        KPPNonLocalTracerTempColumnSumDiag, false);
+   // Attaching with FillOnAttach=false keeps the zero initialization but does
+   // not record the _FillValue that IOStream needs to write these fields
+   KPPNonLocalTracerTempDiagField->addMetadata("_FillValue", FillValueReal);
+   KPPNonLocalTracerTempColSumField->addMetadata("_FillValue", FillValueReal);
 
 } // end defineFields
 
