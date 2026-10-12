@@ -52,6 +52,15 @@ void initPGradTest() {
    Config("Omega");
    Config::readAll("omega.yml");
 
+   // The default instance is the centered reference that the finite-volume
+   // scheme is checked against, so select it here rather than relying on the
+   // type in the default config. Note the explicit std::string: a string
+   // literal would select the boolean overload of Config::set.
+   Config *OmegaConfig = Config::getOmegaConfig();
+   Config PGradConfig("PressureGrad");
+   OmegaConfig->get(PGradConfig);
+   PGradConfig.set("PressureGradType", std::string("Centered"));
+
    // First step of time stepper initialization needed for IOstream
    TimeStepper::init1();
    TimeStepper *DefStepper = TimeStepper::getDefault();
@@ -1868,7 +1877,7 @@ int testPGradConfig(const HorzMesh *Mesh,   ///< [in] Horizontal mesh
    int Err = 0;
 
    // The default instance is built from the PressureGrad group in the
-   // config, which selects the centered scheme
+   // config, which initPGradTest set to the centered scheme
    PressureGrad *DefPGrad = PressureGrad::getDefault();
 
    if (DefPGrad->getType() == PressureGradType::Centered) {

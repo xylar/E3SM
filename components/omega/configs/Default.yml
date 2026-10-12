@@ -50,7 +50,7 @@ Omega:
     PistonVelocity: 1.585e-5
   PressureGrad:
     # Centered | FiniteVolume
-    PressureGradType: Centered
+    PressureGradType: FiniteVolume
     # The remaining options apply to the FiniteVolume scheme only
     # edge stencil width; only 2 (two-cell) is implemented
     HorzOrder: 2

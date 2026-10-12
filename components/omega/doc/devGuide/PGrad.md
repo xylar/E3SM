@@ -4,7 +4,7 @@
 
 Omega includes a `PressureGrad` class that computes horizontal pressure gradient
 tendencies for the non-Boussinesq momentum equation. The implementation supports a
-centered difference scheme as the default and a layer-integrated finite-volume
+layer-integrated finite-volume scheme as the default and a centered difference
 scheme as an option. The class follows the same factory pattern used by other
 Omega modules.
 
@@ -257,12 +257,13 @@ The pressure gradient type is selected in the input YAML file:
 
 ```yaml
 PressureGrad:
-   PressureGradType: 'centered'
+   PressureGradType: 'FiniteVolume'
 ```
 
 Valid options for `PressureGradType` are:
-- `'centered'` or `'Centered'`: centered difference approximation (default)
+- `'centered'` or `'Centered'`: centered difference approximation
 - `'finiteVolume'` or `'FiniteVolume'`: the layer-integrated finite-volume method
+  (default)
 
 The `FiniteVolume` scheme reads three further keys from the same group, all
 optional: `HorzOrder` (default 2), `VerticalReconstruction` (default `'linear'`)

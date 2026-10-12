@@ -37,8 +37,8 @@ The pressure gradient method is configured in the input YAML file under the
 
 ```yaml
 PressureGrad:
-   PressureGradType: 'Centered'   # Centered | FiniteVolume
-   HorzOrder: 2                   # FiniteVolume only
+   PressureGradType: 'FiniteVolume'   # Centered | FiniteVolume
+   HorzOrder: 2                       # FiniteVolume only
    VerticalReconstruction: 'linear'
    QuadraturePoints: 2
 ```
@@ -53,10 +53,10 @@ like a passing centered run.
 - Computes the pressure gradient using a centered finite-difference approximation
   of the Montgomery potential gradient and specific volume correction
 - Suitable for global ocean simulations without ice shelf cavities
-- The default, and the reference implementation the finite-volume scheme is
-  checked against
+- The reference implementation the finite-volume scheme is checked against
 
 **Finite Volume** (`'FiniteVolume'` or `'finiteVolume'`)
+- The default
 - Compares the geopotential of the two columns sharing an edge at a **common
   pressure**, rather than at a common layer index
 - Gives a pressure gradient that is zero to machine precision for any resting
