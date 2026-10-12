@@ -214,7 +214,7 @@ void AuxiliaryState::computeMomAux(const OceanState *State,
    Pacer::start("AuxState:vertexAuxState1", 2);
    parallelForOuter(
        "vertexAuxState1",
-       LaunchConfig({Mesh->NVerticesHalo(HaloAll)},
+       LaunchConfig({Mesh->NVerticesHaloH(HaloAll)},
                     TeamScratch<Real>(2 * VCoord->NVertLayers)),
        KOKKOS_LAMBDA(int IVertex, const TeamMember &Team) {
           LocVorticityAux.computeVarsOnVertex(Team, IVertex, PseudoThickCell,
