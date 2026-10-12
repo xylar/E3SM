@@ -86,9 +86,9 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       // Fetch the input description and valid range
       std::string InputDescr;
       ScalarT InputValidMin, InputValidMax;
-      InputField->getMetadata("Description", InputDescr);
-      InputField->getMetadata("ValidMin", InputValidMin);
-      InputField->getMetadata("ValidMax", InputValidMax);
+      InputField->getMetadata("long_name", InputDescr);
+      InputField->getMetadata("valid_min", InputValidMin);
+      InputField->getMetadata("valid_max", InputValidMax);
 
       // Register output Field with same dimensions as input but Real type.
       // A time mean has the units and standard name of the field it

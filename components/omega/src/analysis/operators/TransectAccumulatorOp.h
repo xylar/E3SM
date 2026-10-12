@@ -149,9 +149,9 @@ class TransectAccumulatorOp : public AnalysisOperator {
       // transect edges has the units of the transport.
       std::string TransportDescr;
       ScalarT TransportValidMin, TransportValidMax;
-      TransportField->getMetadata("Description", TransportDescr);
-      TransportField->getMetadata("ValidMin", TransportValidMin);
-      TransportField->getMetadata("ValidMax", TransportValidMax);
+      TransportField->getMetadata("long_name", TransportDescr);
+      TransportField->getMetadata("valid_min", TransportValidMin);
+      TransportField->getMetadata("valid_max", TransportValidMax);
       auto Meta = inheritMetadata(InputNames[0]);
 
       // Create output Field dimensions (1D: NVertLayers only)
