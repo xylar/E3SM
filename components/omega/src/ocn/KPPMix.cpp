@@ -332,8 +332,8 @@ void KPPMix::update(const Array3DReal &TracerArray, I4 TempTracerIndex,
       I4 FreshPositiveSaltNegativeCount = 0;
       I4 FreshNegativeSaltPositiveCount = 0;
       parallelReduce(
-          "KPP-MixedSeaIceFlux-FreshPositiveSaltNegative",
-          {Mesh->NCellsOwned}, KOKKOS_LAMBDA(I4 ICell, I4 &Count) {
+          "KPP-MixedSeaIceFlux-FreshPositiveSaltNegative", {Mesh->NCellsOwned},
+          KOKKOS_LAMBDA(I4 ICell, I4 & Count) {
              const I4 KTop = MinLayerCell(ICell);
              if (KTop >= 0 && KTop < NVertLayers &&
                  SeaIceFreshWaterFlux(ICell) > 0.0_Real &&
@@ -343,8 +343,8 @@ void KPPMix::update(const Array3DReal &TracerArray, I4 TempTracerIndex,
           },
           Kokkos::Sum<I4>(FreshPositiveSaltNegativeCount));
       parallelReduce(
-          "KPP-MixedSeaIceFlux-FreshNegativeSaltPositive",
-          {Mesh->NCellsOwned}, KOKKOS_LAMBDA(I4 ICell, I4 &Count) {
+          "KPP-MixedSeaIceFlux-FreshNegativeSaltPositive", {Mesh->NCellsOwned},
+          KOKKOS_LAMBDA(I4 ICell, I4 & Count) {
              const I4 KTop = MinLayerCell(ICell);
              if (KTop >= 0 && KTop < NVertLayers &&
                  SeaIceFreshWaterFlux(ICell) < 0.0_Real &&
@@ -354,18 +354,18 @@ void KPPMix::update(const Array3DReal &TracerArray, I4 TempTracerIndex,
           },
           Kokkos::Sum<I4>(FreshNegativeSaltPositiveCount));
 
-      const I4 MixedSignCount = FreshPositiveSaltNegativeCount +
-                                FreshNegativeSaltPositiveCount;
+      const I4 MixedSignCount =
+          FreshPositiveSaltNegativeCount + FreshNegativeSaltPositiveCount;
       if (MixedSignCount > 0) {
          const Real OwnedCellCount = static_cast<Real>(Mesh->NCellsOwned);
          LOG_INFO("KPPMix: mixed-sign sea-ice fluxes in {} owned cells "
-                 "({:.3f}%): freshwater>0/salt<0={} ({:.3f}%), "
-                 "freshwater<0/salt>0={} ({:.3f}%)",
-                 MixedSignCount, 100.0_Real * MixedSignCount / OwnedCellCount,
-                 FreshPositiveSaltNegativeCount,
-                 100.0_Real * FreshPositiveSaltNegativeCount / OwnedCellCount,
-                 FreshNegativeSaltPositiveCount,
-                 100.0_Real * FreshNegativeSaltPositiveCount / OwnedCellCount);
+                  "({:.3f}%): freshwater>0/salt<0={} ({:.3f}%), "
+                  "freshwater<0/salt>0={} ({:.3f}%)",
+                  MixedSignCount, 100.0_Real * MixedSignCount / OwnedCellCount,
+                  FreshPositiveSaltNegativeCount,
+                  100.0_Real * FreshPositiveSaltNegativeCount / OwnedCellCount,
+                  FreshNegativeSaltPositiveCount,
+                  100.0_Real * FreshNegativeSaltPositiveCount / OwnedCellCount);
       }
    }
 
