@@ -1,0 +1,50 @@
+schema_version: 1
+requester: xylar
+pull_request: 493
+pr_head: 480626b4f60d8038886e767df97d4c762b34d80c
+base_branch: develop
+base_head: 55c3de8c156eb0659dc52e5ffa6ae1090a39b16e
+test_commit: 6727c6d08b0d59d025fe478d24247f8c74fe6a0a
+baseline:
+  commit: 15c92b19962be3d48a93fd45f8c0f25bd0d0ae03
+  source: develop
+  reason: Compare against current develop rather than the older commit Polaris 
+    pins
+  polaris_commit: b63579dee0c85a1d33551745979ac29c1429a9be
+polaris_commit: 781fdcb08fb1ceeee426af1d5007d31390d8212b
+extra_merges:
+- pull_request: 600
+  commit: e40578ac7b399b64a7bbaea4172ddc9b3607bc2e
+  sides:
+  - test
+  - baseline
+rows:
+- machine: aurora
+  compiler: intel
+  mpi: mpich
+  template: aurora, intel, mpich
+- machine: aurora
+  compiler: intelgpu
+  mpi: mpich
+  template: aurora, intelgpu, mpich
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, intel, openmpi
+- machine: frontier
+  compiler: craygnu
+  mpi: mpich
+  template: frontier, craygnu, mpich
+- machine: frontier
+  compiler: craygnu-mphipcc
+  mpi: mpich
+  template: frontier, craygnu-mphipcc, mpich
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
