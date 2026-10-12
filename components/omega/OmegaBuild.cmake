@@ -43,6 +43,9 @@ macro(common)
 
   set(OMEGA_VECTOR_LENGTH 1 CACHE STRING "Omega vector length")
 
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 endmacro()
 
 macro(run_bash_command command outvar)
