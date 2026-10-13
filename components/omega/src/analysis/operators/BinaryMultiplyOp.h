@@ -141,8 +141,8 @@ template <typename ArrayT> class BinaryMultiplyOp : public AnalysisOperator {
 
       // Get descriptions from both input fields
       std::string Descr1, Descr2;
-      Field1->getMetadata("Description", Descr1);
-      Field2->getMetadata("Description", Descr2);
+      Field1->getMetadata("long_name", Descr1);
+      Field2->getMetadata("long_name", Descr2);
       std::string OutputDescr = "Product of " + Descr1 + " and " + Descr2;
 
       // A product has the product of the input units (m s-1 times m2 is

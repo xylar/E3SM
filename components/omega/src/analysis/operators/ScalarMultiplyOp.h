@@ -113,9 +113,9 @@ template <typename ArrayT> class ScalarMultiplyOp : public AnalysisOperator {
       // Get input metadata
       std::string InputDescr;
       ScalarT InputValidMin, InputValidMax;
-      InputField->getMetadata("Description", InputDescr);
-      InputField->getMetadata("ValidMin", InputValidMin);
-      InputField->getMetadata("ValidMax", InputValidMax);
+      InputField->getMetadata("long_name", InputDescr);
+      InputField->getMetadata("valid_min", InputValidMin);
+      InputField->getMetadata("valid_max", InputValidMax);
 
       // Multiplying the values by the scalar scales the units by its
       // reciprocal, so a transport in m3 s-1 multiplied by 1e-6 is in

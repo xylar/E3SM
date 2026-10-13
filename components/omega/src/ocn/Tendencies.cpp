@@ -494,28 +494,26 @@ void Tendencies::defineFields() {
 
    int NDims = 2;
    std::vector<std::string> DimNamesThickness(NDims);
-   DimNamesThickness[0] = "NCells";
-   DimNamesThickness[1] = "NVertLayers";
-   auto PseudoThicknessTendField =
-       Field::create(PseudoThicknessTendFieldName, "Pseudo-thickness tendency",
-                     "m/s", "cell_thickness_tendency", -9.99E+10, 9.99E+10,
-                     NDims, DimNamesThickness);
+   DimNamesThickness[0]          = "NCells";
+   DimNamesThickness[1]          = "NVertLayers";
+   auto PseudoThicknessTendField = Field::create(
+       PseudoThicknessTendFieldName, "Pseudo-thickness tendency", "m s-1", "",
+       -9.99E+10, 9.99E+10, NDims, DimNamesThickness);
    NDims = 3;
    std::vector<std::string> DimNamesTracer(NDims);
-   DimNamesTracer[0]    = "NTracers";
-   DimNamesTracer[1]    = "NCells";
-   DimNamesTracer[2]    = "NVertLayers";
-   auto TracerTendField = Field::create(
-       TracerTendFieldName, "Tracer tendency", "kg/m^3/s", "tracer_tendency",
-       -9.99E+10, 9.99E+10, NDims, DimNamesTracer);
+   DimNamesTracer[0] = "NTracers";
+   DimNamesTracer[1] = "NCells";
+   DimNamesTracer[2] = "NVertLayers";
+   auto TracerTendField =
+       Field::create(TracerTendFieldName, "Tracer tendency", "", "", -9.99E+10,
+                     9.99E+10, NDims, DimNamesTracer);
    NDims = 2;
    std::vector<std::string> DimNamesVelocity(NDims);
    DimNamesVelocity[0] = "NEdges";
    DimNamesVelocity[1] = "NVertLayers";
    auto NormalVelocityTendField =
        Field::create(NormalVelocityTendFieldName, "Normal velocity tendency",
-                     "m/s^2", "sea_water_velocity_tendency", -9.99E+10,
-                     9.99E+10, NDims, DimNamesVelocity);
+                     "m s-2", "", -9.99E+10, 9.99E+10, NDims, DimNamesVelocity);
 
    NDims = 2;
    std::vector<std::string> DimNamesTempDiag(NDims);
@@ -523,16 +521,16 @@ void Tendencies::defineFields() {
    DimNamesTempDiag[1] = "NVertLayers";
    auto KPPNonLocalTracerTempDiagField =
        Field::create(KPPNonLocalTracerTempDiagFieldName,
-                     "Temperature non-local KPP tendency diagnostic", "1", "",
-                     -9.99E+10, 9.99E+10, NDims, DimNamesTempDiag);
+                     "Temperature non-local KPP tendency diagnostic", "K m s-1",
+                     "", -9.99E+10, 9.99E+10, NDims, DimNamesTempDiag);
 
    NDims = 1;
    std::vector<std::string> DimNamesCellOnly(NDims);
-   DimNamesCellOnly[0] = "NCells";
-   auto KPPNonLocalTracerTempColSumField =
-       Field::create(KPPNonLocalTracerTempColSumFieldName,
-                     "Temperature non-local tendency column-sum diagnostic",
-                     "1", "", -9.99E+10, 9.99E+10, NDims, DimNamesCellOnly);
+   DimNamesCellOnly[0]                   = "NCells";
+   auto KPPNonLocalTracerTempColSumField = Field::create(
+       KPPNonLocalTracerTempColSumFieldName,
+       "Temperature non-local tendency column-sum diagnostic", "K m s-1", "",
+       -9.99E+10, 9.99E+10, NDims, DimNamesCellOnly);
 
    std::string TendGroupName = "Tendencies";
    if (Name != "Default") {
@@ -553,6 +551,10 @@ void Tendencies::defineFields() {
        KPPNonLocalTracerTempTendDiag, false);
    KPPNonLocalTracerTempColSumField->attachData<Array1DReal>(
        KPPNonLocalTracerTempColumnSumDiag, false);
+   // Attaching with FillOnAttach=false keeps the zero initialization but does
+   // not record the _FillValue that IOStream needs to write these fields
+   KPPNonLocalTracerTempDiagField->addMetadata("_FillValue", FillValueReal);
+   KPPNonLocalTracerTempColSumField->addMetadata("_FillValue", FillValueReal);
 
 } // end defineFields
 

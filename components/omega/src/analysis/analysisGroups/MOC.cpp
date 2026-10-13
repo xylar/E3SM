@@ -328,8 +328,8 @@ std::string MOC::buildMOCChain(const std::string &RegionName,
                         "northern edge of last bin)", // Description
                         "degrees_north",              // Units
                         "latitude",                   // Standard name
-                        MinLat,                       // ValidMin
-                        MaxLat,                       // ValidMax
+                        AdjMinLat,                    // ValidMin
+                        AdjMaxLat,                    // ValidMax
                         1,                            // Rank
                         BinBoundDimNames,             // Dimension names
                         false                         // Not time dependent
