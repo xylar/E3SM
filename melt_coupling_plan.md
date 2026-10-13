@@ -105,16 +105,11 @@ suggested fixes in `main_suggested.tex` and `main_suggested.diff` next to this f
     touched that file since `6dc4280a2d`.
   - It still needs the fixes `f1ca83aa24` (XML `<=` in Registry) and `9047419a0d`
     (`landIceDraftForSsh` segfault).
-  - It removes `config_land_ice_flux_mode = 'coupled'`, but the
-    `mpaso/ocn_glcshelf` testmod still sets it. MPAS-Ocean init aborts on that
-    value (`err = 1` -> `MPAS_LOG_CRIT`), so three tests will fail once #8047 merges:
-    - `ERS_Vmct_Ld5.TL319_oQU240wLI_ais8to30.GMPAS-JRA1p5-DIB-PISMF-DIS.mpaso-ocn_glcshelf`
-      (e3sm_cryo_developer)
-    - `ERS_Vmct_Ld5.TL319_oQU240wLI_ais8to30.GMPAS-JRA1p5-DIB-PISMF-SIS.mpaso-ocn_glcshelf`
-      (e3sm_cryo_developer)
-    - `ERS_Vmct_Ld5.TL319_oQU240wLI_ais8to30.MPAS_LISIO_JRA1p5.mpaso-ocn_glcshelf`
-      (e3sm_developer)
-    - This is from reading the code; run one of them on the merged base to confirm.
+  - It removes `config_land_ice_flux_mode = 'coupled'` and already changes the
+    `mpaso/ocn_glcshelf` testmod to `'active'` (`c2b58e7414`, `c0e73517af`), so
+    the three `*.mpaso-ocn_glcshelf` tests keep running. Only the testmod's README
+    was stale. (An earlier claim that these tests would abort was wrong: a git
+    pathspec with `*` missed the testmod.)
 - **MOAB.**
   - E3SM#8101 made one MCT/MOAB import/export for MPAS-Ocean, using 2D arrays.
   - E3SM#8661 (Rob Jacob; approved, not merged) does the same for MALI and ports
@@ -142,22 +137,28 @@ Do not rebase the prototype. Reasons:
 
 ### 1. #8047 fixes branch, then base
 
-1. **Fixes branch.** Start a branch at #8047's head (`e118f76f27`), so its commits
-   cherry-pick cleanly onto Carolyn's branch. Name TBD, e.g.
-   `ocn/modify-land-ice-melt-equations-fixes`. On it:
-   - `git cherry-pick f1ca83aa24 9047419a0d`. A trial merge shows both apply to
-     `e118f76f27` without conflicts.
-   - Add a new commit to the `mpaso/ocn_glcshelf` testmod: drop
-     `config_land_ice_flux_mode = 'coupled'` from `user_nl_mpaso` and update the
-     README. For the DIS and SIS compsets, build-namelist already sets `'active'`
-     from `OCN_GLC_ISMF_COUPLING = 'coupler'`. Keep the DATM/DROF alignment and
-     `config_check_ssh_consistency = .false.`.
-2. **Test the fixes** on master merged with the fixes branch:
-   - the three `ocn_glcshelf` tests, which should run instead of aborting at init;
-   - `e3sm_cryo_developer` for regressions.
-3. **Comment on #8047.** Push the fixes branch and post a short comment listing the
-   commits to cherry-pick. Follow the GitHub-writing rules.
-4. **Feature-branch base:**
+1. **Fixes branch** `ocn/modify-land-ice-melt-equations-fixes` (done 2026-10-13).
+   It starts at #8047's head (`e118f76f27`), so its commits cherry-pick cleanly
+   onto Carolyn's branch:
+   - `ce65b3add8` and `060c29810b`: cherry-picks of `f1ca83aa24` and `9047419a0d`.
+   - `b26e1a585b`: corrects the stale `mpaso/ocn_glcshelf` README (optional for
+     #8047).
+2. **Test** master merged with the fixes branch: `e3sm_cryo_developer` plus
+   `ERS_Vmct_Ld5.TL319_oQU240wLI_ais8to30.MPAS_LISIO_JRA1p5.chrysalis_intel.mpaso-ocn_glcshelf`
+   (test-id `ismc-base`).
+   - These runs also generate the baselines for section 2: name `base-84f70c4093`,
+     root `/lcrc/group/e3sm/ac.xylar/baselines/ice-shelf-melt-coupling`.
+   - On the command line, a test with a testmod needs the
+     `.chrysalis_intel.<testmod>` form, because CIME splits test names on dots.
+3. **Comment on #8047.** Push the fixes branch and post a short comment pointing to
+   the commits to cherry-pick, with the test results. Follow the GitHub-writing
+   rules.
+4. **Feature-branch base** (done 2026-10-13): `ocn-glc/ice-shelf-melt-coupling` in
+   worktree `~/e3sm_work/e3sm/ocn-glc/ice-shelf-melt-coupling`.
+   - Merge commit `84f70c4093` = master `aee833b4f1` + the fixes branch.
+   - The `ocn_comp_mct.F` conflict was resolved with `9a92c9c941`'s version; all
+     three merge inputs were byte-identical.
+   - Submodules needed for G-cases with MALI were initialized with `--dissociate`.
 
 ```
 git worktree add -b ocn-glc/ice-shelf-melt-coupling <path> origin/master
@@ -166,7 +167,7 @@ git checkout 9a92c9c941 -- components/mpas-ocean/driver/ocn_comp_mct.F
 git commit                             # same inputs, so same resolution
 ```
 
-The BFB reference ("merged base") is this merge. If #8661 has merged by then,
+The BFB reference ("merged base") is `84f70c4093`. If #8661 has merged by then,
 include it too: it is non-BFB for prognostic-MALI cases. Once Carolyn
 cherry-picks the fixes and #8047 merges, rebasing onto master drops the duplicate
 commits.
@@ -257,8 +258,8 @@ temporarily.
   - `e3sm_diff_dev`, for the MOAB field-list impact.
   - Expect BFB plus `FIELDLIST` everywhere except the `ocn_glcshelf` tests, which
     change once coupling is on.
-- **Update the `mpaso/ocn_glcshelf` testmod.** Drop the `'coupled'` line; ideally
-  #8047 does this. Keep the `_Vmct` pins.
+- **Keep the `_Vmct` pins** on the `ocn_glcshelf` tests. #8047 already updates
+  that testmod.
 - **Feature test**, both runs with `--driver mct`:
   - Control: `GMPAS-JRA1p5-DIB-PISMF` on `TL319_SOwISC12to30E3r4` (SGLC; IC geometry).
   - Coupled: `GMPAS-JRA1p5-DIB-PISMF-SIS` on `TL319_SOwISC12to30E3r4_ais4to20` (MALI
