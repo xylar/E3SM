@@ -273,6 +273,10 @@ Tests (`ismc-s3c`, compared with `base-84f70c4093`):
   renormalized by the below-sea-level fraction), and the shelf fields are mapped
   with `norm=.false.` in both directions. Offline, this conserves the exported melt
   to 2e-14; with `norm=.true.` it was off by 0.9%.
+- **Compatible pairing (Xylar, 2026-10-13):** SOwISC12to30E3r4 + ais4to20 is the
+  only ocean/MALI initial-condition pairing designed to match. Coupled runs with
+  geometry import on any other pairing (e.g. oQU240wLI + ais8to30) are expected to
+  crash.
 - **Mismatch check:** for SOwISC12to30E3r4 + ais4to20, MALI's pressure differs from
   the IC by 0.006 MPa on average, but by up to ~1 MPa in a few edge cells. Watch the
   start of the section 5 run.
