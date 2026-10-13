@@ -159,6 +159,9 @@ Do not rebase the prototype. Reasons:
    - The `ocn_comp_mct.F` conflict was resolved with `9a92c9c941`'s version; all
      three merge inputs were byte-identical.
    - Submodules needed for G-cases with MALI were initialized with `--dissociate`.
+     `fates` is needed too: `Depends.chrysalis.intel.cmake` names a FATES source.
+   - Result (2026-10-13): all 10 tests pass (`ismc-base`, `ismc-base2`); baselines
+     generated. The #8047 comment is posted (issuecomment-6147598204).
 
 ```
 git worktree add -b ocn-glc/ice-shelf-melt-coupling <path> origin/master
@@ -187,11 +190,17 @@ coupled test's `cpl.hi` field list changes.
    - `Sg_tbot`, `Sg_dztbot`
 
    Also remove the matching component code. The path is dead after #8047, because
-   `ocn_c2_glcshelf` is always false.
+   `ocn_c2_glcshelf` is always false. Done: `c5efe050de`. MALI still zeroes
+   `floatingBasalMassBal` on import (BFB); section 4 makes the import coupled-only.
 2. Fix `index_x2o_Sg_icemask`, which is assigned three times in
-   `mpaso_cpl_indices.F`.
-3. Give `prep_ocn_shelf_calc_g2x_ox` explicit state and flux field lists. Today it
-   maps every glc field with `Sg2o` and then overwrites all of them with `Fg2o`.
+   `mpaso_cpl_indices.F`. Done: `2a1e28b909`.
+3. Moved to section 3: give `prep_ocn_shelf_calc_g2x_ox` explicit state and flux
+   field lists. Today it maps every glc field with `Sg2o` and then overwrites all of
+   them with `Fg2o`. The lists name section 3's new fields.
+
+Result (test-id `ismc-s2`, compared with `base-84f70c4093`): all 10 tests are BFB
+except `FIELDLIST`, which appears only in `cpl.hi`. One PEM test shows `TPUTCOMP`
+noise (6.2%). The branch is pushed to the xylar fork at `2a1e28b909`.
 
 ### 3. Coupled mode, MCT
 
