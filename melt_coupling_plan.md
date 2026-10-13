@@ -241,6 +241,49 @@ should then be BFB for every existing test except the `ocn_glcshelf` ones.
   computes its own conductive flux, so it never uses `Q_b^T`. The conductive flux
   uses a dedicated glc-to-ocean field, not `Flgg_hflx` (decided).
 
+**Done 2026-10-13**: `77dad79587`, `684a7dec3b`, `dc496e7c1a`, `0088de5052`, pushed.
+Tests (`ismc-s3c`, compared with `base-84f70c4093`):
+- All 10 tests pass restart, decomposition and threading checks.
+- Every test fails `NLCOMP`, because of the new namelist options.
+- Non-MALI tests show only `FIELDLIST`.
+- In the three MALI tests, only the coupler-history glc geometry fields differ;
+  ocean and sea-ice fields are BFB.
+- From the DIS/SIS coupler history, exported melt is conserved to 2e-14, and MALI
+  recovers interface temperatures of 270.96-271.56 K.
+
+- **Fields:**
+  - ocn->glc, only with `flds_polar`:
+    - `Foxo_ismf`: net melt per floating area
+    - `So_tfrz_isf`: interface temperature times weight
+    - `So_liflfrac`: the weight
+  - glc->ocn:
+    - `Sg_lithop`, `Sg_icemask_grounded` and `Sg_icemask_floating`, now masked by
+      `Sg_below_sea_level_mask`
+    - `Sg_below_sea_level_mask` (new)
+    - `Fogg_hcond` (new)
+  - The grounded mask (masked) stands in for #128's `Sg_icemask_below_sea_level`.
+- **MPAS-Ocean options:**
+  - `config_glc_ice_shelf_coupling` is set for `coupler`.
+  - `config_glc_ice_shelf_coupling_import_geometry` defaults to `.true.`. It was
+    added because importing MALI's geometry into the oQU240wLI tests blew up the
+    ocean: the pressure differed from the IC by up to 3.2 MPa. The `ocn_glcshelf`
+    testmod turns it off.
+  - `config_glc_ice_shelf_coupling_min_floating_fraction` defaults to 1e-3.
+- **Normalization:** the export divides by glc's raw floating fraction (not the one
+  renormalized by the below-sea-level fraction), and the shelf fields are mapped
+  with `norm=.false.` in both directions. Offline, this conserves the exported melt
+  to 2e-14; with `norm=.true.` it was off by 0.9%.
+- **Mismatch check:** for SOwISC12to30E3r4 + ais4to20, MALI's pressure differs from
+  the IC by 0.006 MPa on average, but by up to ~1 MPa in a few edge cells. Watch the
+  start of the section 5 run.
+- **Follow-ups:**
+  - `basalConductiveFlux` may not be in MALI's restart, which matters for exact
+    restart with an active thermal solver (section 4).
+  - The oQU240wLI and IcoswISC30E3r5 grids use `config_land_ice_draft_mode =
+    'data'`, so the draft does not follow the imported pressure.
+  - Coupler budgets for the new fields.
+  - `prep_ocn_init` still initializes the now-unused `mapper_Sg2o`.
+
 ### 4. MALI side
 
 Build this on #8661 (array import/export) once it merges, or merge its branch
