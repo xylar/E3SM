@@ -272,11 +272,13 @@ Tests (`ismc-s3c`, compared with `base-84f70c4093`):
 - **Normalization:** the export divides by glc's raw floating fraction (not the one
   renormalized by the below-sea-level fraction), and the shelf fields are mapped
   with `norm=.false.` in both directions. Offline, this conserves the exported melt
-  to 2e-14; with `norm=.true.` it was off by 0.9%.
+  to 2e-14; with `norm=.true.` it was off by 0.9%. Xylar approved this choice
+  (2026-10-13): conservation is required.
 - **Compatible pairing (Xylar, 2026-10-13):** SOwISC12to30E3r4 + ais4to20 is the
   only ocean/MALI initial-condition pairing designed to match. Coupled runs with
   geometry import on any other pairing (e.g. oQU240wLI + ais8to30) are expected to
-  crash.
+  crash. A coarser ocean IC built to match a MALI mesh would let the cheap tests
+  exercise geometry import, but none exists yet.
 - **Mismatch check:** for SOwISC12to30E3r4 + ais4to20, MALI's pressure differs from
   the IC by 0.006 MPa on average, but by up to ~1 MPa in a few edge cells. Watch the
   start of the section 5 run.
@@ -292,6 +294,16 @@ Tests (`ismc-s3c`, compared with `base-84f70c4093`):
 
 Build this on #8661 (array import/export) once it merges, or merge its branch
 temporarily.
+
+- **Test merge (2026-10-13).** #8661 (head `fb06dff1ab`) is approved but still
+  open. Merging it into the feature branch conflicts in three files, all
+  mechanically:
+  - `glc_comp_mct.F` (4 hunks): `x2g_g % rAttr(i, n)` became `x2g_g(i, n)`.
+    #8661 still imports `Fogx_qiceli` and exports `Sg_tbot`, `Sg_dztbot` and an
+    unmasked `Sg_lithop`.
+  - driver-moab `cime_comp_mod.F90` (1 hunk) and `prep_glc_mod.F90` (3 hunks):
+    #8661 keeps the coupler melt solve that section 2 removed. Keep its new
+    lnd<->glc MOAB code and drop the melt solve again.
 
 - **Import.**
   - `floatingBasalMassBal` comes from the net mass flux, positive for accretion.
