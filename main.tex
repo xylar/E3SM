@@ -1,0 +1,589 @@
+\documentclass[11pt]{report}
+
+\usepackage{epsf,amsfonts}
+\usepackage[fleqn]{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage{geometry}
+\usepackage{changepage}
+\usepackage{hyperref}
+
+\usepackage{enumitem,amssymb}
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}
+\newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
+\hspace{-2.5pt}}
+\newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
+
+\usepackage{tabularx, array}
+
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textheight}{9.0in}
+\setlength{\topmargin}{-.5in}
+
+\newcommand{\ds}{\displaystyle}
+\setlength{\parskip}{1.2ex}
+\setlength{\parindent}{0mm}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\nn}{\nonumber}
+\newcommand{\ubtr}{ \overline{\bf u}}
+\newcommand{\ubcl}{ {\bf u}'_k}
+\usepackage[backend=biber, style=numeric]{biblatex}
+\addbibresource{ice_shelf_melt_coupling_design.bib}
+
+\begin{document}
+
+\title{Ice shelf melt design}
+\author{Carolyn Begeman, Xylar Asay-Davis}
+
+\maketitle
+
+\section{Glossary of variables}
+
+\begin{tabularx}{\linewidth}{l|p{0.65\linewidth}|X}
+    $\rho_i$ & Density of ice & kg m$^{-3}$ \\
+    $\rho$ & Density of ocean water & kg m$^{-3}$\\
+    $\rho_w$ & Density of ocean water, reference & kg m$^{-3}$\\
+    $m_i$ & Melt rate as mass of ice melted per unit time & kg s$^{-1}$\\
+    $m_b$ & Melt rate as mass of water melted per unit time & kg s$^{-1}$\\
+    $\tau_b^\perp$ & Stress at the boundary & Pa $=$ kg m$^{-1}$ s$^{-2}$\\
+    $u_{*,b}^\perp$ & Friction velocity magnitude in the edge-normal direction in the uppermost active later of the ocean column & m $s^{-1}$\\
+    $u_{kmax}^\perp$ & Velocity magnitude in the edge-normal direction in the uppermost active later of the ocean column & m $s^{-1}$\\
+    $\nu_t$ & Eddy viscosity & m$^2$ s$^{-1}$\\
+    $\nu_t'$ & Eddy diffusivity & m$^2$ s$^{-1}$\\
+    $\theta_{kmax}$ & Ocean potential temperature in the uppermost ocean layer & $^\circ$C\\
+    $\theta_b$ & Ocean potential temperature at the boundary & $^\circ$C\\
+    $c$ & Heat capacity of seawater & J kg$^{-1}$ $^\circ$C$^{-1}$\\
+    $c_i$ & Heat capacity of ice & J kg$^{-1}$ $^\circ$C$^{-1}$\\
+    $L_i$ & Latent heat of fusion & J kg$^{-1}$\\
+    $\nu_i$ & Thermal diffusivity of ice & m$^2$ s$^{-1}$\\
+    $T_i$ & Temperature of the ice & $^{\circ}$C\\
+    $h_i$ & Distance from the ice-ocean boundary to the depth at which ice temperature is known & m \\
+    $\kappa$ & von Karman constant & 0.4 \\
+    $B'$ & Empirical parameter for the roughness length & 8.5 \\
+    $k_s$ & characteristic height of roughness elements\\
+    $\nu$ & molecular viscosity & m$^2$ s$^{-1}$\\
+    $Pr_T$ & Prandtl number & \\
+    $Pr_S$ & Schmidt number & \\
+    $Pr_t$ & turbulent Prandtl number & \\
+    $z_0$ & roughness length & m\\
+    $p_b$ & pressure at the ice-ocean boundary & Pa \\
+    $\phi_i$ & The fractional area of a model cell that contains floating ice & \\
+    $\phi_{li}$ & The mask of where MPAS-Ocean considers land-ice to be present & \\
+    $\phi_{\theta_b}$ & The fractional area of a model cell that contributed to $\theta_b$ (for renormalization) &
+\end{tabularx}
+
+\section{Algorithm}
+
+MPAS-Ocean has a free-surface and the mass fluxes into/out of the ocean component affect the volume of the ocean. As such, we require an immaterial flux approach, not a virtual flux treatment as discussed in detail in \cite{jenkins_role_2001}. The equations presented in this document are adapted from \cite{burchard_vertical_2022} using their guidance for immaterial boundaries. The equations and parameters used are identical for freezing and melting at the ice-ocean interface. Frazil formation may occur independently of interfacial freeze/melt.
+
+The following boundary conditions hold at the interface between MPAS-O's ice-shelf ocean cavity and MALI's ice shelf base:
+
+\subsection{Mass flux at the boundary}
+
+Water mass passed between MPAS-Ocean and MALI is in the solid phase. (This will matter in Section \ref{sec:heat_flux}).
+
+The mass of ice passed between components is equivalent whether expressed in the solid or liquid phase.
+\bea
+    Q_b^m = \rho_i m_i = \rho m_b
+\eea
+
+Mass fluxes into the ocean component are always provided at the reference density $\rho_0$ when the Boussinesq approximation is used in MPAS-Ocean. Thus, it may be convenient to define an effective melt rate based on the reference density, $m'_b$:
+\bea
+    Q_b^m = \rho_w m'_b
+\eea
+
+The mass flux associated with frazil ice formation below land ice is considered a separate term, as implemented in MPAS-Ocean:
+\bea
+    Q_{fr}^m = \rho_w m'_{fr}
+\eea
+
+
+\subsubsection{Masking of the mass fluxes}
+
+The MALI floating mask, $\phi_i$, gets conservatively remapped to MPAS-Ocean at the coupling frequency as $\phi_i^{t_{cpl}}$, the land-ice floating fraction.
+
+The mass fluxes should be modulated by $\phi_i$ because they only occur in the portion of each grid cell covered by floating ice.  Thus, the mass flux that MPAS-Ocean adds to its own tendencies is:
+
+\bea
+    Q_b^m = \phi_i^{t_{cpl}} \rho m_b
+\eea
+
+When sending the mass flux to the coupler, we need to account for the fact that each ocean grid cell is only partly covered by floating ice.  On the ocean grid, we want:
+
+\bea
+    Q_b^{m,t_{cpl}} = \frac{1}{\phi_i^{t_{cpl}}} Q_b^m = \rho m_b
+\eea
+
+for all cells that are covered by any fraction of ice (i.e. where $\phi_i^{t_{cpl}} > 0$.  With this normalization, we effectively boost fluxes as if they covered the whole ocean grid cell, rather than just the floating portion. Then, after remapping to the MALI mesh, we mask the fluxes only to the floating portion:
+
+\bea
+    \phi_i Q_b^{m,t_{cpl}}.
+\eea
+
+If $\phi_i$ does not change in time, this approach recovers the same integrated flux on both meshes.  In cases where $\phi_i$ evolves in time, the non-conservation is expected to be negligibly small but we will have to verify this.
+
+A similar process is needed to handle the frazil fluxes. A difference is that the ocean has a mask $\phi_{li}$ of where it considers land ice to be fully present and thus does not allow interactions with the atmosphere or sea ice.  Frazil fluxes are modulated by $\phi_{li}$.  This does not account for the fact that some of these ocean cells only partially overlap with the MALI mesh, so again we still need to normalize the frazil fluxes before sending them to the coupler:
+
+\bea
+    Q_{fr}^{m,t_{cpl}} = \frac{\phi_{li}}{\phi_i^{t_{cpl}}} Q_{fr}^m
+\eea
+
+
+These normalized fluxes are be combined in the coupler, remapped to the MALI mesh, and masked by $\phi_i$.  The melt rate of ice seen by MALI is thus:
+
+\bea
+    m_i^{t_{cpl}} = \frac{\phi_i}{\rho_i} \left(Q_b^{m,t_{cpl}} + Q_{fr}^{m,t_{cpl}} \right)
+\eea
+
+\subsection{Momentum flux at the boundary:}
+\bea
+    Q_b^u = 0
+\eea
+
+There is no momentum flux at the ice-shelf ocean boundary but we still need a sink of momentum in the ocean component, assumed to be lost to viscous dissipation (not associated with a heat flux within MPAS-Ocean.
+\bea
+    \tau_b^\perp =& \rho_w \nu_t(\partial_z u^\perp)\\
+    \rho_w|u_{*,b}^\perp|\: u_{*,b}^\perp =& \rho_w\nu_t(\partial_z u^\perp)
+\eea
+
+The momentum flux is parameterized in terms of quadratic drag and a time-constant tidal stress that may be spatially variable:
+\bea
+    \rho_w|u_{*,b}^\perp|\: u_{*,b}^\perp =& \rho_w c_d\:|u^\perp_{kmax}|u^\perp_{kmax} + \tau_{tidal}
+\eea
+Details of the treatment of the drag coefficient $c_d$ are provided in Section \ref{sec:turb}.
+
+\subsection{Heat flux at the boundary}\label{sec:heat_flux}
+
+Water mass passed between MPAS-Ocean and MALI is in the solid phase. Latent heat  is both removed from the ocean in the case of melting and released to the ocean in the case of freezing. Thus, the phase change ``belongs'' to the ocean component and latent heat flux is not included in the heat flux across the boundary.
+
+The total heat flux through the ice boundary is comprised of the conductive heat flux into the ice $Q_i$ and the enthalpy flux associated with the advection of a mass of melted ice at temperature $T_i$ or frozen water at temperature $\theta_b$.
+
+\bea
+    Q_b^T = Q_i +
+    \begin{cases}
+        -\rho_i m_i c \theta_b, &m_i < 0 \text{ (freezing)}\\
+        \rho_i m_i c_i T_i, &m_i \ge 0 \text{ (melting)}
+    \end{cases}
+    \label{eq:heat_flux}
+\eea
+
+$Q_i \le 0$ since the conductive heat flux is always out of the ocean.
+
+The heat flux associated with frazil formation under land ice is a separate term, as implemented in MPAS-Ocean:
+\bea
+    Q_{fr}^T = \sum_{kbot_{fr}}^{kmax} -\rho_i m_{k,fr} c \theta_{k,fr}
+\eea
+MPAS-Ocean only allows frazil ice to be passed to MALI, never passing melted frazil to MPAS-Ocean (this would be the interfacial melting term). This advective enthalpy flux is thus based on the temperature of the frazil ice in the water column. The MPAS-Ocean implementation doesn't keep track of the freezing point $\theta_{fr}$ at multiple levels. Thus, we assume that the frazil in the water column is at the same temperature as the surrounding water even though we neglect this heat exchange in MPAS-Ocean.
+\bea
+    Q_{fr}^T = -\rho_i m_{fr} c \theta_{kmax}
+\eea
+
+\subsubsection{Conductive heat flux}
+
+The conductive heat flux term is discretized as follows:
+\bea
+    Q_i = \rho_i c_i \nu_i \partial_z T_i\\
+    Q_i = \rho_i c_i \nu_i \frac{T_i - T_{i,zbot}}{h_{i,zbot}}
+\eea
+where $T_{i,zbot}$ is the ice temperature at the bottommost layer of MALI and $h_{i,zbot}$ is the distance from $z_b$ to $zbot$.
+
+\begin{quote}
+    Assumption: There is no discontinuity in temperature at the boundary between ice and ocean.
+    \bea
+        T_i = \theta_b \label{eq:continuity}
+    \eea
+\end{quote}
+
+Using Equation \ref{eq:continuity},
+\bea
+    \nu_i \partial_z T_i &=\nu_i \frac{\theta_b - T_{i,zbot}}{h_{i,zbot}}\label{eq:conduct}
+\eea
+
+We assume that the difference between $\theta_b$ and $T_b$, the in-situ interface temperature, does not introduce a large enough error in the conductive heat flux to matter, since this the rule of thumb is that potential temperature is lower than in-situ temperature by $\sim 0.1^\circ$C per 1000 m of depth.\footnote{Key Physical Variables in the Ocean: \url{https://www.nature.com/scitable/knowledge/library/key-physical-variables-in-the-ocean-temperature-102805293}}
+
+Holland and Jenkins (1999) assume that the ice is a perfect insulator ($\partial_z T_i = 0$) when $\theta_{kmax} - \theta_b < 0$. However, there appears to be little downside to continuing to allow a conductive heat flux in this case.
+
+\subsubsection{Masking of basal temperature}
+
+In MPAS-Ocean, the melt equations that determine $\theta_b$ are computed only at locations where there is a nonzero fraction of floating land ice $\phi_i^{t_{cpl}}$.  We define $\phi_{\theta_b}$ to be 1 where $\theta_b$ is computed and 0 where it it not.
+
+In the coupler, we remap both $\phi_{\theta_b} \theta_b$ and $\phi_{\theta_b}$ as a state fields to the MALI mesh.  The masked, remapped $\theta_b$ field is then renormalized by the remapped mask:
+
+\bea
+    \theta_b^{t_{cpl}} = \frac{\left(\phi_{\theta_b} \theta_b\right)^{t_{cpl}}}{\phi_{\theta_b}^{t_{cpl}}}.
+\eea
+
+$\theta_b^{t_{cpl}}$ is marked as undefined (a predetermined invalid value) where $\phi_{\theta_b}^{t_{cpl}}$ falls below a threshold.  We do not try to provide $\theta_b^{t_{cpl}}$ under grounded ice even when a dry ocean region is present there since we expect MALI to handle its own thermodynamics under grounded ice.
+
+\subsubsection{Advective enthalpy flux}
+
+The advective enthalpy flux represents the mass flux of ice at the boundary temperature $\theta_b$, equal to the freezing temperature. The temperature of the basal ice in MALI does not change as a result of this enthalpy flux because the mass flux $m_i$ is lost to the ocean.
+
+\subsubsection{Masking of enthalpy flux}
+
+In MPAS-Ocean, the enthalpy flux will be computed on full ocean cells anywhere $\phi_i^{t_{cpl}} > 0$, the same as for the surface mass flux.  Then, the enthalpy flux will be modulated by $\phi_i^{t_{cpl}}$ when it is applied to the ocean's temperature tendency.
+
+For coupling to MALI, the glacier-facing interfacial heat export is passed through a
+dedicated MPAS-Ocean coupling field that contains only the advective part of the
+interfacial shelf heat.  The separate frazil enthalpy export is also passed to the
+coupler.  These two remapped heat terms are then combined into the single
+glacier-facing heat field seen by MALI.
+
+\subsubsection{Ideal implementation}
+
+Using Equation \ref{eq:continuity} and \ref{eq:conduct}, we can simplify Equation \ref{eq:heat_flux} to:
+\bea
+    Q_b^T = - \rho_i c_i \nu_i \frac{\theta_b - T_{i,zbot}}{h_{i,zbot}} -\rho_i \theta_b \min(c m_i, - c_i m_i)\label{eq:heat_flux}
+\eea
+
+\subsubsection{Current MPAS-Ocean implementation}
+
+MPAS-Ocean currently neglects the conductive flux:
+\bea
+    \texttt{outIceHeatFlux} = Q_b^T =     \begin{cases}
+        -\rho_i m_i c \theta_b, &m_i < 0 \text{ (freezing)}\\
+        +\rho_i m_i c_i T_i, &m_i \ge 0 \text{ (melting)}
+    \end{cases}
+    %-\rho_i m_i (c \theta_b - c_i T_i)
+\eea
+
+MPAS-Ocean also does not assume Equation \ref{eq:continuity}. Thus, the mass of melted ice currently enters the model at $T_i$. $T_i$ corresponds to forcing variable \texttt{landIceSurfaceTemperature} which is not given and defaults to 0.
+
+\subsubsection{MPAS-Ocean implementation options}
+
+\begin{enumerate}
+    \item Continue to assume that the conductive heat flux is 0. This would require enforcement in MALI but no changes to MPAS. $\texttt{landIceSurfaceTemperature} = T_{i,kmax}$ would then come from MALI.
+    \item The ``Ideal implementation": Assign $T_i = \theta_b$. This requires that the conductive heat flux term appear in the 3-equation parameterization so that the eddy heat flux is split between latent heat of melting and the conductive flux. It also introduces a potential discrepancy between the conductive flux in MPAS-O and MALI because the former will have an evolving $\theta_b$ and the latter will not.
+    \item Assign $T_i = \theta_b^{n-1}$ only in the conductive heat flux term. This still requires that the conductive heat flux term appear in the 3-equation parameterization but removes a dependence on $S_b$, simplifying the quadratic coefficients. This has the same discrepancy issue as the previous option. The advective enthalpy flux term may still assign $T_i = \theta_b$.
+    \item \textbf{Preferred}: Assign $T_i = \theta_b^{t_{cpl}}$ and $T_{i,kmax}=T_{i,kmax}^{t_{cpl}}$. The implementation in 3-equation parameterization is similar to the previous option. The key difference here is that the conductive heat flux is fixed over the coupling interval at the same value in both components. The conductive heat flux is computed in MALI and passed through the coupler. The advective enthalpy flux term may still assign $T_i = \theta_b$.
+\end{enumerate}
+
+%\texttt{outOceanHeatFlux + outIceHeatFlux} $ = \rho_w c f_b^T -\rho_i m_i (c \theta_b - c_i T_i)$. We cannot simply add the conductive heat flux to \texttt{outIceHeatFlux} or \texttt{outOceanHeatFlux} or it will result in an incorrect latent heat flux}
+
+\subsection{Salt flux at the boundary}
+
+\begin{quote}
+    Assumption: salt cannot diffuse through the ice and the salt content of ice is 0, regardless of whether the ice is meteoric or basal freeze-on.
+\end{quote}
+
+Thus, there is no salt flux from MPAS-Ocean to MALI. However, there can still be a diffusive flux vertically through the ocean column. This necessitates that the vertical diffusive flux is balanced by the salt content of the newly-created melt water, originally fresh but at salinity $S_b$ after diffusion.
+
+\bea
+    Q_b^S =& 0\\
+    Q_b^S =& \rho_w f_b^S - m_b S_b
+\eea
+
+The ocean salt flux is parameterized in terms of a down-gradient flux with an eddy diffusivity $\nu_t'$
+\bea
+    \rho_w f_b^S =& -\rho_w \nu_t' \partial_z S
+\eea
+
+Similarly to heat flux, the salt flux is discretized as:
+\bea
+    \nu_t' \partial_z S =& \gamma_S(S_{kmax} - S_b)
+\eea
+
+\subsection{The three-equation parameterization}
+
+\subsubsection{Heat conservation:}
+
+\begin{quote}
+    Assumption: there is no lateral advection of heat or salt at the boundary.
+\end{quote}
+
+As such, the vertical flux of heat and salt through the ocean layer $f_b^T$ must balance the heat fluxes through the boundary (conduction) and local sources and sinks (the latent heat flux associated with phase changes and the sensible heat flux). The enthalpy flux associated with the volume of freshwater added does not figure in this balance and will be a further temperature tendency in the uppermost layer.
+%\footnote{MPAS-Ocean has an additional term on the RHS in the melting case for the sensible heat needed to raise $T_i$ to $T_{fr}(0\:psu, p_i)$}.
+\bea
+    \rho_w c f_b^T =&\rho_i c_i \nu_i \partial_z T_i -\rho_i m_i L_i + \rho_i c_i m_i (T_i - \theta_b)\label{eq:ocean_heat_flux_a}
+\eea
+The final term, the sensible heat needed to raise the mass of ice that will be melted to the temperature at the ice-ocean interface, is 0 if we adopt the assumption that there is no discontinuity in temperature at the interface.
+
+It's worth emphasizing that not all of the vertical heat flux leaves the ocean component; the latent heat of fusion is a source/sink and the sensible heat needed to raise ice temperature in the melting case is a sink of heat (if retained) and neither of these terms appears in $Q_b^T$ passed to the coupler.
+
+The ocean heat flux is parameterized in terms of a down-gradient flux with an eddy diffusivity $\nu_t'$
+\bea
+    \rho_w c f_b^T =& -\rho_w c \nu_t' \partial_z \theta
+\eea
+
+This flux is discretized as:
+\bea
+    \nu_t' \partial_z \theta =& \gamma_T(\theta_{kmax} - \theta_b)\label{eq:heat-exchange}
+\eea
+
+The rate of frazil formation and melting is computed based on the state at the last time step and is entirely independent of interfacial melting and freezing. Thus, it is possible that the magnitude of frazil formation or melting is too high since it doesn't account for the heat extracted/added by interfacial melt/freeze. This behavior in the freezing limit may be alleviated by setting the maximum fraction of the ocean layer that is available for frazil formation, $\phi_{fr}$, to a low value.
+\bea
+    h_{k,fr} =& \min(\sum_{kbot_{fr}}^{k-1} h_k, -\max(\phi_{fr} h_k, h_k \frac{\rho_w c}{\rho_{fr} L_i} (\theta_k - \theta_{fr})))\\
+    d_t h_k =& -\frac{\rho_{fr}}{\rho} \frac{h_{k,fr}}{\Delta t}\\
+    d_t \theta_k =&  \frac{\rho_{fr} L_i}{\rho_w c} \frac{h_{k,fr}}{\Delta t} - max(0, -h_{k,fr} \theta_{fr})\\
+    m_{fr} =& \frac{\rho_i}{\Delta t} \sum_{kbot_{fr}}^{kmax} h_{k,fr}\\ % This is accumulatedFrazilIceMass
+    \rho_w m'_{fr} =& \rho_i m_{fr}
+\eea
+where $\theta_{fr}$ is the local freezing point. $h_{fr}$ is positive when frazil is formed, negative when melted.
+
+\textbf{Ideal implementation}
+
+Combining Equations \ref{eq:heat-exchange}, \ref{eq:ocean_heat_flux_a}, and \ref{eq:continuity}:
+\bea
+    \rho_w c \gamma_T(\theta_{kmax} - \theta_b) =& \rho_i( m_i L_i + c_i \nu_i \frac{\theta_b - T_{i,zbot}}{h_{i,zbot}})\label{eq:3eqn-heat}
+\eea
+
+\textbf{Current MPAS-Ocean implementation}
+
+MPAS-Ocean doesn't assume that $T_i = \theta_b$, which requires the heat needed to raise $T_i$ to $\theta_b$ comes out of the ocean. It also sets $T_i = T_{i,kbot}$ and $\theta_b = T_0$ only in the advective enthalpy term in the 3-equation parameterization. This is inconsistent with the advective enthalpy term in \texttt{outIceHeatFlux}.
+\bea
+    \rho_w c \gamma_T(\theta_{kmax} - \theta_b) =& \rho_i( m_i L_i + c_i m_i (T_{i,zbot} - T_0))\label{eq:3eqn-heat}
+\eea
+where $T_0 =f(0\:psu, p_i^{t_{cpl}})$.
+
+\textbf{MPAS-Ocean implementation options}
+
+\begin{enumerate}
+    \item In combination with Option 1 from the previous section, we still need heat to raise the melted ice to the interface temperature. We reduce the error associated with this term by setting $T_0 = \theta_b^{n-1}$ or $T_0 = \theta_b^{t_{cpl}}$.
+    \item \textbf{Preferred}: Assume that there is no discontinuity in temperature at the interface and this term is 0. Compatible with Options 2 -- 4 from the previous section.
+\end{enumerate}
+
+\subsubsection{Salt conservation:}
+
+The eddy salt flux is balanced by the salt content of the newly created melt water.
+\bea
+    \rho_w \gamma_S(S_{kmax} - S_b) =& \rho_i m_i S_b \label{eq:3eqn-salt}
+\eea
+
+\subsubsection{Freezing point:}
+The ice-ocean interface temperature is set at the freezing point at the ice-ocean interface salinity and pressure.
+\bea
+    \theta_b =& f(S_b, p_b)\label{eq:freezing}
+\eea
+
+%The complexity of the 3-equation algorithm depends in part on the function used for the freezing point, Equation \ref{eq:freezing}.
+%The highest-fidelity freezing point function available in each model is linearly in MPAS-Ocean and non-linearly in Omega via TEOS-10.
+
+\textbf{Current MPAS-Ocean implementation}
+
+MPAS-Ocean uses the following freezing point in the 3-equation solution:
+\bea
+    \theta_b = T_0 + c_2 S_b
+\eea
+where $T_0 = f(0\:psu, p_i^{t_{cpl}})$ and $c_2 = \frac{d}{dS} f(0\:psu, p_i^{t_{cpl}})$.
+
+\textbf{Implementation options}
+
+\begin{enumerate}
+    \item \textbf{Preferred:} Keep the MPAS-Ocean approach. The downside is that $T_0$ can be relatively different from $\theta_b$, such that inaccuracies in $c_2$ can result in larger melt rate errors. Xylar: this may not be as inaccurate as it appears because it was calibrated around reasonable interaface salinities.
+    \item Use the MPAS-Ocean approach with $T_0 = f(S_b', p_i^{t_{cpl}})$ and $c_2 = \frac{d}{dS} f(S_b', p_i^{t_{cpl}})$ where $S_b'$ is a constant, representative interface salinity (e.g., 20 psu). This should result in smaller errors.
+    \item Reduce the freezing point equation to an update from the freezing point at the last time step. The freezing point at the last time step was computed with the full EOS.
+    \bea
+        \theta_b = \theta_b^{n-1} + c_2(S_b - S_b^{n-1})
+    \eea
+    where $c_2 = \frac{d}{dS} f(S_b^{n-1}, p^{n-1})$. The 3-equation quadratic coefficients are somewhat more complex with an additional $S_b^{n-1} S_b$ term.
+\end{enumerate}
+
+\subsection{Solution:}
+We solve three equations \ref{eq:3eqn-heat}, \ref{eq:3eqn-salt}, and \ref{eq:freezing} for three unknowns: $\theta_b$, $S_b$, $m_i$.
+
+\begin{align}
+\rho_w c \gamma_T (\theta_{kmax} - \theta_b) &= \rho_i m_i L_i - Q_i \label{eq:melt1} \\
+\rho_w \gamma_S (S_{kmax} - S_b) &= \rho_i m_i S_b \label{eq:melt2} \\
+\theta_b &= T_0 + c_2 S_b  \label{eq:melt3}
+\end{align}
+
+% \rho_w c \gamma_T (\theta_{kmax} - \theta_b) > 0 for melting
+% \rho_i m_i L_i > 0 for melting
+% Q_i < 0
+
+\noindent
+Rearranging \ref{eq:melt2}:
+\begin{align}
+\rho_i m_i &= \frac{\rho_w \gamma_S (S_{kmax} - S_b)}{S_b} \label{eq:melt2_rearranged}
+\end{align}
+
+Substituting \label{eq:melt2_rearranged} into \ref{eq:melt1}:
+\begin{align}
+\frac{\rho_w c \gamma_T (\theta_{kmax} - \theta_b) + Q_i}{L_i}
+    &= \frac{\rho_w \gamma_S (S_{kmax} - S_b)}{S_b}  \label{eq:melt1_sub}
+\end{align}
+
+\noindent
+Substituting \ref{eq:melt3} into \ref{eq:melt1_sub}
+%Rewriting with $\Theta_b = T_0 + c_2 S_b$:
+
+\begin{align}
+\frac{\rho_w c \gamma_T (\theta_{kmax} - T_0 - c_2 S_b) + Q_i}{L_i}
+    &= \frac{\rho_w \gamma_S (S_{kmax} - S_b)}{S_b}
+\end{align}
+
+\noindent
+Simplify and expand:
+
+\begin{align}
+- c_2 S_b^2
++ \left( \theta_{kmax} - T_0 + \frac{Q_i}{\rho_w c \gamma_T} \right) S_b
+    &= \frac{\gamma_S L_i}{\gamma_T c} (S_{kmax} - S_b)
+\end{align}
+
+\noindent
+Rearranging all terms to one side gives a quadratic in $S_b$:
+
+\begin{align}
+- c_2 S_b^2
++ \left[ \theta_{kmax} - T_0
++ \frac{\gamma_S L_i}{\gamma_T c}
++ \frac{Q_i}{\rho_w c \gamma_T} \right] S_b
+- \frac{\gamma_S L_i}{\gamma_T c} S_{kmax} = 0
+\end{align}
+
+The conversion of these fluxes to ocean layer thickness, temperature, and salinity tendencies does not fall within the scope of this design doc. There are no changes required to the way MPAS-Ocean handles these tendencies.
+% surfaceThicknessFlux(iCell) += landIceFreshwaterFlux(iCell) / rho_sw
+% tracersSurfaceFlux(1, iCell) += landIceHeatFlux(iCell)/(rho_sw*cp_sw)
+
+\textbf{Turbulence closure:}
+
+The simple turbulence closure at ice-shelf/ocean interfaces in MPAS-Ocean is
+\bea
+    c_d = \text{constant}\\
+    \gamma_T = u^* \Gamma_T\\
+    \gamma_S = u^* \Gamma_S
+\eea
+where $\Gamma_T$, $\Gamma_S$ are constants.
+
+The following turbulence closure is preferred because it has a scale-awareness (dependence on vertical resolution) consistent with the log-law of the wall. Here we present the closure for hydrodynamically rough interfaces. The reader is referred to \cite{burchard_vertical_2022} for the smooth interface condition.
+
+The following parameters depend on the distance to the mid-point of the first ocean layer and must be updated each time step:
+\bea
+    c_d &= (\frac{\kappa}{ln(\frac{1}{z_0}(\frac{1}{2}h_{kmax} + z_0)})^2\\
+    \gamma_T &= \frac{\kappa u^{\perp}_{*,b}}{Pr_t ln(\frac{1}{z_0}(\frac{1}{2}h_{kmax} + z_0)+\kappa \beta_T}\\
+    \gamma_S &= \frac{\kappa u^{\perp}_{*,b}}{Pr_t ln(\frac{1}{z_0}(\frac{1}{2}h_{kmax} + z_0)+\kappa \beta_S}
+\eea
+
+The following parameters are constant and computed once at initialization:
+\bea
+    Pr_t =& \nu_t / \nu_t'\\
+    z_0 =& k_s \exp{(-\kappa B')}\\
+    \beta_T =& 0.55 \exp{(\frac{1}{2}\kappa B')}(\frac{z_0 u_{*,b}}{\nu})^{1/2}(Pr_T^{2/3} - 0.2) - Pr_t B' + 9.5\\
+    \beta_S =& 0.55 \exp{(\frac{1}{2}\kappa B')}(\frac{z_0 u_{*,b}}{\nu})^{1/2}(Pr_S^{2/3} - 0.2) - Pr_t B' + 9.5
+\eea
+
+\section{Implementation}
+
+This section follows the recommendations given in the implementation options labeled \textbf{Preferred} in the previous section.
+
+Note that in this implementation, mass and heat fluxes are passed from MPAS-O to MALI. Thus, only masking and no computations related to these fluxes occurs on the MALI mesh.
+
+
+\begin{tabularx}{\linewidth}{p{0.45\linewidth}|p{0.2\linewidth}|X}
+    MPAS-Ocean & Coupler & MALI\\
+    \hline
+    $p_i^{t_{cpl}},\:\phi_i^{t_{cpl}}$ & $\leftarrow$ & $p_i,\:\phi_i$\\
+    $Q_{b,cond}^{T,t_{cpl}}$ & $\leftarrow Q_{b,cond}^{T,t_{cpl}} \leftarrow$ & $\rho_i c_i \nu_i \frac{\theta_b^{t_{cpl - 1}} - T_{i,zbot}}{h_{i,zbot}}$\\
+    \hline
+    $Q_{fr}^{m,n}=\rho_i m_{fr}^n$ & $\rightarrow\; Q_{fr}^{m}$ &\\
+    $Q_b^{m,n}=\rho_i m_i^n$ & $\rightarrow\; Q_b^{m}$ &\\
+    & $\frac{Q_b^{m} + Q_{fr}^{m}}{\rho_i} \rightarrow$ & $m_i^{t_{cpl}}$\\
+    $Q^{T,n}_{b,adv} = f_2(m_i^n)$ & $\rightarrow\; Q^{T,t_{cpl}}_{b,adv}$ &\\
+    $Q_{fr}^{T,n}$ & $\rightarrow\; Q_{fr}^{T}$ &\\
+    & $Q_{b,adv}^{T}+Q_{fr}^T \rightarrow$ & $Q_b^{T,t_{cpl}}$\\
+    $\theta_b^{n}$ & $\rightarrow$ & $\theta_b^{t_{cpl}}$\\
+    $\phi_{\theta_b}^{n}$ & $\rightarrow$ & $\phi_{\theta_b}^{t_{cpl}}$\\
+    \hline
+    Optional: Update $c_d,\Gamma_T,\:\Gamma_S = f_2(h_{kmax}^{n-1})$&&\\
+    Update $c_d,\gamma_T,\:\gamma_S$&&\\
+    $m_i^{n-1},\theta_b^{n-1} = f_3([\theta, S, u^\perp]_{kmax}^{n-1}, p_i^{t_{cpl}},Q_{b,cond}^{t_{cpl}})$&&\\
+    \hline
+    $d_t u_{kmax}^{n-1} = g_1(c_d, u_{kmax}^{\perp n-1})$&&\\
+    $d_t h_{kmax}^{n-1} = g_2(m_i^{n-1}, \phi_i^{t_{cpl}})$&&\\
+    $d_t \theta_{kmax}^{n-1} = g_3(m_i^{n-1}, Q_{b,cond}^{t_{cpl}}, \phi_i^{t_{cpl}}...)$
+    && $d_t T_{i,zbot}^{n-1} = f_1(Q_{b,cond}^{T,t_{cpl}})$ (not $f(Q_b^{T,t_{cpl}})$)\\
+    $d_t S_{kmax}^{n-1} = g_4(m_i^{n-1}, \phi_i^{t_{cpl}}, ...)$&&\\
+    \hline
+    Update $u_{kmax}^{\perp n},h_{kmax}^n,\theta_{kmax}^n, S_{kmax}^n$ && $h_i^n = f(m_i^{t_{cpl}})$\\
+    following $X_{kmax}^n = X_{kmax}^{n-1} + \Delta t^n \:d_t X_{kmax}^{n-1}$
+    && Update $p_i^n,\:\phi_i^n$\\
+    \hline
+\end{tabularx}
+\newpage
+Implementation steps:
+\begin{todolist}
+    \item[\done] \texttt{landIcePressure} is passed from MALI to MPAS-Ocean
+    \item[\done] \texttt{landIceFloatingFraction} is passed from MALI to MPAS-Ocean
+    \item[\done] MALI conductive basal heat flux is passed back to MPAS-Ocean through
+    \texttt{Flgg\_hflx} and imported as \texttt{landIceConductiveHeatFlux}
+    \item[\done] Frazil ice mass is passed from MPAS-Ocean to the coupler through
+    \texttt{o2x\_Foxo\_frazil\_li} when \texttt{config\_land\_ice\_flux\_mode = 'active'}.
+    \item[\done] Verify that \texttt{o2x\_Foxo\_frazil\_li} is time-averaged
+    \item[\done] \texttt{landIceFreshwaterFlux} is passed from MPAS-Ocean to the coupler as \texttt{o2x\_Foxo\_ismw}
+    \item[\done] Verify that \texttt{landIceFreshwaterFlux} is time-averaged
+    \item[\done] Remap \texttt{o2x\_Foxo\_frazil\_li} and \texttt{o2x\_Foxo\_ismw} to MALI
+    through the MCT shelf-flux path and apply the MALI sign convention so
+    \texttt{floatingBasalMassBal} is set to
+    $-(\texttt{Foxo\_ismw} + \texttt{Foxo\_frazil\_li})$ on floating ice
+    \item[\done] The frazil enthalpy flux associated with the frozen freshwater
+    is passed from MPAS-Ocean to MALI as the shelf flux \texttt{o2x\_Foxo\_q\_li}
+    \item[\done] Verify that \texttt{o2x\_Foxo\_q\_li} is time-averaged
+    \item[\done] Change the ocean coupler variable \texttt{o2x\_Foxo\_q\_li} in the active
+    coupling path to the frazil advective enthalpy flux.  Latent heat now stays
+    internal to MPAS-Ocean.
+    \item[\done] Add the dedicated MPAS-Ocean coupling field
+    \texttt{landIceCouplingHeatFlux} and its time average
+    \texttt{avgLandIceCouplingHeatFlux} for the glacier-facing interfacial heat
+    export.
+    \item[\done] Send \texttt{avgLandIceCouplingHeatFlux} from MPAS-Ocean to the
+    coupler as \texttt{o2x\_Foxo\_ismh}
+    \item[\done] Verify that \texttt{landIceCouplingHeatFlux} is time-averaged
+    \item[\done] Combine \texttt{o2x\_Foxo\_ismh} and \texttt{o2x\_Foxo\_q\_li} into the
+    single glacier-facing heat field \texttt{Fogx\_qicehi} and import it into MALI as
+    \texttt{basalOceanHeatFlux}.
+    \item[\done] Add time-averaging of \texttt{landIceInterfaceTemperature} as \texttt{avgLandIceInterfaceTemperature}
+    \item[\done] Pass \texttt{avgLandIceInterfaceTemperature} from MPAS-Ocean to MALI as
+    \texttt{o2x\_So\_tfrz\_isf} $\rightarrow$ \texttt{x2g\_So\_tfrz\_isf}
+    $\rightarrow$ \texttt{iceOceanInterfaceTemperature}, normalized by the remapped
+    \texttt{So\_liflfrac} field, stored in Kelvin, and marked invalid where too
+    little floating-ice coverage contributes.
+    \item[\done] Remove the sensible heat flux term from the 3-equation parameterization in MPAS-Ocean (i.e., meltwater enters at $\theta_b$).
+    \item[\done] Add the conductive heat flux term to the 3-equation parameterization in MPAS-Ocean.
+    \item[\done] Incorporate \texttt{iceOceanInterfaceTemperature} into
+    \texttt{basalTemperature} where MALI thinks the ice is floating, while falling
+    back to the depth-based freezing temperature where the imported value is invalid
+    \item[\done] Keep imported ocean shelf heat separate from geothermal
+    \texttt{basalHeatFlux} in MALI.  The imported \texttt{basalOceanHeatFlux} is now
+    applied directly for floating melt/freeze bookkeeping without subtracting
+    \texttt{basalConductiveFlux} locally.
+    \item MOAB parity for the same remap, masking, and thermal-boundary behavior remains
+    open.
+\end{todolist}
+
+This status reflects the current MCT implementation path only.  MOAB parity has not
+yet been completed.  In the MCT path, \texttt{So\_tfrz\_isf} is now treated as a
+fraction-weighted shelf state in Kelvin and is renormalized in MALI using the
+remapped \texttt{So\_liflfrac} field.  Shelf state fields
+(\texttt{So\_tfrz\_isf}, \texttt{So\_liflfrac}) are remapped through the shelf-state
+path, while shelf flux fields (\texttt{Foxo\_ismw}, \texttt{Foxo\_frazil\_li},
+\texttt{Foxo\_ismh}, \texttt{Foxo\_q\_li}) are remapped through the shelf-flux path.
+In the current code, \texttt{Foxo\_q\_li} is the frazil enthalpy flux associated with
+the frozen freshwater passed to MALI, not a latent-heat flux.  The remapped
+ocean heat terms \texttt{Foxo\_ismh} and \texttt{Foxo\_q\_li} are combined in the
+coupler into the single glacier-facing field \texttt{Fogx\_qicehi}, which MALI
+imports as \texttt{basalOceanHeatFlux}.  In MPAS-Ocean, \texttt{Foxo\_ismh} is now
+exported from the time-averaged \texttt{avgLandIceCouplingHeatFlux} field, which
+represents the glacier-facing interfacial heat term intended for coupling.
+\texttt{landIceHeatFlux} remains the ocean-facing non-latent heat tendency used in
+MPAS-Ocean, while \texttt{heatFluxToLandIce} remains the full ice-side heat term
+used in MPAS-Ocean internal energy accounting.
+
+% The quadratic coefficients in the ``Ideal implementation"
+% \bea
+%     &a_1 S_b^2 + a_2 S_b + a_3 = 0\\
+%     a_1 =& c_2 (c \gamma_T + \frac{\rho_i c_i \nu_i}{\rho_w h_i})\\
+%     a_2 =& c \gamma_T (-\theta_b^{n-1} - c_2 S_b^{n-1} + \theta_{kmax}) - \gamma_S L_i - \frac{\rho_i c_i \nu_i}{\rho_w h_i}(\theta_b^{n-1} + c_2 S_b^{n-1} + T_i)\\
+%     a_3 =& c_2 S_{kmax} L_i
+% \eea
+
+\printbibliography
+\end{document}
