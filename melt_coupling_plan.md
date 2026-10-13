@@ -334,9 +334,22 @@ temporarily.
     every timestep before its next export.
   - No existing test runs this path: DIS/SIS turn off MALI's thermal solver and
     floating melt, and no compset pairs PISMF with prognostic MALI. Smoke-test it
-    with the long name `2000_DATM%JRA-1p5_SLND_MPASSI%DIB_MPASO%IBPISMFDATMFORCED_
-    DROF%JRA-1p5_MALI%SIA_SWAV` on `TL319_oQU240wLI_ais8to30` (code paths and
-    restart only; the geometries do not match).
+    on `TL319_oQU240wLI_ais8to30` (code paths and restart only; the geometries do
+    not match). A long compset name in a test name breaks the build (make treats
+    `%` in the case path as a pattern), so the smoke tests used an uncommitted alias
+    `GMPAS-JRA1p5-DIB-PISMF-PIS` = `2000_DATM%JRA-1p5_SLND_MPASSI%DIB_MPASO%
+    IBPISMFDATMFORCED_DROF%JRA-1p5_MALI%SIA_SWAV`.
+  - **Results (2026-10-13).** Feature branch pushed at `49060ae3c3`.
+    - `ismc-s4` vs `s3-8f37298bfb`: all 10 `BASELINE` PASS; `NLCOMP` fails only
+      for the 3 MALI tests (the two new MALI options); one `TPUTCOMP` (-6.5%) on
+      `MPAS_LISIO`. MPAS-O and MPAS-SI history are `exclude_testing` in
+      `config_archive.xml`; manual cprnc of them against the baselines: all
+      identical. The 7 MOAB-driver tests build with the merged #8661.
+    - `ismc-s4smoke2`: `ERS_Vmct_Ld5` PASS including `COMPARE_base_rest` (cpl.hi;
+      MALI wrote no history in both legs) and `SMS_D_Vmct_Ld1` PASS. Coupled
+      fields are live both ways: interface T 270.95-271.56 K on MALI cells;
+      `g2x_Fogg_hcond` -19 to +0.85 W m-2 (positive where the basal ice is warmer
+      than the seawater freezing point, which is physically possible).
 
 ### 5. Tests and validation
 
