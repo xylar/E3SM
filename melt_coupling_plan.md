@@ -283,8 +283,7 @@ Tests (`ismc-s3c`, compared with `base-84f70c4093`):
   the IC by 0.006 MPa on average, but by up to ~1 MPa in a few edge cells. Watch the
   start of the section 5 run.
 - **Follow-ups:**
-  - `basalConductiveFlux` may not be in MALI's restart, which matters for exact
-    restart with an active thermal solver (section 4).
+  - ~~`basalConductiveFlux` may not be in MALI's restart~~: not needed (section 4).
   - The oQU240wLI and IcoswISC30E3r5 grids use `config_land_ice_draft_mode =
     'data'`, so the draft does not follow the imported pressure.
   - Coupler budgets for the new fields.
@@ -317,6 +316,27 @@ temporarily.
   or the ice is grounded.
 - **Ownership.** MALI `src/` changes may need to go through MALI-Dev; coordinate
   with Matt Hoffman.
+- **Done (2026-10-13)** on `ocn-glc/ice-shelf-melt-coupling-dev` (worktree
+  `ice-shelf-melt-coupling-dev`, no submodules; fast-forward the feature branch to
+  test):
+  - `8f37298bfb` makes geometry import opt-in: `.true.` only for
+    `ocn_grid=SOwISC12to30E3r4` with `glc_grid=mpas.ais4to20km` (MPAS-Ocean's
+    build-namelist now receives `GLC_GRID`).
+  - `fb8724b28a` merges #8661 as described above.
+  - `eedccc90d3` imports `floatingBasalMassBal = -Foxo_ismf` (zero without coupling,
+    as before) and `iceOceanInterfaceTemperature`, with new MALI options
+    `config_min_floating_frac` (0.01) and `config_invalid_value_ocn_intr_temp`
+    (1e36). `li_thermal_init` sets the field to the invalid value until the first
+    import.
+  - `49060ae3c3` uses it as the floating-ice basal temperature where valid.
+  - Restart: `basalConductiveFlux` needs no MALI restart. The MCT coupler restarts
+    `g2x_gx` before the init glc->ocn shelf mapping, and MALI recomputes the flux
+    every timestep before its next export.
+  - No existing test runs this path: DIS/SIS turn off MALI's thermal solver and
+    floating melt, and no compset pairs PISMF with prognostic MALI. Smoke-test it
+    with the long name `2000_DATM%JRA-1p5_SLND_MPASSI%DIB_MPASO%IBPISMFDATMFORCED_
+    DROF%JRA-1p5_MALI%SIA_SWAV` on `TL319_oQU240wLI_ais8to30` (code paths and
+    restart only; the geometries do not match).
 
 ### 5. Tests and validation
 
