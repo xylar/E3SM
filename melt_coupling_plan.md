@@ -417,6 +417,23 @@ temporarily.
   - MALI calving from `config_restore_calving_front` (~1900 Gt/yr) + face melt
     (~44) go to the ocean as solid runoff on top of DIB data icebergs (double
     counting); MPAS_LISIO/FOLISIO avoid this by having no DIB.
+- **Decisions (Xylar, 2026-10-14, continued):**
+  - Fix 1 (`5036c24fee`): MALI sends conductive flux only from dynamically active
+    floating ice (thickness > `config_dynamic_thickness`, 10 m).
+  - Fix 2 (`30925e0baf`): the ocean divides glc's cell-average conductive flux by
+    max(ocean, glc floating fraction). With imported geometry the ocean's fraction
+    (glc / below-sea-level fraction) is never smaller, so heat is conserved exactly
+    and nothing needs to change once geometry is consistent.
+  - Calving: keep DIB and accept the double counting for now. MALI's solid runoff
+    is mapped nearest-neighbour onto ~2,500 Antarctic coastal ocean cells (a third
+    in cavities), unlike DIB. Longer term (out of scope here): route MALI's
+    calving and face melt into regional iceberg melt patterns (Xylar recalls a
+    recent Schmidt et al. paper with regional patterns like the Merino data now
+    used) rather than scaling one total-Antarctic field. E3SM's existing
+    remove-and-rescale route (`config_remove_ais_ice_runoff` +
+    `config_scale_dib_by_removed_ice_runoff`) only works with data ice-shelf melt.
+  - Year-long comparison: Albany coupled vs the same compset with
+    `config_glc_ice_shelf_coupling = .false.` (both carry MALI's calving).
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
