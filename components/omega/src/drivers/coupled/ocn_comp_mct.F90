@@ -97,7 +97,7 @@ contains
       type(seq_infodata_type), pointer :: infodata
       type(mct_gsMap), pointer :: gsMap_ocn
       type(mct_gGrid), pointer :: gGrid_ocn
-      integer :: lsize
+      integer :: lsize, mct_av_lsize
       integer(IN) :: ierr, mpi_ierr  ! error codes
       integer(IN) :: &
          coupling_time_step, case_start_tod, case_start_ymd, cur_tod, cur_ymd
@@ -230,7 +230,7 @@ contains
       mpoid = omega_get_moab_pid()
 #endif
 
-!-------------------------------------------------------------------------
+      !-------------------------------------------------------------------------
       ! initialize MCT gsmap, domain, and attribute vectors
       !-------------------------------------------------------------------------
       call ocn_set_gsmap_mct(mpicom_ocn, ocn_id, gsMap_ocn)
@@ -239,10 +239,17 @@ contains
 
       call ocn_set_domain_mct(lsize, gsMap_ocn, gGrid_ocn)
 
-      ! Initialize MCT AVs with the ocean decomposition. The MOAB driver
-      ! uses their field lists during coupler-side initialization.
-      call mct_aVect_init(x2o, rList=seq_flds_x2o_fields, lsize=lsize)
-      call mct_aVect_init(o2x, rList=seq_flds_o2x_fields, lsize=lsize)
+#ifdef HAVE_MOAB
+      ! MOAB driver uses MCT AV field list during coupler-side initialization,
+      ! but does not need AVs sized to the local decomposition.
+      mct_av_lsize = 1
+#else
+      mct_av_lsize = lsize
+#endif
+
+      ! Initialize MCT AVs; which are used by both MCT and MOAB drivers
+      call mct_aVect_init(x2o, rList=seq_flds_x2o_fields, lsize=mct_av_lsize)
+      call mct_aVect_init(o2x, rList=seq_flds_o2x_fields, lsize=mct_av_lsize)
 
       ! Defensively zero out the attribute vecs to avoid uninitialized values
       call mct_aVect_zero(x2o)
