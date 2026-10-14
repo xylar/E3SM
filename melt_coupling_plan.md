@@ -382,6 +382,23 @@ temporarily.
     below-sea-level weighting.
   - Scripts: `$SP/scripts/{import_vs_ic,pressure_options,first_diff,s5_compare}.py`
     (session scratchpad).
+- **Decisions (Xylar, 2026-10-14):**
+  - Runoff couples every 30 min in MALI G-cases too: `1a0bfd1cf1` drops the
+    `ROF_NCPL=24` override (changes answers for DIS/SIS/LISIO/FOLISIO).
+  - Option C: geometry import off by default for all grids (`f1436c4b2b`, also
+    drops the GLC_GRID plumbing). A matching ocean IC (option B) waits on Polaris
+    work under review; then provide matching MALI/MPAS-Ocean ICs at 3 resolutions.
+    Option A (clamp/ramp in the import) rejected: not a proper fix.
+  - Section 5 coupled test: prognostic MALI with Albany
+    (`GGMPAS-JRA1p5-DIB-PISMF-FO`, chrysalis_gnu), import off, vs a gnu control.
+    Stage 1: 5-day runs `~/e3sm_cases/20261014.*.ismc_{control_gnu,fo}.chrysalis`
+    (daily MALI output via SourceMods streams.landice).
+  - Caveat: MALI's SMB comes from the IC file (`config_smb_source='file'`), with a
+    hugely negative SMB in ice-free cells that strips ice advected past the front.
+    That frontal loss leaves MALI as liquid runoff (`Fogg_rofl`), on top of the
+    data icebergs (DIB), so a coupled-vs-control comparison includes extra
+    Antarctic freshwater unrelated to melt coupling.
+  - The merge waits on upstream PRs (#8047 is stuck behind the code freeze).
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
