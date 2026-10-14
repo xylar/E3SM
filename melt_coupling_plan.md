@@ -447,8 +447,12 @@ temporarily.
   coupler mode Fogg_rofi is only calving + face melt and belongs at the front.
   With `GLC2OCN_ICE_RMAPNAME` = the masked map (5-day rerun): frazil under land
   ice 0-4 Gt/yr (as in the control), no solid runoff into cavities, conservation
-  snapshots within +-0.2%. Permanent fix pending Xylar (proposal: with ice-shelf
-  coupling on, the coupler maps MALI's solid runoff with the liquid-runoff map).
+  snapshots within +-0.2%. Permanent fix (Xylar agreed 2026-10-14): `9471db3cdf`
+  builds the MCT `mapper_Rg2o_ice` from the liquid-runoff map when
+  `glcshelf_c2_ocn` is on; other modes keep the ice-runoff map. Xylar notes that
+  calving into cavities is iffy in 'tf' mode too, but fixing that mode is out of
+  scope here. Verified in `ismc_fo_mapfix` (default map setting): ocean, sea-ice
+  and MALI restarts and cpl.hi at day 5 identical to the masked-map 5-day run.
 - **Year-long runs (started 2026-10-14 07:21, ~20 h each, jobs 1308431/1308432):**
   `~/e3sm_cases/20261014.GGMPAS-JRA1p5-DIB-PISMF-FO.TL319_SOwISC12to30E3r4_ais4to20
   .ismc_{fo_1yr,fo_uncoupled_1yr}.chrysalis` at `30925e0baf`, masked solid-runoff
@@ -509,6 +513,9 @@ temporarily.
 - Tell Rob Jacob early that the coupler-side melt solve is going away, so the
   ocn<->glc MOAB follow-up to #8661 does not port `compute_melt_fluxes`.
 - E3SM#8775 (draft) would require `share/field_limits.yaml` entries for new fields.
+- When MOAB gets ice-shelf coupling, carry over the MCT choices: conservative,
+  unnormalized shelf mapping both ways, and glc solid runoff mapped with the
+  liquid-runoff map (no cavity cells) when ice-shelf coupling is on.
 
 ## Open design items
 
