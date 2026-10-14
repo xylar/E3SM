@@ -353,6 +353,38 @@ temporarily.
 
 ### 5. Tests and validation
 
+- **Staging (Xylar, 2026-10-13):** the full suites below are overkill for now.
+  Start small and expand only as things look good:
+  1. 5-day control, sanity (coupled, geometry import off) and coupled runs in
+     `~/e3sm_cases/20261013.*.ismc_{control,sanity,coupled}.chrysalis` (MCT,
+     8 nodes, 512x2, MALI 256 tasks, debug queue). Sanity must be BFB with the
+     control (ocean restart + cpl.hi at day 5).
+  2. Then year-long control and coupled runs.
+  3. Later, if needed: the MALI-with-land MCT tests (`IGELM_MLI`, `MALISIA`).
+- **5-day results (2026-10-13/14):**
+  - Sanity vs control: first run NOT BFB, because `ROF_NCPL` defaults differ: 24
+    for `_DATM.*_SLND.*MPASO.*_MALI`, 48 (= `ATM_NCPL`) for the control. The
+    runoff update at 12:00 then reaches the ocean a step apart. With
+    `ROF_NCPL=48` in the sanity case: ocean and sea-ice restarts at day 5
+    IDENTICAL; cpl.hi differs only in the MALI fields and the new ocean exports.
+    Plumbing verified. Always match `ROF_NCPL` in coupled-vs-control comparisons.
+  - Conservation on SOwISC12to30E3r4/ais4to20 (sanity cpl.hi, day 5): ocean-side
+    and MALI-side integrals of the exported net melt agree to 6e-15.
+  - Coupled (geometry import): NaN under the western Ross Ice Shelf within the first
+    coupling interval, with draft mode 'pressure-dependent' and also 'data'.
+  - MALI ICs 20241224, 20250411 (used in 2025) and 20250625 give identical geometry;
+    so the 2025 runs survived the same mismatch, and what changed is the ocean.
+  - Imported (below-sea-level weighted) pressure vs the IC: mean |d draft| 0.57 m,
+    but 33 cells get a draft below the bottom and 53 a water column < 10 m (the IC's
+    minimum is 10.1 m), mostly partially grounded cells at grounding lines, e.g.
+    western Ross. 134 cells lose ice, 4 gain it. Floating-weighted pressure is much
+    worse (mean 14 m; 228 negative columns), so the IC was built with the
+    below-sea-level weighting.
+  - Scripts: `$SP/scripts/{import_vs_ic,pressure_options,first_diff,s5_compare}.py`
+    (session scratchpad).
+- Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
+  intel-classic only) added in `1b3424c4e3`.
+
 - **BFB checks against the merged base** (MCT):
   - `e3sm_developer`, which includes `e3sm_cryo_developer`.
   - `e3sm_landice_developer --driver mct`.
