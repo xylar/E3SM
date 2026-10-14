@@ -372,7 +372,7 @@ int testTendencies() {
                    static_cast<Real>(K - KMin) / static_cast<Real>(KMax - KMin);
             }
             TracerArrayH(SaltTracerIndex, ICell, K) =
-                31.0_Real + 2.0_Real * frac;
+                Real(31.0) + Real(2.0) * frac;
          }
       }
 
