@@ -434,6 +434,27 @@ temporarily.
     `config_scale_dib_by_removed_ice_runoff`) only works with data ice-shelf melt.
   - Year-long comparison: Albany coupled vs the same compset with
     `config_glc_ice_shelf_coupling = .false.` (both carry MALI's calving).
+- **5-day rerun with fixes 1-2:** exported conductive flux [-5.9, +0.18] W m-2;
+  ocean interface T 270.2-271.9 K (outlier gone). The day-2 conservation error
+  (-32%) remains and has a different cause: MALI's solid runoff (calving + face
+  melt) is mapped with the `-nomask` nearest-neighbour map
+  (`GLC2OCN_ICE_RMAPNAME`), which delivers into all 11,854 cavity cells. Melting
+  that ice under the shelves forms frazil under land ice (214-327 Gt/yr vs ~0 in
+  the control), which goes back to MALI as accretion: a spurious calving ->
+  frazil -> accretion loop. The masked map used for MALI's liquid runoff
+  (`GLC2OCN_LIQ_RMAPNAME`) excludes exactly the cavity cells. `-nomask` likely
+  makes sense in 'tf' mode, where MALI adds its sub-shelf melt to Fogg_rofi; in
+  coupler mode Fogg_rofi is only calving + face melt and belongs at the front.
+  With `GLC2OCN_ICE_RMAPNAME` = the masked map (5-day rerun): frazil under land
+  ice 0-4 Gt/yr (as in the control), no solid runoff into cavities, conservation
+  snapshots within +-0.2%. Permanent fix pending Xylar (proposal: with ice-shelf
+  coupling on, the coupler maps MALI's solid runoff with the liquid-runoff map).
+- **Year-long runs (started 2026-10-14 07:21, ~20 h each, jobs 1308431/1308432):**
+  `~/e3sm_cases/20261014.GGMPAS-JRA1p5-DIB-PISMF-FO.TL319_SOwISC12to30E3r4_ais4to20
+  .ismc_{fo_1yr,fo_uncoupled_1yr}.chrysalis` at `30925e0baf`, masked solid-runoff
+  map in both, monthly cpl.hi, restarts every 3 months, ocean monthly output with
+  the coupling fields, MALI output every 10 days (SourceMods; `create_clone
+  --keepexe` symlinks SourceMods, so each case got its own copy).
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
