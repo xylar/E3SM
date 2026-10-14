@@ -399,6 +399,24 @@ temporarily.
     data icebergs (DIB), so a coupled-vs-control comparison includes extra
     Antarctic freshwater unrelated to melt coupling.
   - The merge waits on upstream PRs (#8047 is stuck behind the code freeze).
+- **5-day Albany (FO) results (2026-10-14):** stable; 1.18 SYPD (gnu) vs 1.22
+  control, so a year is ~20 h. MALI floating BMB -1200 to -1700 Gt/yr (melt
+  1450-1770, refreezing 70-460). Thermal BC applied: basal T equals the imported
+  interface T on the final record (daily output lags the import by a day); 99.9%
+  of floating cells have a valid interface T. Conductive flux under floating ice
+  >= 10 m thick: mean -0.2, p1 -0.86, min -9.6, max +1.8 W m-2.
+  Problems:
+  - 70 floating cells < 10 m thick (margins) give -1249 to +76 W m-2 (steep
+    gradient over the bottom half-layer of 1-m ice). One such cell near 69.6S
+    37E drove extreme ocean refreezing and a 251 K interface T, which MALI imported.
+  - The ocean divides the cell-average conductive flux by MALI's floating fraction
+    but applies it over its own floating area. With import off these differ: in
+    that cell 0.0185 vs 0.70, so the ocean took ~38x MALI's heat. The same cell
+    causes a -32% snapshot conservation error on day 2; elsewhere ~1e-4 (evolving
+    mask).
+  - MALI calving from `config_restore_calving_front` (~1900 Gt/yr) + face melt
+    (~44) go to the ocean as solid runoff on top of DIB data icebergs (double
+    counting); MPAS_LISIO/FOLISIO avoid this by having no DIB.
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
