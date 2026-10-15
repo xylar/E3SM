@@ -517,6 +517,16 @@ temporarily.
     Testing comment on #8887 posted (issuecomment-6195773099): CIME suites at
     49060ae3c3, 5-day static sanity, year-long Albany pair, 2-day budget run.
     Still to do before ready: rerun CIME suites at the tip.
+  - Suites at the tip (Xylar OK 2026-10-15). Home is over quota (120/100 GB, 7-day
+    grace), so both checkouts live in group space,
+    `/lcrc/group/e3sm/ac.xylar/ice_shelf_melt_coupling/`: `E3SM-tip` (clone of the
+    feature branch, 456d451074) and worktree `E3SM-base` (ff2244eba1 = 84f70c4093
+    + merge of #8661 head fb06dff1ab), all submodules. `run_suites.sh` there runs,
+    concurrently: base `-g -b base-ff2244eba1` (test-ids `ismc-gbase`: e3sm_developer
+    + e3sm_diff_dev, intel; `ismc-gbaseli`: e3sm_landice_developer --driver mct,
+    gnu, since Albany is gnu/intel-classic only) and tip plain runs (`ismc-tip`,
+    `ismc-tipli`). Then compare with `compare_test_results -b base-ff2244eba1
+    -t ismc-tip[li]`. Logs: `/lcrc/group/e3sm/ac.xylar/scratch/chrys/create_test_ismc-*.log`.
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
