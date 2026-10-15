@@ -546,8 +546,8 @@ Implementation steps:
     \item[\done] Add the conductive heat flux term to the 3-equation parameterization in MPAS-Ocean.
     \item[\done] With ice-shelf coupling, MALI's solid runoff (calving and face melt) is
     remapped with the liquid-runoff map, which excludes ice-shelf cavities.
-    \item[\done] In G-cases with MALI, runoff is coupled as often as the atmosphere
-    (every 30 minutes with JRA forcing), as it is without MALI.
+    \item[\done] In G-cases with MALI, runoff is coupled as often as the atmosphere,
+    as it is without MALI.
     \item[\done] Without a land component, the coupler reads glc's \texttt{aream} from the
     glc-to-ocean ESMF map, so its area corrections make glc fluxes conservative even
     though MALI's cell areas are planar.  The runoff maps from MALI must then use

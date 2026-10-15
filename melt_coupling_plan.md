@@ -538,7 +538,17 @@ temporarily.
     identical ELM and MALI history; cpl.hi differs only in g2x_Sg_lithop and
     g2x_Sg_icemask_grounded (now masked) plus the field list. MPAS_FOLISIO
     (MALI G-cases) differ, as expected. NLCOMP fails for all (new MALI options).
-    Still to do: manual cprnc of MPAS-O/MPAS-SI history (CIME excludes them).
+    Manual cprnc of MPAS-O/MPAS-SI history: done (below).
+  - Full results (2026-10-15, posted as issuecomment-6201005540): 114 of 117 intel
+    tests ran in both; BASELINE 59 PASS, 50 FIELDLIST, 5 DIFF (3 ocn_glcshelf;
+    MALISIA cpl.hi masked geometry only; SEQ.f19_g16.X dead-model field-index
+    artifact). MPAS-O/MPAS-SI history (`cprnc_mpas.py`, summary in
+    `cprnc_mpas_summary.txt`): identical in 27 tests, different only in the 5
+    MALI G-cases. Namelists-only compare (`ismc-nltip[li]`): only the new
+    MPAS-O/MALI options, plus rof_cpl_dt in the 5 MALI G-cases. Note: rof_cpl_dt
+    now equals the atmosphere coupling interval (7200 s on oQU240 grids, 1800 s
+    on SOwISC12to30E3r4), so the PR text and design-doc edit now say "as often
+    as the atmosphere", not "every 30 minutes" (PR body fixed).
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
