@@ -175,8 +175,8 @@ class MachEnv;
 const std::string OmegaDefaultLogfile = "omega.log"; ///< Default log filename
 
 /// Initializes Omega logging, including setting up which tasks will log
-/// and optional redirection of stdout/stderr to log file. An empty LogFilePath
-/// selects the default name (see the log file naming notes above).
+/// and, optionally, redirecting stdout/stderr to the log file. An empty
+/// LogFilePath selects the default name (see the log file naming notes above).
 int initLogging(
     const OMEGA::MachEnv *DefEnv,        ///< [in] MachEnv w/ MPI task info
     std::string const &LogFilePath = "", ///< [in] file name
