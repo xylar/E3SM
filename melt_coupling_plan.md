@@ -514,6 +514,9 @@ temporarily.
     untracked in the `ice-shelf-melt-coupling-dev` worktree; Xylar edits it on
     GitHub). Labels MPAS-ocean, MPAS-albany-landice, Coupler, MCT, compset, NML,
     non-BFB; no reviewers. Comment on #8661 posted (issuecomment-6195721378).
+    Testing comment on #8887 posted (issuecomment-6195773099): CIME suites at
+    49060ae3c3, 5-day static sanity, year-long Albany pair, 2-day budget run.
+    Still to do before ready: rerun CIME suites at the tip.
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
