@@ -513,7 +513,7 @@ temporarily.
   - Draft PR opened 2026-10-15: E3SM#8887 (text from `PR_DESCRIPTION.md`,
     untracked in the `ice-shelf-melt-coupling-dev` worktree; Xylar edits it on
     GitHub). Labels MPAS-ocean, MPAS-albany-landice, Coupler, MCT, compset, NML,
-    non-BFB; no reviewers. Next: comment on #8661 (draft given to Xylar).
+    non-BFB; no reviewers. Comment on #8661 posted (issuecomment-6195721378).
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
