@@ -527,6 +527,18 @@ temporarily.
     gnu, since Albany is gnu/intel-classic only) and tip plain runs (`ismc-tip`,
     `ismc-tipli`). Then compare with `compare_test_results -b base-ff2244eba1
     -t ismc-tip[li]`. Logs: `/lcrc/group/e3sm/ac.xylar/scratch/chrys/create_test_ismc-*.log`.
+  - 2026-10-15 ~12:50 a disconnect killed the create_test drivers (landice runs had
+    finished). Restarted detached (`setsid nohup`): `resume_suites.sh` (new test-ids
+    `ismc-gbase2`/`ismc-tip2` for the 37/28 never-created tests; `--use-existing`
+    for half-built ones) and `resume2.sh` (`case.build --clean-all` +
+    `--use-existing --force-rebuild`, `-o` for the base). Not rerun, identical in
+    base and tip: `ERIO.ne4pg2_oQU480_rx1.A` (PIO netcdf4p vs 64bit_data error)
+    and `SMS[_Vmoab]_Ld1.f45_g37.X` (hangs in xatm init under MOAB, 1 h timeout).
+  - Landice compare (`compare_test_results -t ismc-tipli`): IG and BG cases have
+    identical ELM and MALI history; cpl.hi differs only in g2x_Sg_lithop and
+    g2x_Sg_icemask_grounded (now masked) plus the field list. MPAS_FOLISIO
+    (MALI G-cases) differ, as expected. NLCOMP fails for all (new MALI options).
+    Still to do: manual cprnc of MPAS-O/MPAS-SI history (CIME excludes them).
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
