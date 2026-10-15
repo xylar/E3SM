@@ -497,9 +497,18 @@ temporarily.
     with the old aream and are now corrected twice (solid runoff about +0.5%
     on day 3, up to 6.65% per cell). The same nn maps are already inconsistent
     on master in configurations with lnd (aream from the lnd2glc ESMF map).
-    Fix: regenerate the planar-MALI gen_runoff maps with spherical source
-    areas (or rescale S by spherical/planar area per column). Decision pending.
-    Not pushed.
+    Xylar (2026-10-15): regenerate, and Matt should regenerate all of them
+    consistently: MALI-Dev/E3SM#204. Getting new files onto inputdata is slow,
+    so testing uses temporary maps in
+    `/lcrc/group/e3sm/ac.xylar/ice_shelf_melt_coupling/runoff_maps` (README
+    there): SCRIP copy with ESMF area_a as grid_area, runoff_map step 1 only;
+    the same settings with the original SCRIP reproduce Matt's 20250415 map
+    bit for bit. runoff_map's OpenMP search drops thread 0 (0-based thread
+    index into 1-based arrays; patch in work/, also on ESMCI/cime master).
+    2-day retest with the temporary maps (case GLC2OCN_*_RMAPNAME overrides):
+    runoff rows identical to the pre-aream run, melt still closes. Branch
+    pushed at `456d451074`. config_grids.xml keeps the 20250415 maps until
+    #204 produces new ones.
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
