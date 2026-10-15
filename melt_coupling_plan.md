@@ -459,6 +459,20 @@ temporarily.
   map in both, monthly cpl.hi, restarts every 3 months, ocean monthly output with
   the coupling fields, MALI output every 10 days (SourceMods; `create_clone
   --keepexe` symlinks SourceMods, so each case got its own copy).
+- **Year-long results (finished 2026-10-15 ~03:30):** both runs complete.
+  - MALI: calving (~1800-1900 Gt/yr), face melt and SMB identical in both runs.
+    Volume change: coupled -453 Gt, uncoupled +374 Gt; the difference (827 Gt)
+    equals the integrated floating melt (mean ~835 Gt/yr). VAF loss is the same
+    in both (~500 Gt; MALI dynamics, not melt).
+  - Ocean melt drifts down from ~1340 to ~710 Gt/yr in both runs (spin-up drift,
+    not coupling). Conductive flux extracts 275-290 GW (= ~26 Gt/yr of latent
+    heat) and the coupled run melts 18-24 Gt/yr less: consistent.
+  - Monthly cpl.hi: conservation within 1.3e-3 (mostly 1e-5-1e-4); exported
+    conductive flux [-6.1, +0.25] W m-2; interface T 270.17-272.36 K; frazil
+    under land ice 2-56 Gt/yr, about the same in the uncoupled run (ocean
+    refreezing, not a loop).
+  - MALI thermal BC: 99.9% of floating cells use the ocean interface T, equal to
+    basal T (p99 difference 0); uncoupled run uses the depth-based fallback.
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
