@@ -549,6 +549,10 @@ temporarily.
     now equals the atmosphere coupling interval (7200 s on oQU240 grids, 1800 s
     on SOwISC12to30E3r4), so the PR text and design-doc edit now say "as often
     as the atmosphere", not "every 30 minutes" (PR body fixed).
+  - Masked g2x_Sg_lithop / g2x_Sg_icemask_grounded: only MPAS-Ocean's (opt-in)
+    geometry import reads them; ELM imports Sg_topo, Sg_icemask,
+    Sg_icemask_coupled_fluxes, Sg_ice_covered, Sg_frac. Xylar (2026-10-15): keep
+    the names; a rename is more trouble than it's worth.
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
