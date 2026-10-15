@@ -508,7 +508,14 @@ temporarily.
     2-day retest with the temporary maps (case GLC2OCN_*_RMAPNAME overrides):
     runoff rows identical to the pre-aream run, melt still closes. Branch
     pushed at `456d451074`. config_grids.xml keeps the 20250415 maps until
-    #204 produces new ones.
+    #204 produces new ones. Xylar is following up with Matt (and Andrew Nolan,
+    on replacing runoff_map with a newer tool); no CIME issue for the OpenMP bug.
+  - Draft PR text (2026-10-15): `PR_DESCRIPTION.md` (untracked) in the
+    `ice-shelf-melt-coupling-dev` worktree, awaiting Xylar's review; not opened.
+    The Overleaf design doc is private, so the PR doesn't link it (publishing it
+    would mean converting it to another format). Design-doc edits for the
+    decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
+    blocks for Overleaf in `design_doc_edits_20261015.md`.
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 

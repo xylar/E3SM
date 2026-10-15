@@ -137,7 +137,7 @@ A similar process is needed to handle the frazil fluxes. A difference is that th
 \eea
 
 
-These normalized fluxes are combined in the coupler, remapped to the MALI mesh, and masked by $\phi_i$.  Since $Q_{fr}^m > 0$ when frazil forms, which adds mass to the ice shelf, the melt rate of ice seen by MALI is:
+MPAS-Ocean combines these normalized fluxes into a single net flux, which the coupler remaps to the MALI mesh and MALI masks by $\phi_i$.  The normalization always uses the remapped MALI floating fraction $\phi_i^{t_{cpl}}$, even when MPAS-Ocean's own floating fraction comes from its initial condition, so that MALI receives the mass MPAS-Ocean sends.  Since $Q_{fr}^m > 0$ when frazil forms, which adds mass to the ice shelf, the melt rate of ice seen by MALI is:
 
 \bea
     m_i^{t_{cpl}} = \frac{\phi_i}{\rho_i} \left(Q_b^{m,t_{cpl}} - Q_{fr}^{m,t_{cpl}} \right)
@@ -211,6 +211,10 @@ We assume that the difference between $\theta_b$ and $T_b$, the in-situ interfac
 
 Holland and Jenkins (1999) assume that the ice is a perfect insulator ($\partial_z T_i = 0$) when $\theta_{kmax} - \theta_b < 0$. However, there appears to be little downside to continuing to allow a conductive heat flux in this case.
 
+MALI sends $Q_i$ only from dynamically active floating ice (thicker than \texttt{config\_dynamic\_thickness}, 10~m by default).  In thinner ice, $h_{i,zbot}$ is so small that $Q_i$ reached $\sim$1000~W~m$^{-2}$ in magnitude in tests.
+
+MALI's $Q_i$ is an average over each MALI cell.  After conservative remapping, MPAS-Ocean divides it by the larger of its own floating fraction and the remapped MALI floating fraction $\phi_i^{t_{cpl}}$, and applies it over its own floating area.  This conserves heat whether or not MPAS-Ocean's geometry comes from MALI, because the ocean's floating fraction is never smaller than $\phi_i^{t_{cpl}}$ when it does.
+
 \subsubsection{Masking of basal temperature}
 
 In MPAS-Ocean, the melt equations that determine $\theta_b$ are computed only at locations where there is a nonzero fraction of floating land ice $\phi_i^{t_{cpl}}$.  We define $\phi_{\theta_b}$ to be $\phi_i^{t_{cpl}}$ where $\theta_b$ is computed and 0 where it is not, so that each ocean cell's contribution is weighted by its floating area.
@@ -231,11 +235,9 @@ The advective enthalpy flux represents the mass flux of ice at the boundary temp
 
 In MPAS-Ocean, the enthalpy flux will be computed on full ocean cells anywhere $\phi_i^{t_{cpl}} > 0$, the same as for the surface mass flux.  Then, the enthalpy flux will be modulated by $\phi_i^{t_{cpl}}$ when it is applied to the ocean's temperature tendency.
 
-For coupling to MALI, the glacier-facing interfacial heat export is passed through a
-dedicated MPAS-Ocean coupling field that contains only the advective part of the
-interfacial shelf heat.  The separate frazil enthalpy export is also passed to the
-coupler.  These two remapped heat terms are then combined into the single
-glacier-facing heat field seen by MALI.
+No heat flux is passed from MPAS-Ocean to MALI.  MALI uses $\theta_b^{t_{cpl}}$ as the
+basal temperature of floating ice and computes $Q_i$ itself, and the advective enthalpy
+flux does not change MALI's basal ice temperature, so MALI never needs $Q_b^T$.
 
 \subsubsection{Ideal implementation}
 
@@ -478,7 +480,7 @@ $\beta_T$ and $\beta_S$ depend on $u_{*,b}$ through the roughness Reynolds numbe
 
 This section follows the recommendations given in the implementation options labeled \textbf{Preferred} in the previous section.
 
-Note that in this implementation, mass and heat fluxes are passed from MPAS-O to MALI. Thus, only masking and no computations related to these fluxes occurs on the MALI mesh.
+In this implementation, only the net mass flux and the interface temperature are passed from MPAS-Ocean to MALI; no heat flux is.  Normalization happens in the components, so the coupler only remaps, merges and time-averages these fields, and MALI only masks them.
 
 
 \begin{tabularx}{\linewidth}{p{0.45\linewidth}|p{0.2\linewidth}|X}
@@ -487,12 +489,7 @@ Note that in this implementation, mass and heat fluxes are passed from MPAS-O to
     $p_i^{t_{cpl}},\:\phi_i^{t_{cpl}}$ & $\leftarrow$ & $p_i,\:\phi_i$\\
     $Q_{b,cond}^{T,t_{cpl}}$ & $\leftarrow Q_{b,cond}^{T,t_{cpl}} \leftarrow$ & $-\rho_i c_i \nu_i \frac{\theta_b^{t_{cpl - 1}} - T_{i,zbot}}{h_{i,zbot}}$\\
     \hline
-    $Q_{fr}^{m,n}=\rho_i m_{fr}^n$ & $\rightarrow\; Q_{fr}^{m}$ &\\
-    $Q_b^{m,n}=\rho_i m_i^n$ & $\rightarrow\; Q_b^{m}$ &\\
-    & $\frac{Q_b^{m} - Q_{fr}^{m}}{\rho_i} \rightarrow$ & $m_i^{t_{cpl}}$\\
-    $Q^{T,n}_{b,adv} = f_2(m_i^n)$ & $\rightarrow\; Q^{T,t_{cpl}}_{b,adv}$ &\\
-    $Q_{fr}^{T,n}$ & $\rightarrow\; Q_{fr}^{T}$ &\\
-    & $Q_{b,adv}^{T}+Q_{fr}^T \rightarrow$ & $Q_b^{T,t_{cpl}}$\\
+    $\frac{Q_b^{m,n} - Q_{fr}^{m,n}}{\phi_i^{t_{cpl}}}$ & $\rightarrow$ time average $\rightarrow$ & $m_i^{t_{cpl}} = \frac{\phi_i}{\rho_i}\left(\frac{Q_b^{m} - Q_{fr}^{m}}{\phi_i^{t_{cpl}}}\right)^{t_{cpl}}$\\
     $\theta_b^{n}$ & $\rightarrow$ & $\theta_b^{t_{cpl}}$\\
     $\phi_{\theta_b}^{n}$ & $\rightarrow$ & $\phi_{\theta_b}^{t_{cpl}}$\\
     \hline
@@ -503,7 +500,7 @@ Note that in this implementation, mass and heat fluxes are passed from MPAS-O to
     $d_t u_{kmax}^{n-1} = g_1(c_d, u_{kmax}^{\perp n-1})$&&\\
     $d_t h_{kmax}^{n-1} = g_2(m_i^{n-1}, \phi_i^{t_{cpl}})$&&\\
     $d_t \theta_{kmax}^{n-1} = g_3(m_i^{n-1}, Q_{b,cond}^{t_{cpl}}, \phi_i^{t_{cpl}}...)$
-    && $d_t T_{i,zbot}^{n-1} = f_1(Q_{b,cond}^{T,t_{cpl}})$ (not $f(Q_b^{T,t_{cpl}})$)\\
+    && $d_t T_i^{n-1}$ with $T_i(z_b) = \theta_b^{t_{cpl}}$ (not $f(Q_b^{T,t_{cpl}})$)\\
     $d_t S_{kmax}^{n-1} = g_4(m_i^{n-1}, \phi_i^{t_{cpl}}, ...)$&&\\
     \hline
     Update $u_{kmax}^{\perp n},h_{kmax}^n,\theta_{kmax}^n, S_{kmax}^n$ && $h_i^n = f(m_i^{t_{cpl}})$\\
@@ -514,81 +511,60 @@ Note that in this implementation, mass and heat fluxes are passed from MPAS-O to
 \newpage
 Implementation steps:
 \begin{todolist}
-    \item[\done] \texttt{landIcePressure} is passed from MALI to MPAS-Ocean
-    \item[\done] \texttt{landIceFloatingFraction} is passed from MALI to MPAS-Ocean
-    \item[\done] MALI conductive basal heat flux is passed back to MPAS-Ocean through
-    a dedicated glc-to-ocean flux field (e.g.\ \texttt{Fogg\_hcond}; \texttt{Flgg\_hflx}
-    is the glacier heat flux sent to the land model and should not be reused) and
-    imported as \texttt{landIceConductiveHeatFlux}
-    \item[\done] Frazil ice mass is passed from MPAS-Ocean to the coupler through
-    \texttt{o2x\_Foxo\_frazil\_li} when \texttt{config\_land\_ice\_flux\_mode = 'active'}.
-    \item[\done] Verify that \texttt{o2x\_Foxo\_frazil\_li} is time-averaged
-    \item[\done] \texttt{landIceFreshwaterFlux} is passed from MPAS-Ocean to the coupler as \texttt{o2x\_Foxo\_ismw}
-    \item[\done] Verify that \texttt{landIceFreshwaterFlux} is time-averaged
-    \item[\done] Remap \texttt{o2x\_Foxo\_frazil\_li} and \texttt{o2x\_Foxo\_ismw} to MALI
-    through the MCT shelf-flux path and apply the MALI sign convention so
-    \texttt{floatingBasalMassBal} is set to
-    $\texttt{Foxo\_frazil\_li} - \texttt{Foxo\_ismw}$ on floating ice (melting
-    removes mass and frazil accretion adds it)
-    \item[\done] The frazil enthalpy flux associated with the frozen freshwater
-    is passed from MPAS-Ocean to MALI as the shelf flux \texttt{o2x\_Foxo\_q\_li}
-    \item[\done] Verify that \texttt{o2x\_Foxo\_q\_li} is time-averaged
-    \item[\done] Change the ocean coupler variable \texttt{o2x\_Foxo\_q\_li} in the active
-    coupling path to the frazil advective enthalpy flux.  Latent heat now stays
-    internal to MPAS-Ocean.
-    \item[\done] Add the dedicated MPAS-Ocean coupling field
-    \texttt{landIceCouplingHeatFlux} and its time average
-    \texttt{avgLandIceCouplingHeatFlux} for the glacier-facing interfacial heat
-    export.
-    \item[\done] Send \texttt{avgLandIceCouplingHeatFlux} from MPAS-Ocean to the
-    coupler as \texttt{o2x\_Foxo\_ismh}
-    \item[\done] Verify that \texttt{landIceCouplingHeatFlux} is time-averaged
-    \item[\done] Combine \texttt{o2x\_Foxo\_ismh} and \texttt{o2x\_Foxo\_q\_li} into the
-    single glacier-facing heat field \texttt{Fogx\_qicehi} and import it into MALI as
-    \texttt{basalOceanHeatFlux}.
-    \item[\done] Add time-averaging of \texttt{landIceInterfaceTemperature} as \texttt{avgLandIceInterfaceTemperature}
-    \item[\done] Pass \texttt{avgLandIceInterfaceTemperature} from MPAS-Ocean to MALI as
-    \texttt{o2x\_So\_tfrz\_isf} $\rightarrow$ \texttt{x2g\_So\_tfrz\_isf}
-    $\rightarrow$ \texttt{iceOceanInterfaceTemperature}, normalized by the remapped
-    \texttt{So\_liflfrac} field and stored in Kelvin.  The threshold for too little
-    floating-ice coverage is the MALI namelist option \texttt{config\_min\_floating\_frac}
-    (default 0.01): where the remapped \texttt{So\_liflfrac} is at or below it, the
-    normalized value would represent only a sliver of floating ocean (or roundoff), so
-    \texttt{iceOceanInterfaceTemperature} is set to
-    \texttt{config\_invalid\_value\_ocn\_intr\_temp} and MALI falls back to its
-    depth-based freezing temperature.  The default excludes only cells with
-    negligible overlap; because the fallback is also a freezing temperature, the
-    exact value is expected to matter little.
+    \item[\done] Remove the coupler-side melt calculation (\texttt{compute\_melt\_fluxes})
+    and its coupler fields.
+    \item[\done] MALI sends \texttt{Sg\_lithop}, \texttt{Sg\_icemask\_floating} and
+    \texttt{Sg\_icemask\_grounded}, each masked by the new \texttt{Sg\_below\_sea\_level\_mask},
+    and MPAS-Ocean can import them as \texttt{landIcePressure},
+    \texttt{landIceFloatingFraction} and \texttt{landIceFraction}.  The import is off by
+    default (\texttt{config\_\allowbreak glc\_\allowbreak ice\_\allowbreak shelf\_\allowbreak coupling\_\allowbreak import\_\allowbreak geometry = .false.}): no
+    existing ocean initial condition matches MALI's geometry closely enough, and the
+    abrupt changes in pressure and draft at grounding lines make the ocean unstable.
+    Turn it on only for ocean initial conditions built from MALI's geometry.
+    \item[\done] MPAS-Ocean exports the net mass flux per unit floating area,
+    \texttt{Foxo\_ismf} $= (Q_b^m - Q_{fr}^m)/\phi_i^{t_{cpl}}$, with $\phi_i^{t_{cpl}}$
+    the remapped MALI floating fraction.  It is zero where $\phi_i^{t_{cpl}}$ is at or
+    below \texttt{config\_\allowbreak glc\_\allowbreak ice\_\allowbreak shelf\_\allowbreak coupling\_\allowbreak min\_\allowbreak floating\_\allowbreak fraction} ($10^{-3}$).
+    The shelf fields are remapped conservatively and without normalization in both
+    directions, and MALI sets \texttt{floatingBasalMassBal} $= -$\texttt{Foxo\_ismf}.
+    \item[\done] Pass the time-averaged interface temperature from MPAS-Ocean to MALI as
+    \texttt{So\_tfrz\_isf} (in Kelvin, weighted by the floating fraction) with the weight
+    \texttt{So\_liflfrac}.  MALI renormalizes by the remapped weight into
+    \texttt{iceOceanInterfaceTemperature}.  Where the remapped weight is at or below the
+    MALI option \texttt{config\_min\_floating\_frac} (0.01), the value is set to
+    \texttt{config\_invalid\_value\_ocn\_intr\_temp}.
+    \item[\done] MALI uses \texttt{iceOceanInterfaceTemperature} as the
+    \texttt{basalTemperature} of floating ice, falling back to its depth-based freezing
+    temperature where the imported value is invalid.
+    \item[\done] MALI sends its basal conductive flux through a dedicated glc-to-ocean
+    field, \texttt{Fogg\_hcond} (\texttt{Flgg\_hflx} is the glacier heat flux sent to the
+    land model and is not reused), only from dynamically active floating ice and only
+    when its thermal solver is on.  MPAS-Ocean imports it as
+    \texttt{landIceConductiveHeatFlux}, divided by the larger of its own and MALI's
+    floating fractions.
     \item[\done] Remove the sensible heat flux term from the 3-equation parameterization in MPAS-Ocean (i.e., meltwater enters at $\theta_b$).
     \item[\done] Add the conductive heat flux term to the 3-equation parameterization in MPAS-Ocean.
-    \item[\done] Incorporate \texttt{iceOceanInterfaceTemperature} into
-    \texttt{basalTemperature} where MALI thinks the ice is floating, while falling
-    back to the depth-based freezing temperature where the imported value is invalid
-    \item[\done] Keep imported ocean shelf heat separate from geothermal
-    \texttt{basalHeatFlux} in MALI.  The imported \texttt{basalOceanHeatFlux} is now
-    applied directly for floating melt/freeze bookkeeping without subtracting
-    \texttt{basalConductiveFlux} locally.
-    \item MOAB parity for the same remap, masking, and thermal-boundary behavior remains
-    open.
+    \item[\done] With ice-shelf coupling, MALI's solid runoff (calving and face melt) is
+    remapped with the liquid-runoff map, which excludes ice-shelf cavities.
+    \item[\done] In G-cases with MALI, runoff is coupled as often as the atmosphere
+    (every 30 minutes with JRA forcing), as it is without MALI.
+    \item[\done] Without a land component, the coupler reads glc's \texttt{aream} from the
+    glc-to-ocean ESMF map, so its area corrections make glc fluxes conservative even
+    though MALI's cell areas are planar.  The runoff maps from MALI must then use
+    spherical source areas too (MALI-Dev/E3SM\#204).
+    \item[\done] The coupler budgets include MALI's side of the ice-shelf mass and heat
+    exchange.
+    \item MOAB: the MOAB driver aborts if ice-shelf coupling is requested.  A MOAB port
+    should keep the MCT choices: unnormalized conservative shelf maps, solid runoff on
+    the liquid-runoff map, and glc areas from the mapping files.
+    \item Ocean initial conditions built from MALI's geometry, so the geometry import can
+    be turned on.
 \end{todolist}
 
-This status reflects the current MCT implementation path only.  MOAB parity has not
-yet been completed.  In the MCT path, \texttt{So\_tfrz\_isf} is now treated as a
-fraction-weighted shelf state in Kelvin and is renormalized in MALI using the
-remapped \texttt{So\_liflfrac} field.  Shelf state fields
-(\texttt{So\_tfrz\_isf}, \texttt{So\_liflfrac}) are remapped through the shelf-state
-path, while shelf flux fields (\texttt{Foxo\_ismw}, \texttt{Foxo\_frazil\_li},
-\texttt{Foxo\_ismh}, \texttt{Foxo\_q\_li}) are remapped through the shelf-flux path.
-In the current code, \texttt{Foxo\_q\_li} is the frazil enthalpy flux associated with
-the frozen freshwater passed to MALI, not a latent-heat flux.  The remapped
-ocean heat terms \texttt{Foxo\_ismh} and \texttt{Foxo\_q\_li} are combined in the
-coupler into the single glacier-facing field \texttt{Fogx\_qicehi}, which MALI
-imports as \texttt{basalOceanHeatFlux}.  In MPAS-Ocean, \texttt{Foxo\_ismh} is now
-exported from the time-averaged \texttt{avgLandIceCouplingHeatFlux} field, which
-represents the glacier-facing interfacial heat term intended for coupling.
-\texttt{landIceHeatFlux} remains the ocean-facing non-latent heat tendency used in
-MPAS-Ocean, while \texttt{heatFluxToLandIce} remains the full ice-side heat term
-used in MPAS-Ocean internal energy accounting.
+Passing heat from MPAS-Ocean to MALI (\texttt{landIceCouplingHeatFlux},
+\texttt{Fogx\_qicehi}, \texttt{basalOceanHeatFlux}) was dropped, since MALI never needs
+$Q_b^T$.  \texttt{Foxo\_q\_li} remains the frazil latent heat, used only in the coupler
+budgets.
 
 % The quadratic coefficients in the ``Ideal implementation"
 % \bea
