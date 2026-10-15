@@ -510,8 +510,10 @@ temporarily.
     pushed at `456d451074`. config_grids.xml keeps the 20250415 maps until
     #204 produces new ones. Xylar is following up with Matt (and Andrew Nolan,
     on replacing runoff_map with a newer tool); no CIME issue for the OpenMP bug.
-  - Draft PR text (2026-10-15): `PR_DESCRIPTION.md` (untracked) in the
-    `ice-shelf-melt-coupling-dev` worktree, awaiting Xylar's review; not opened.
+  - Draft PR opened 2026-10-15: E3SM#8887 (text from `PR_DESCRIPTION.md`,
+    untracked in the `ice-shelf-melt-coupling-dev` worktree; Xylar edits it on
+    GitHub). Labels MPAS-ocean, MPAS-albany-landice, Coupler, MCT, compset, NML,
+    non-BFB; no reviewers. Next: comment on #8661 (draft given to Xylar).
     The Overleaf design doc is private, so the PR doesn't link it (publishing it
     would mean converting it to another format). Design-doc edits for the
     decisions since 2026-10-13 are in `main_suggested.tex`, with find/replace
