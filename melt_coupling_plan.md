@@ -473,6 +473,33 @@ temporarily.
     refreezing, not a loop).
   - MALI thermal BC: 99.9% of floating cells use the ocean interface T, equal to
     basal T (p99 difference 0); uncoupled run uses the depth-based fallback.
+- **Next steps (Xylar, 2026-10-15):** open a draft PR on E3SM directly (not a
+  Discussion PR; Carolyn suggested it, to show the work waiting on #8047 and
+  #8661). Order: (1) coupler budgets, (2) the draft PR and the design-doc edits
+  together, (3) a comment on #8661 pointing to the draft PR.
+  - Budgets: `c17b8f4940` adds glc's side to the MCT budgets: f_wpolar gets
+    -Foxo_ismf over glc's floating mask (scaled by the new x2gacc_gx_cnt_avg,
+    since x2g is only nonzero when glc runs); f_hpolar gets its latent heat and
+    -Fogg_hcond from g2x. The ocean's Foxo_ismh already includes the conductive
+    heat, so no x2o term. Testing in `ismc_fo_mapfix` with BUDGETS=TRUE and
+    budget_daily=2.
+  - glc areas (2026-10-15): the budget showed glc receiving 0.982 of the melt
+    the ocean sent. Without lnd, the coupler never set glc's aream, so it
+    stayed equal to MALI's planar (polar stereographic) areas and the area
+    corrections were 1, while the aave maps conserve in ESMF spherical areas
+    (ratio 0.94-1.05 per cell). `1a374718cf` (before the budget commit, now
+    `456d451074`) reads glc aream from glc2ocn_fmapname area_a when
+    glc_c2_ocn and there is no lnd. Retest (2-day `ismc_fo_mapfix`, uncommitted
+    debug prints): glc/ocean-sent 1.00000 (day 1) and 0.99995 (day 2); MALI
+    applies the coupler's daily average (MALI/coupler 0.998/1.002, mask timing).
+  - Catch: the gen_runoff nn runoff maps (Matt, 2025-04) take area_a from the
+    SCRIP grid_area, which is MALI's planar area, so they were conservative
+    with the old aream and are now corrected twice (solid runoff about +0.5%
+    on day 3, up to 6.65% per cell). The same nn maps are already inconsistent
+    on master in configurations with lnd (aream from the lnd2glc ESMF map).
+    Fix: regenerate the planar-MALI gen_runoff maps with spherical source
+    areas (or rescale S by spherical/planar area per column). Decision pending.
+    Not pushed.
 - Compsets `GGMPAS-JRA1p5-DIB-PISMF-SIA` and `-FO` (Albany; chrysalis_gnu or
   intel-classic only) added in `1b3424c4e3`.
 
