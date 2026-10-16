@@ -23,11 +23,11 @@ void ShortwavePenForcingVars::registerFields(
 
    auto ExtinctionCoeffRedCellField = Field::create(
        ExtinctionCoeffRedCell.label(), "red-band extinction coefficient",
-       "m^-1", "", std::numeric_limits<Real>::min(),
+       "m-1", "", std::numeric_limits<Real>::lowest(),
        std::numeric_limits<Real>::max(), NDims, DimNames);
    auto ExtinctionCoeffBlueCellField = Field::create(
        ExtinctionCoeffBlueCell.label(), "blue-band extinction coefficient",
-       "m^-1", "", std::numeric_limits<Real>::min(),
+       "m-1", "", std::numeric_limits<Real>::lowest(),
        std::numeric_limits<Real>::max(), NDims, DimNames);
 
    FieldGroup::addFieldToGroup(ExtinctionCoeffRedCell.label(), GroupName);
