@@ -451,8 +451,7 @@ outputs. The base class provides helper structures and methods:
   them to a `Config` with `toConfig()`.
 - `createAnalysisGroupStreams()` groups the chains by their output
   characteristics (period and reduction type), creates the associated
-  IOStreams, associates operator output Fields with those streams, and
-  validates temporal reduction periods against the restart interval.
+  IOStreams, and associates operator output Fields with those streams.
 
 Concrete groups are dispatched by name in the `Analysis` constructor, which
 reads the `Analysis` configuration node, iterates over its child group nodes,
@@ -465,6 +464,42 @@ aborts. This is a first-version choice; the dispatch mechanism and support
 for user-defined composable groups are expected to be generalized in a future
 update.
 ```
+
+### Restart persistence for temporal reductions
+
+A temporal reduction may span a model restart (for example, a monthly mean
+when restarts are written every ten days). To keep the running average
+correct across such a boundary, each `TimeMeanOp` checkpoints its mid-period
+accumulation state in the restart file.
+
+Two pieces of state are persisted per operator, both as data Fields added to
+the existing `Restart` FieldGroup (the same mechanism other modules such as
+`OceanState`, `Tracers`, and `VertCoord` already use):
+
+1. The partial accumulated sum — the operator's existing output array is
+   attached directly to a restart Field (no copy), since that array already
+   holds the running sum mid-period.
+2. `NumAccum` — a one-element `I4` data Field holding the sample count. A data
+   Field (not metadata) is required because Field-level metadata is written
+   but not read back on restart.
+
+The restart Fields are created at the end of the `TimeMeanOp` constructor via
+the operator-private, non-virtual `createRestartFields()`; there is no
+base-class hook for it. Both Fields use `OptionalRead == true` for backward
+compatibility, so restart files written before this feature read cleanly with
+`NumAccum` left at `0` (a fresh period, i.e. the pre-existing behavior).
+
+`IsNewPeriod` is not stored; it is reconstructed as `(NumAccum == 0)`. The
+backing count array is kept in sync inline inside `TimeMeanOp::compute()`
+(the only place `NumAccum` is mutated), so the checkpoint is consistent
+regardless of when the restart write occurs. After a period finalizes the
+count is normalized to `0` to mark that no partial period is in progress.
+
+On restart, `Analysis::applyRestartState()` iterates the operator nodes and,
+for each operator reporting `needsRestart()`, derives `IsNewPeriod` from the
+restored `NumAccum`. It is a restart-only step, invoked in `OceanInit.cpp`
+after the restart read and gated on `ReadRestart` for standalone runs and
+`CoupledReadRestart` in coupled runs.
 
 ### GlobalStats
 

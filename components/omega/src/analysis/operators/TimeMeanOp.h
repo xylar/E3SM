@@ -29,6 +29,8 @@
 
 #include "AnalysisOperator.h"
 
+#include <limits>
+
 namespace OMEGA {
 
 /// TimeMeanOp computes the time-averaged mean of a field over a specified
@@ -124,6 +126,12 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       IsMeshDimension = false;
       NHorizOwned     = 0;
 
+      // Create the restart checkpoint Fields now that the output Field and
+      // OutputData array exist. This registers them in the "Restart"
+      // FieldGroup during construction, before IOStream::validateAll() and
+      // the restart read, which both occur later in ocnInit.
+      createRestartFields();
+
    } // end constructor
 
    /// Initializes the operator after all Fields exist. Determines the index
@@ -197,6 +205,75 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       PeriodAlarm = Alarm;
    }
 
+   /// TimeMeanOp maintains mid-period accumulation state (the partial sum in
+   /// OutputData and the sample count NumAccum) that must survive restarts.
+   bool needsRestart() const override { return true; }
+
+   /// Creates the two Fields that checkpoint the operator's mid-period state
+   /// and registers them in the "Restart" FieldGroup so they are written to
+   /// and read from the restart file by the existing restart streams:
+   ///   1. <OutputName>_AccumSum shares the operator's OutputData array, so
+   ///      the running partial sum is persisted with no extra copy. (Between
+   ///      finalize() and the next accumulation OutputData already holds the
+   ///      finished mean; that is harmless because NumAccum is normalized to
+   ///      0 on write and the array is overwritten on the next new period.)
+   ///   2. <OutputName>_NumAccum is a one-element I4 host array holding the
+   ///      sample count.
+   /// Both are marked OptionalRead so restart files written before this
+   /// feature existed (which lack these variables) read cleanly, leaving
+   /// NumAccum at 0 (a fresh period, matching the previous behavior).
+   void createRestartFields() {
+
+      // Ensure the Restart group exists (other modules may create it first)
+      if (!FieldGroup::exists("Restart")) {
+         FieldGroup::create("Restart");
+      }
+
+      const std::string AccumSumName = OutputNames[0] + "_AccumSum";
+      const std::string NumAccumName = OutputNames[0] + "_NumAccum";
+
+      // --- Partial sum Field: shares the existing OutputData array ---
+      auto OutputField = Field::get(OutputNames[0]);
+      auto NDims       = OutputField->getNumDims();
+      std::vector<std::string> DimNames;
+      OutputField->getDimNames(DimNames);
+
+      auto AccumSumField = Field::create(
+          AccumSumName, "Restart checkpoint of time-mean partial sum", "", "",
+          std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::max(),
+          NDims, DimNames);
+      AccumSumField->setOptionalRead(true);
+      FieldGroup::addFieldToGroup(AccumSumName, "Restart");
+      AccumSumField->template attachData<OutputArrayT>(OutputData);
+
+      // --- Sample-count Field: a one-element non-distributed I4 array ---
+      const std::string CountDimName = "NTimeMeanCount";
+      if (!Dimension::exists(CountDimName)) {
+         Dimension::create(CountDimName, 1);
+      }
+
+      NumAccumData = HostArray1DI4(NumAccumName + "_data", 1);
+
+      auto NumAccumField =
+          Field::create(NumAccumName, "Restart checkpoint of time-mean count",
+                        "", "", 0, std::numeric_limits<I4>::max(), 1,
+                        std::vector<std::string>{CountDimName});
+      NumAccumField->setOptionalRead(true);
+      FieldGroup::addFieldToGroup(NumAccumName, "Restart");
+      NumAccumField->template attachData<HostArray1DI4>(NumAccumData);
+
+   } // end createRestartFields
+
+   /// Restores live state from the restart-read count. IsNewPeriod is derived
+   /// from the count: a zero count means no partial period is in progress and
+   /// accumulation starts fresh (also the default for restart files that lack
+   /// the checkpoint variables, since OptionalRead leaves the array at its
+   /// fill value of 0 for I4).
+   void applyRestartState() override {
+      NumAccum    = NumAccumData(0);
+      IsNewPeriod = (NumAccum == 0);
+   } // end applyRestartState
+
    /// Computes the time-averaged mean by accumulating input values. On the
    /// first call after alarm rings (IsNewPeriod), copies input to output and
    /// sets count to 1. On subsequent calls, adds input to accumulated sum and
@@ -244,6 +321,13 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       // Update cache validity markers
       LastComputed  = TimeStamp;
       FieldComputed = true;
+
+      // Refresh the persisted sample count now that NumAccum/IsNewPeriod have
+      // settled. compute() is the only place NumAccum is mutated, so this keeps
+      // the restart checkpoint consistent regardless of restart-write timing.
+      // After a finalize (IsNewPeriod true) NumAccum still holds the finished
+      // period's count, so it is normalized to 0 to mark no partial period.
+      NumAccumData(0) = IsNewPeriod ? 0 : NumAccum;
 
    } // end compute
 
@@ -440,6 +524,12 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    /// Flag indicating whether the next compute() should start a new averaging
    /// period
    bool IsNewPeriod;
+
+   /// One-element host array backing the persisted NumAccum counter Field.
+   /// Shares no storage with the member NumAccum; compute() copies the
+   /// (normalized) count into it after each accumulation step and
+   /// applyRestartState() copies it back after a restart read.
+   HostArray1DI4 NumAccumData;
 
 }; // end class TimeMeanOp
 

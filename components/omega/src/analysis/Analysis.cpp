@@ -606,6 +606,19 @@ void Analysis::initializeAllOps() {
 } // end initializeAllOps
 
 //------------------------------------------------------------------------------
+// Restores each restart-persisting operator's mid-period accumulation state
+// from the checkpoint Fields. Called by the driver after the restart read has
+// populated those Fields (restart start-types only). Operators that do not
+// need restart persistence are skipped.
+void Analysis::applyRestartState() {
+   for (auto &OpNode : OpNodes) {
+      if (OpNode->Op->needsRestart()) {
+         OpNode->Op->applyRestartState();
+      }
+   }
+} // end applyRestartState
+
+//------------------------------------------------------------------------------
 // Returns a reference to the ModelClock pointer. This is used by
 // AnalysisGroup instances during stream creation to access the clock
 // for alarm initialization.

@@ -156,6 +156,18 @@ class AnalysisOperator {
    virtual void setPeriodAlarm(Alarm *Alarm ///< [in] period alarm ptr
    ) {}
 
+   /// Returns true if this operator maintains mid-period accumulation state
+   /// that must be checkpointed to and restored from the restart file.
+   /// Default is false; temporal reduction operators (e.g. TimeMeanOp)
+   /// override to return true.
+   virtual bool needsRestart() const { return false; }
+
+   /// Derives live operator state from the values read back from the restart
+   /// file into the checkpoint Fields. Called once during Analysis
+   /// construction after the restart read has populated the Fields. Default
+   /// implementation does nothing.
+   virtual void applyRestartState() {}
+
    /// Pure virtual compute method - must be implemented by all derived
    /// classes. Retrieves input field data from the Field registry, performs
    /// the operator's transformation, and writes results to operator-owned

@@ -115,6 +115,12 @@ class Analysis {
    /// computation for any node with a ringing alarm.
    void computeAll();
 
+   /// Restores each temporal reduction operator's mid-period accumulation
+   /// state from the restart checkpoint Fields. Must be called once by the
+   /// driver AFTER the restart read has populated those Fields (which happens
+   /// after Analysis construction), and before the first computeAll().
+   void applyRestartState();
+
    /// Parses an underscore-delimited operator chain string and instantiates
    /// all operators in the chain that do not yet exist as Fields. For
    /// example, "Temperature_SpatialMean_TimeMean1day" parses into three

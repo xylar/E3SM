@@ -21,15 +21,11 @@ The Analysis module supports two output modes:
 - **Temporal reduction:** Time-averaged output over a specified period (e.g.,
  daily or monthly means). Fields are accumulated each timestep; the reduction
  is finalized and written at the end of each period. Temporal reduction is
- configured with the `ReductionPeriod` parameter. When using temporal
- reduction, the reduction period must be evenly divisible into the restart
- interval. This ensures that temporal reduction states can be properly
- checkpointed and restored. For calendars with variable month lengths, restart
- intervals based on months can only be divided by reduction periods based on
- months or periods of 1 day or whole-number fractions of a day, e.g., 6 hours.
- The Analysis system validates that the reduction period divides evenly into
- the restart interval during initialization and will abort if this requirement
- is violated.
+ configured with the `ReductionPeriod` parameter. A reduction period may span a
+ restart: the mid-period accumulation state (the partial sum and sample count)
+ is checkpointed in the restart file and restored on continuation, so the final
+ average is identical to an uninterrupted run. There is no requirement that the
+ reduction period divide evenly into the restart interval.
 
 - **Instantaneous output:** Snapshots of analysis fields written at specified
  frequencies (e.g., every 6 hours). Instantaneous output is configured with the
@@ -70,8 +66,9 @@ output)
 
 All groups automatically handle intermediate operator sharing—if multiple
 chains require the same intermediate result, it is computed once and reused.
-Groups also validate that temporal reduction periods divide evenly into the
-restart interval to ensure proper checkpoint/restart behavior.
+Temporal reduction operators automatically checkpoint their mid-period
+accumulation state to the restart file, so reduction periods may span restarts
+without any divisibility requirement.
 
 ### Stream Parameters
 
@@ -133,9 +130,8 @@ Omega:
 - **SpatialStats:** Required list of spatial operators.
 
 - **ReductionPeriod:** Optional list of time periods for temporal reduction
-  (e.g., `1Hour`, `1Day`, `1Month`, `1Year`). Each period must divide evenly
-  into the restart interval. At least one of `ReductionPeriod` or
-  `SnapshotPeriod` must be specified.
+  (e.g., `1Hour`, `1Day`, `1Month`, `1Year`). At least one of `ReductionPeriod`
+  or `SnapshotPeriod` must be specified.
 
 - **SnapshotPeriod:** Optional list of intervals for instantaneous output
   (e.g., `1Hour`, `6Hour`, `1Day`). At least one of `ReductionPeriod` or
@@ -205,8 +201,7 @@ Omega:
   edges. Transect masks are not yet implemented.
 
 - **ReductionPeriod:** Optional list of time periods for temporal reduction.
-  Each period must divide evenly into the restart interval. At least one of
-  `ReductionPeriod` or `SnapshotPeriod` must be specified.
+  At least one of `ReductionPeriod` or `SnapshotPeriod` must be specified.
 
 - **SnapshotPeriod:** Optional list of intervals for instantaneous output. At
   least one of `ReductionPeriod` or `SnapshotPeriod` must be specified.
@@ -263,8 +258,7 @@ Omega:
 
 - **ReductionPeriod:** Optional list of time periods for temporal reduction
   (e.g., `1Day`, `1Month`, `1Year`). Defaults to `[1Month]` when not specified.
-  Each period must divide evenly into the restart interval. Any `SnapshotPeriod`
-  supplied for this group is ignored.
+  Any `SnapshotPeriod` supplied for this group is ignored.
 
 **Output fields:**
 For each requested field, a time-averaged field is produced:
@@ -279,19 +273,24 @@ Automatically created and named:
 The default field list in `Default.yml` includes the core prognostic fields
 (`Temperature`, `Salinity`, `NormalVelocity`, `PseudoThickness`). Additional
 registered global fields may be requested by adding them to the `Fields` list.
-The averaging period must divide evenly into the restart interval, as described
-in the Temporal Reduction Period Constraint below.
+A reduction period may span a restart; see
+[Temporal Reduction and Restarts](#temporal-reduction-and-restarts) below.
 ```
 
 ## Usage Notes
 
-### Temporal Reduction Period Constraint
+### Temporal Reduction and Restarts
 
-When using temporal reduction (`ReductionPeriod`), the period must divide
-evenly into the restart interval to ensure proper checkpoint/restart behavior.
-The Analysis module validates this during initialization. For example, if the
-restart interval is 6 months, valid periods include `6hours`, `1Day`, `1Month`,
-`2Months`, `3Months`, and `6Months`, but `5Days` or `7Months` are invalid.
+Temporal reductions (`ReductionPeriod`) may span a model restart. There is no
+requirement that the reduction period divide evenly into the restart interval,
+so any combination of periods and restart intervals is valid (for example, a
+`1Month` average with a 10-day restart interval). When a restart is written in
+the middle of a reduction period, the mid-period accumulation state (the
+partial sum and the sample count) is checkpointed in the restart file and
+restored on continuation, so the final written average is identical to that of
+an uninterrupted run. Restart files written before this capability was added
+remain readable; a reduction that lacks checkpointed state simply begins a
+fresh accumulation period on restart.
 
 ### Field Availability
 

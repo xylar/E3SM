@@ -219,23 +219,6 @@ void AnalysisGroup::createAnalysisGroupStreams(const std::string &GroupName,
       TimeUnits FreqUnits                = TimeUnitsFromString(ParsedStr[1]);
       TimeInterval PeriodInterval(Freq, FreqUnits);
 
-      // Validate temporal reduction periods against restart interval
-      // This ensures proper checkpoint/restart behavior for time-averaged
-      // fields
-      if (IsTimeReduction) {
-         auto RestartAlarm = IOStream::getAlarm("RestartWrite");
-         bool IsDivisible =
-             RestartAlarm->getInterval()->isDivisibleBy(PeriodInterval);
-         if (!IsDivisible) {
-            ABORT_ERROR(
-                "Analysis: The RestartWrite interval is not divisible by "
-                "the averaging period, {} {}. Currently, temporal averaging "
-                "is only available over intervals where "
-                "RestartPeriod % PeriodInterval == 0",
-                ParsedStr[0], ParsedStr[1]);
-         }
-      }
-
       // Build filename for this stream (includes period and type in name)
       StreamCfg.Params["Filename"] =
           FilenamePrefix + "_" + FreqStr +
