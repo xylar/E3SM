@@ -25,3 +25,4 @@ Base: E3SM master `6816738295` (2026-10-15).
 | Copy land-ice pressure only over nCellsAll, a fix for E3SM-Ocean-Discussion#119 | `26fb0b6bed` from xylar:ocn/thin-film-wetting-drying, cherry-picked | suggested on E3SM-Ocean-Discussion#119 | not yet in E3SM-Ocean-Discussion#119 |
 | Zero land-ice fluxes where the ice is grounded | xylar:ocn/fix-land-ice-fluxes-in-grounded-cells | E3SM-Ocean-Discussion#141 | open |
 | Keep the floating mask zero where there is no land ice | xylar:ocn/fix-floating-mask-in-open-ocean | E3SM-Ocean-Discussion#142 | open |
+| Advance the time-varying forcing clock with every time integrator | xylar:ocn/fix-time-varying-forcing-clock (E3SM-Ocean-Discussion#143, merged as `c1df64a79c`) | none yet | — |
