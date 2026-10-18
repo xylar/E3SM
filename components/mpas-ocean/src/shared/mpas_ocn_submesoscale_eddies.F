@@ -190,6 +190,23 @@ module ocn_submesoscale_eddies
 
      if (.not. config_submesoscale_enable) return
 
+     if (config_use_wetting_drying) then
+        ! wetting and drying limits the transport out of cells that would
+        ! otherwise dry, so it limits the submesoscale transport as well
+        !$omp parallel
+        !$omp do schedule(runtime) &
+        !$omp private(k)
+        do iEdge = 1, nEdges
+           do k = 1, nVertLevels
+              normalTransportVelocity(k,iEdge) = normalTransportVelocity(k,iEdge) + &
+                  (1.0_RKIND - wettingVelocityFactor(k,iEdge))*normalMLEvelocity(k,iEdge)
+           end do
+        end do
+        !$omp end do
+        !$omp end parallel
+        return
+     end if
+
      !$omp parallel
      !$omp do schedule(runtime) &
      !$omp private(k)
