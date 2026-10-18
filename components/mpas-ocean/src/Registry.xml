@@ -1458,6 +1458,14 @@
 					description="The weight between standard Jacobian and weighted Jacobian, $\gamma$."
 					possible_values="any real between 0 and 1"
 		/>
+		<nml_option name="config_jacobian_limit_to_water_column" type="logical" default_value=".false."
+					description="If true, Jacobian_from_TS blends each layer's pressure gradient toward the pressure_and_zmid form where its common level lies outside either cell's water column (above the column top or below the bed), as next to a thin film at a grounding line, where it would otherwise extrapolate temperature and salinity into ice or rock."
+					possible_values=".true. or .false."
+		/>
+		<nml_option name="config_jacobian_water_column_ramp" type="real" default_value="1.0" units="unitless"
+					description="With config_jacobian_limit_to_water_column, the distance outside a cell's water column, in units of that cell's spacing between layer midpoints, over which the blend goes from Jacobian_from_TS to pressure_and_zmid."
+					possible_values="any positive real"
+		/>
 		<nml_option name="config_zonal_ssh_grad" type="real" default_value="0.0"
 					description="The zonal (x) ssh gradient to be applied."
 					possible_values="any real"
