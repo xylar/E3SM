@@ -803,9 +803,11 @@ contains
         ! Negative seaIceSalinityFlux is an extraction of salt from the ocean
         ! So, we negate seaIceSalinityFlux when determining how much salt this flux needs.
         requiredSalt = - seaIceSalinityFlux(iCell) * sflux_factor * dt / layerThickness(minLevelCell(iCell), iCell)
-        allowedSalt = min( 4.0_RKIND, tracerGroup(index_salinity_flux, minLevelCell(iCell), iCell) )
+        ! Salinity can dip slightly below zero, as in a fresh thin film, in
+        ! which case no salt is available.  Only an extraction needs limiting.
+        allowedSalt = max( 0.0_RKIND, min( 4.0_RKIND, tracerGroup(index_salinity_flux, minLevelCell(iCell), iCell) ) )
 
-        if ( allowedSalt < requiredSalt ) then
+        if ( requiredSalt > 0.0_RKIND .and. allowedSalt < requiredSalt ) then
            tracersSurfaceFluxRemoved(index_salinity_flux, iCell) = tracersSurfaceFluxRemoved(index_salinity_flux, iCell)  &
                                                                  + ( 1 - allowedSalt / requiredSalt ) * seaIceSalinityFlux(iCell) &
                                                                  * sflux_factor
