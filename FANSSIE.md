@@ -5,9 +5,10 @@
 ## Rules
 
 - The branch only gains commits. Never force-push or rebase it.
-- Work starts from this branch and merges back in through pull requests to it, so that each pull request shows only its own changes. Upstream pull requests the work depends on are merged in as they are. Small fixes, and changes to this file, may be committed directly.
+- Work starts from this branch and merges back in through pull requests to it, so that each pull request shows only its own changes. Pull requests are merged with a merge commit. Upstream pull requests the work depends on are merged in as they are. Small fixes, and changes to this file, may be committed directly.
 - E3SM master is merged in from time to time.
-- Every change except to this file gets a row in the ledger below, so that nothing is lost. Moving changes into E3SM is encouraged but not required.
+- Every change except to this file gets a row in the ledger below, so that nothing is lost. The row is added by a direct commit right after the pull request merges, not in the pull request, so that a pull request holds only code. The row gives the merge commit and names any other change on this branch that the change needs.
+- Moving changes into E3SM is encouraged but not required. To move one, cherry-pick its pull request's commits (`git log <merge>^1..<merge>^2`) onto E3SM master. Bring any changes made in upstream review back to this branch before master is next merged in.
 - Test each change to the code with Polaris's `fanssie_pr` suite against a baseline from the previous commit of this branch.
 
 ## Ledger
