@@ -990,7 +990,7 @@ contains
     !-----------------------------------------------------------------
 
     real (kind=RKIND) :: T0, transferVelocityRatio, Tlatent, a, b, c, &
-                         dTf_dS
+                         dTf_dS, rootSalinity
     integer :: iCell
 
     real (kind=RKIND), parameter :: minInterfaceSalinity = 0.001_RKIND
@@ -999,7 +999,7 @@ contains
     Tlatent = latent_heat_fusion_mks/cp_sw
 
     !$omp parallel
-    !$omp do schedule(runtime) private(T0, dTf_dS, transferVelocityRatio, a, b, c)
+    !$omp do schedule(runtime) private(T0, dTf_dS, transferVelocityRatio, a, b, c, rootSalinity)
     do iCell = 1, nCells
       if (mask(iCell) == 0) cycle
 
@@ -1021,12 +1021,20 @@ contains
       ! In all reasonable cases, b will be strictly positive, since transferVelocityRatio*Tlatent ~ 2 C,
       ! T0 ~ -1.8 C and oceanTemperature should never be able to get below about -3 C
       ! As long as either b or both a and c are greater than zero, the strictly non-negative root is
-      outInterfaceSalinity(iCell) = max(-(2.0_RKIND*c)/(b + sqrt(b**2 - 4.0_RKIND*a*c)), minInterfaceSalinity)
+      rootSalinity = -(2.0_RKIND*c)/(b + sqrt(b**2 - 4.0_RKIND*a*c))
+      outInterfaceSalinity(iCell) = max(rootSalinity, minInterfaceSalinity)
 
       outInterfaceTemperature(iCell) = dTf_dS*outInterfaceSalinity(iCell)+T0
 
-      outFreshwaterFlux(iCell) = rho_sw*oceanSaltTransferVelocity(iCell) &
-        * (oceanSalinity(iCell)/outInterfaceSalinity(iCell) - 1.0_RKIND)
+      if (rootSalinity < minInterfaceSalinity) then
+         ! In nearly fresh water, the salt balance can't set the melt rate once
+         ! the interface salinity is limited, so the heat balance sets it.
+         outFreshwaterFlux(iCell) = rho_sw*oceanHeatTransferVelocity(iCell) &
+           * (oceanTemperature(iCell) - outInterfaceTemperature(iCell))/Tlatent
+      else
+         outFreshwaterFlux(iCell) = rho_sw*oceanSaltTransferVelocity(iCell) &
+           * (oceanSalinity(iCell)/outInterfaceSalinity(iCell) - 1.0_RKIND)
+      end if
 
       ! According to Jenkins et al. (2001), the temperature fluxes into the ocean are:
       !   1. the advection of meltwater into the top layer (or removal for freezing)
@@ -1113,7 +1121,7 @@ contains
     real (kind=RKIND), dimension(:), allocatable :: outAdvectiveHeatFlux
 
     real (kind=RKIND) :: T0, transferVelocityRatio, Tlatent, a, b, c, &
-                         dTf_dS
+                         dTf_dS, rootSalinity
     integer :: iCell
 
     real (kind=RKIND), parameter :: minInterfaceSalinity = 0.001_RKIND
@@ -1124,7 +1132,7 @@ contains
     allocate(outAdvectiveHeatFlux(nCells))
 
     !$omp parallel
-    !$omp do schedule(runtime) private(T0, dTf_dS, transferVelocityRatio, a, b, c)
+    !$omp do schedule(runtime) private(T0, dTf_dS, transferVelocityRatio, a, b, c, rootSalinity)
     do iCell = 1, nCells
       if (mask(iCell) == 0) cycle
 
@@ -1147,12 +1155,21 @@ contains
       ! In all reasonable cases, b will be strictly positive, since transferVelocityRatio*Tlatent ~ 2 C,
       ! T0 ~ -1.8 C and oceanTemperature should never be able to get below about -3 C
       ! As long as either b or both a and c are greater than zero, the strictly non-negative root is
-      outInterfaceSalinity(iCell) = max(-(2.0_RKIND*c)/(b + sqrt(b**2 - 4.0_RKIND*a*c)), minInterfaceSalinity)
+      rootSalinity = -(2.0_RKIND*c)/(b + sqrt(b**2 - 4.0_RKIND*a*c))
+      outInterfaceSalinity(iCell) = max(rootSalinity, minInterfaceSalinity)
 
       outInterfaceTemperature(iCell) = dTf_dS*outInterfaceSalinity(iCell)+T0
 
-      outFreshwaterFlux(iCell) = rho_sw*oceanSaltTransferVelocity(iCell) &
-        * (oceanSalinity(iCell)/outInterfaceSalinity(iCell) - 1.0_RKIND)
+      if (rootSalinity < minInterfaceSalinity) then
+         ! In nearly fresh water, the salt balance can't set the melt rate once
+         ! the interface salinity is limited, so the heat balance sets it.
+         outFreshwaterFlux(iCell) = rho_sw*(oceanHeatTransferVelocity(iCell) &
+           * (oceanTemperature(iCell) - outInterfaceTemperature(iCell)) &
+           + landIceConductiveHeatFlux(iCell)/(rho_sw*cp_sw))/Tlatent
+      else
+         outFreshwaterFlux(iCell) = rho_sw*oceanSaltTransferVelocity(iCell) &
+           * (oceanSalinity(iCell)/outInterfaceSalinity(iCell) - 1.0_RKIND)
+      end if
 
       if (outFreshwaterFlux(iCell) > 0) then ! melting
          outAdvectiveHeatFlux(iCell) = cpLandIce*outInterfaceTemperature(iCell)*outFreshwaterFlux(iCell)
