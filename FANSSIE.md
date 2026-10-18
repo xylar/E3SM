@@ -1,14 +1,14 @@
 # FAnSSIE ocean–ice-sheet coupling branch
 
-`fanssie-ocn-glc-coupling` on E3SM-Ocean-Discussion/E3SM is a long-lived, shared development branch for coupling MPAS-Ocean and MALI in E3SM, as part of FAnSSIE. Polaris pins it as the submodule `e3sm_submodules/FAnSSIE` for its ocean–ice-sheet tasks, which are regression-tested with Polaris's `fanssie_pr` suite. Everything else in Polaris builds from E3SM-Project.
+`fanssie-ocn-glc-coupling` on E3SM-Ocean-Discussion/E3SM is a long-lived, shared development branch for coupling MPAS-Ocean and MALI in E3SM, as part of FAnSSIE, the Framework for Antarctic System Science in E3SM. Polaris pins it as the submodule `e3sm_submodules/FAnSSIE` for its ocean–ice-sheet tasks, which are regression-tested with Polaris's `fanssie_pr` suite. Everything else in Polaris builds from E3SM-Project.
 
 ## Rules
 
 - The branch only gains commits. Never force-push or rebase it.
-- Changes arrive as merges of feature branches based on E3SM master, merged as they are, through pull requests to this branch. A small fix to a feature that is already merged may be committed directly.
+- Work starts from this branch and merges back in through pull requests to it, so that each pull request shows only its own changes. Upstream pull requests the work depends on are merged in as they are. Small fixes, and changes to this file, may be committed directly.
 - E3SM master is merged in from time to time.
-- Every change gets a row in the ledger below, so that nothing is lost. Moving changes into E3SM is encouraged but not required.
-- Test each change with Polaris's `fanssie_pr` suite against a baseline from the previous commit of this branch.
+- Every change except to this file gets a row in the ledger below, so that nothing is lost. Moving changes into E3SM is encouraged but not required.
+- Test each change to the code with Polaris's `fanssie_pr` suite against a baseline from the previous commit of this branch.
 
 ## Ledger
 
