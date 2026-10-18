@@ -143,7 +143,13 @@ module ocn_submesoscale_eddies
            zEdge(k) = zEdge(k-1) - layerThickEdgeMean(k-1,iEdge)
          end do
 
-        zMLD = 0.5_RKIND*(dThreshMLD(cell1)+dThreshMLD(cell2))
+        if (config_use_wetting_drying) then
+           ! a thin film can border a deep mixed layer, and the overturning
+           ! can't reach below the shallower one, as for indMLDedge
+           zMLD = min(dThreshMLD(cell1), dThreshMLD(cell2))
+        else
+           zMLD = 0.5_RKIND*(dThreshMLD(cell1)+dThreshMLD(cell2))
+        end if
         Lf = max(Lfmin, abs(gradBuoyML)*zMLD / time_scale(iEdge)**2.0, &
                  bvfML*zMLD / time_scale(iEdge))
 
