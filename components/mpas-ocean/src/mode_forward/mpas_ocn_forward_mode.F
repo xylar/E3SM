@@ -762,6 +762,14 @@ module ocn_forward_mode
          call mpas_pool_get_subpool(domain % blocklist % structs, 'state', statePool)
          call mpas_pool_shift_time_levels(statePool)
 
+         ! Advance the time-varying forcing clock to the new time before any
+         ! restart file is written, so that a restart continues from the
+         ! same forcing time
+         if (config_use_time_varying_atmospheric_forcing .or. &
+             config_use_time_varying_land_ice_forcing) then
+           call mpas_advance_forcing_clock(forcingGroupHead, dt)
+         endif
+
 #ifdef MPAS_DEBUG
          call mpas_log_write( '   Handling analysis members')
 #endif
@@ -849,14 +857,9 @@ module ocn_forward_mode
          ! read in next time level data required for time-varying forcing
          if (timeIntegratorChoice /= timeIntRK4) then
            ! if not using RK4, calculate time varying forcing terms once per
-           ! time-step as opposed at each RK substage as implemented in RK4
+           ! time-step, at the new time, as opposed at each RK substage as
+           ! implemented in RK4
            call ocn_time_varying_forcing_get(domain % streamManager, domain, domain % clock)
-         else
-           if (config_use_time_varying_atmospheric_forcing .or. &
-               config_use_time_varying_land_ice_forcing) then
-             ! increment forcing clock to next time-step
-             call mpas_advance_forcing_clock(forcingGroupHead, dt)
-           endif
          endif
 
          ! Validate that the state is OK to run with for the next timestep.
