@@ -199,7 +199,8 @@ module ocn_eddy_parameterization_helpers
      real(kind=RKIND),dimension(:), allocatable :: depth
      real (kind=RKIND), dimension(:,:), pointer :: layerThickness
      real (kind=RKIND), dimension(:), pointer :: landIcePressure
-     logical :: found_den_mld
+     real (kind=RKIND), dimension(:), pointer :: ssh
+     logical :: found_den_mld, mldFromColumnTop
      real (kind=RKIND) :: dV, dVp1, refDepth, coeffs(2), mldTemp, dz
      real (kind=RKIND), dimension(:,:), allocatable :: pressureAdjustedForLandIce
 
@@ -207,6 +208,15 @@ module ocn_eddy_parameterization_helpers
 
      if ( config_eddyMLD_use_old ) then
        call mpas_pool_get_array(forcingPool, 'landIcePressure', landIcePressure)
+
+       ! With wetting and drying, the top of the column can lie above the
+       ! land-ice draft implied by the land-ice pressure, as under grounded
+       ! ice, so the MLD is measured from the top of the column, as the
+       ! submesoscale parameterization measures depth on edges
+       mldFromColumnTop = config_use_wetting_drying
+       if (mldFromColumnTop) then
+         call mpas_pool_get_array(statePool, 'ssh', ssh, 1)
+       end if
 
        allocate(pressureAdjustedForLandIce(nVertLevels, size(pressure,2)))
 
@@ -261,7 +271,12 @@ module ocn_eddy_parameterization_helpers
                 mldTemp = coeffs(2)*config_eddyMLD_dens_threshold + coeffs(1)
 
                 mldTemp=max(mldTemp,zMid(k+1,iCell)) !make sure MLD isn't deeper than zMid(k+1)
-                dThreshMLD(iCell)=abs(min(mldTemp,zMid(k,iCell))) !MLD should be deeper than zMid(k)
+                mldTemp=min(mldTemp,zMid(k,iCell)) !MLD should be deeper than zMid(k)
+                if (mldFromColumnTop) then
+                   dThreshMLD(iCell) = ssh(iCell) - mldTemp
+                else
+                   dThreshMLD(iCell) = abs(mldTemp)
+                end if
                 indMLD(iCell) = k+1
                 found_den_mld = .true.
                 exit
@@ -271,14 +286,18 @@ module ocn_eddy_parameterization_helpers
           ! if the mixed layer depth is not found, it is set to the depth of the bottom most level
 
           if(.not. found_den_mld) then
-             dThreshMLD(iCell) = abs(zMid(maxLevelCell(iCell),iCell))
+             if (mldFromColumnTop) then
+                dThreshMLD(iCell) = ssh(iCell) - zMid(maxLevelCell(iCell),iCell)
+             else
+                dThreshMLD(iCell) = abs(zMid(maxLevelCell(iCell),iCell))
+             end if
              indMLD(iCell) = maxLevelCell(iCell)
           end if
         end do !iCell
         !$omp end do
         !$omp end parallel
 
-        if (associated(landIceDraftForSsh) ) then
+        if (associated(landIceDraftForSsh) .and. .not. mldFromColumnTop) then
           !$omp parallel
           !$omp do schedule(runtime)
           do iCell = 1, nCells
