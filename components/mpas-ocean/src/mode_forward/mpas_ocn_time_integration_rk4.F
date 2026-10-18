@@ -959,13 +959,28 @@ module ocn_time_integration_rk4
       call mpas_pool_get_array(provisStatePool, 'highFreqThickness', highFreqThicknessProvis, 1)
 
       if (config_use_GM .or. config_submesoscale_enable) then
-         !$omp parallel
-         !$omp do schedule(runtime)
-         do iEdge = 1, nEdges
-            normalTransportVelocity(:, iEdge) = normalVelocityProvis(:, iEdge)
-         end do
-         !$omp end do
-         !$omp end parallel
+         if (config_use_wetting_drying .and. config_prevent_drying .and. &
+             config_zero_drying_velocity) then
+            ! keep the limit that ocn_prevent_drying_rk4 put on the
+            ! transport velocity so that cells don't dry
+            !$omp parallel
+            !$omp do schedule(runtime)
+            do iEdge = 1, nEdges
+               normalTransportVelocity(:, iEdge) = &
+                  (1.0_RKIND - wettingVelocityFactor(:, iEdge)) * &
+                  normalVelocityProvis(:, iEdge)
+            end do
+            !$omp end do
+            !$omp end parallel
+         else
+            !$omp parallel
+            !$omp do schedule(runtime)
+            do iEdge = 1, nEdges
+               normalTransportVelocity(:, iEdge) = normalVelocityProvis(:, iEdge)
+            end do
+            !$omp end do
+            !$omp end parallel
+         end if
       end if
 
       ! add submesoscale and GM contributions if requested
@@ -1036,13 +1051,28 @@ module ocn_time_integration_rk4
       call mpas_pool_get_array(provisStatePool, 'highFreqThickness', highFreqThicknessProvis, 1)
 
       if (config_use_GM .or. config_submesoscale_enable) then
-         !$omp parallel
-         !$omp do schedule(runtime)
-         do iEdge = 1, nEdges
-            normalTransportVelocity(:, iEdge) = normalVelocityProvis(:, iEdge)
-         end do
-         !$omp end do
-         !$omp end parallel
+         if (config_use_wetting_drying .and. config_prevent_drying .and. &
+             config_zero_drying_velocity) then
+            ! keep the limit that ocn_prevent_drying_rk4 put on the
+            ! transport velocity so that cells don't dry
+            !$omp parallel
+            !$omp do schedule(runtime)
+            do iEdge = 1, nEdges
+               normalTransportVelocity(:, iEdge) = &
+                  (1.0_RKIND - wettingVelocityFactor(:, iEdge)) * &
+                  normalVelocityProvis(:, iEdge)
+            end do
+            !$omp end do
+            !$omp end parallel
+         else
+            !$omp parallel
+            !$omp do schedule(runtime)
+            do iEdge = 1, nEdges
+               normalTransportVelocity(:, iEdge) = normalVelocityProvis(:, iEdge)
+            end do
+            !$omp end do
+            !$omp end parallel
+         end if
       end if
 
       call ocn_GM_add_to_transport_vel(normalTransportVelocity, nEdges, nVertLevels)
