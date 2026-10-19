@@ -31,6 +31,7 @@ The Analysis module supports two output modes:
  frequencies (e.g., every 6 hours). Instantaneous output is configured with the
  `SnapshotPeriod` parameter.
 
+(omega-user-analysis-sampling-interval)=
 ### Sampling interval for temporal reductions
 
 By default a temporal reduction accumulates a sample on **every** model
@@ -178,6 +179,11 @@ Omega:
   (e.g., `1Hour`, `6Hour`, `1Day`). At least one of `ReductionPeriod` or
   `SnapshotPeriod` must be specified.
 
+- **SamplingInterval:** Optional cadence at which the temporal reductions
+  accumulate samples; see
+  [Sampling interval for temporal reductions](#omega-user-analysis-sampling-interval).
+  Empty (the default) samples every timestep.
+
 **Output fields:**
 For each `(Field, SpatialStat)` combination:
  - Instantaneous output: `FieldName_SpatialStat` (e.g.,
@@ -247,6 +253,11 @@ Omega:
 - **SnapshotPeriod:** Optional list of intervals for instantaneous output. At
   least one of `ReductionPeriod` or `SnapshotPeriod` must be specified.
 
+- **SamplingInterval:** Optional cadence at which the temporal reductions
+  accumulate samples; see
+  [Sampling interval for temporal reductions](#omega-user-analysis-sampling-interval).
+  Empty (the default) samples every timestep.
+
 **Output fields:**
 
 - Regional MOC: `MOC_streamfunction_RegionName` (2D: latitude bins × depth)
@@ -300,6 +311,11 @@ Omega:
 - **ReductionPeriod:** Optional list of time periods for temporal reduction
   (e.g., `1Day`, `1Month`, `1Year`). Defaults to `[1Month]` when not specified.
   Any `SnapshotPeriod` supplied for this group is ignored.
+
+- **SamplingInterval:** Optional cadence at which the temporal reductions
+  accumulate samples; see
+  [Sampling interval for temporal reductions](#omega-user-analysis-sampling-interval).
+  Empty (the default) samples every timestep.
 
 **Output fields:**
 For each requested field, a time-averaged field is produced:
