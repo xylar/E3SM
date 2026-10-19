@@ -26,3 +26,9 @@ Base: E3SM master `6816738295` (2026-10-15).
 | Zero land-ice fluxes where the ice is grounded | xylar:ocn/fix-land-ice-fluxes-in-grounded-cells | E3SM-Ocean-Discussion#141 | open |
 | Keep the floating mask zero where there is no land ice | xylar:ocn/fix-floating-mask-in-open-ocean | E3SM-Ocean-Discussion#142 | open |
 | Advance the time-varying forcing clock with every time integrator | xylar:ocn/fix-time-varying-forcing-clock (E3SM-Ocean-Discussion#143, merged as `c1df64a79c`) | none yet | — |
+| Make the submesoscale parameterization respect wetting and drying | xylar:ocn/fix-submesoscale-wetting-drying (E3SM-Ocean-Discussion#145, merged as `e41c36ea28`) | none yet | — |
+| Keep the top drag in KPP's friction velocity with implicit drag | xylar:ocn/fix-implicit-top-drag-friction-velocity (E3SM-Ocean-Discussion#146, merged as `e81b3b0223`) | none yet | — |
+| Avoid dividing by zero in the sea-ice salt limit | xylar:ocn/fix-sea-ice-salt-limiter (E3SM-Ocean-Discussion#147, merged as `58b634e761`) | none yet | — |
+| Add an option to limit Jacobian_from_TS to each cell's water column | xylar:ocn/limit-jacobian-pressure-gradient (E3SM-Ocean-Discussion#148, merged as `cf11862786`) | none yet | — |
+| Add an option to evaluate jm at each layer's depth | xylar:ocn/jm-eos-at-actual-depth (E3SM-Ocean-Discussion#149, merged as `a368328ed2`) | none yet | — |
+| Set the melt rate from the heat balance in nearly fresh water | xylar:ocn/fix-fresh-water-melt-rate (E3SM-Ocean-Discussion#150, merged as `9bc9914a4b`) | none yet | — |
