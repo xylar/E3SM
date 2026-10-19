@@ -243,9 +243,12 @@ the three accepted forms to a single `TimeInterval`:
 It then enforces the single constraint
 `PeriodInterval.isDivisibleBy(SamplingInterval)` (`ABORT_ERROR` on failure) and
 builds an operator-owned recurring `SampleAlarm` **anchored to the absolute
-clock start** (`Clock::getStartTime()`), attaching it to the model clock. The
+clock start** (`Clock::getStartTime()`), attaching it to the model clock; the
+operator's destructor detaches it with `Clock::detachAlarm()`. The
 alarm is then seeded to the current time via `SampleAlarm->reset(getCurrentTime())`,
-which walks its boundaries forward to the first interval after "now". Because
+which walks its boundaries forward to the first interval after "now". On a
+restart, `Clock::setCurrentTime()` resets it again, with the clock's other
+periodic alarms, once the restart time has been read. Because
 the boundary sequence `ClockStart + n*SamplingInterval` is a deterministic walk
 from a fixed origin, it is reconstructed identically on fresh starts and
 restarts, making arbitrary `SamplingInterval` values ERS-safe.
