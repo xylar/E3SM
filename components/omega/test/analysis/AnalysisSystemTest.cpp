@@ -798,8 +798,10 @@ void testSampledReductionUpstreamCompute(const HorzMesh *Mesh,
    GroupConfig.add("SpatialStats", std::vector<std::string>{"Mean"});
    GroupConfig.add("ReductionPeriod", std::vector<std::string>{Period});
    GroupConfig.add("SnapshotPeriod", std::vector<std::string>{});
-   GroupConfig.add("SamplingInterval", "2steps");
-   GroupConfig.add("Filename", "testsampledupstream");
+   // std::string, since a string literal would pick Config::add's bool
+   // overload
+   GroupConfig.add("SamplingInterval", std::string("2steps"));
+   GroupConfig.add("Filename", std::string("testsampledupstream"));
 
    auto DefEnv = MachEnv::getDefault();
    Config TestConfig;
@@ -827,13 +829,20 @@ void testSampledReductionUpstreamCompute(const HorzMesh *Mesh,
       // The clock has been advanced well past its start by earlier tests, so
       // the new stream's alarm, anchored at the start, would ring at once.
       // Move it to the boundary a run at this time would hold.
-      TimeInstant Now = ModelClock->getCurrentTime();
-      IOStream::getAlarm(TimeMeanNode->StreamNames[0])->reset(Now);
+      TimeInstant Now    = ModelClock->getCurrentTime();
+      Alarm *PeriodAlarm = IOStream::getAlarm(TimeMeanNode->StreamNames[0]);
+      PeriodAlarm->reset(Now);
 
       for (int Step = 0; Step < 4; ++Step) {
          ModelClock->advance();
          Now = ModelClock->getCurrentTime();
          TestAnalysis->computeAll();
+
+         // The stream is not written here, so reset its alarm as
+         // IOStream::writeAll() would after writing it. Otherwise it keeps
+         // ringing after the end of a period and computes everything.
+         if (PeriodAlarm->isRinging())
+            PeriodAlarm->reset(Now);
 
          TimeInterval SinceStart = Now - ModelClock->getStartTime();
          R8 SinceStartSeconds;
