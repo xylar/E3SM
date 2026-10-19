@@ -404,9 +404,11 @@ void Analysis::buildOperatorDependencies() {
 // Sets ComputeAlarms on terminal operator nodes and propagates them upstream.
 // Terminal nodes that write to output streams receive alarm pointers from
 // those streams. Temporal reduction operators receive two alarms: an
-// accumulation alarm (owned by Analysis) that triggers sample collection,
-// and an output alarm (from the stream) that triggers finalization and write.
-// Discrete-sampling operators receive only the stream's output alarm.
+// accumulation alarm that triggers sample collection, and an output alarm
+// (from the stream) that triggers finalization and write. The accumulation
+// alarm is the operator's own sample alarm when it has a SamplingInterval,
+// and otherwise an every-step alarm owned by Analysis. Discrete-sampling
+// operators receive only the stream's output alarm.
 void Analysis::setComputeAlarms() {
 
    // Get model timestep and current time for alarm initialization
@@ -422,24 +424,33 @@ void Analysis::setComputeAlarms() {
          // This is a terminal operator that writes to one or more streams
 
          if (IsTimeReduction) {
-            // Temporal reduction operators need two alarms:
-            // 1. Accumulation alarm (owned by Analysis) - triggers sample
-            // collection
-            auto AccumulationAlarm = std::make_unique<Alarm>(
-                "Compute_" + OpType, Timestep, CurrentTime);
+            // Time reduction operators have exactly one associated stream,
+            // whose alarm triggers finalization and write. The operator is
+            // told about it first, since an operator with a SamplingInterval
+            // builds its sample alarm from the period it gives.
+            auto StreamAlarm = IOStream::getAlarm(Node->StreamNames[0]);
+            Node->Op->setPeriodAlarm(StreamAlarm);
 
-            // Attach alarm to clock and store pointer
-            ModelClock->attachAlarm(AccumulationAlarm.get());
-            Node->ComputeAlarms.push_back(AccumulationAlarm.get());
-            AccumulationAlarms.push_back(std::move(AccumulationAlarm));
+            // 1. Accumulation alarm - triggers sample collection. With a
+            // SamplingInterval this is the operator's sample alarm, so that
+            // the operator and everything upstream of it are computed only
+            // on sample steps. Otherwise it rings every step and is owned by
+            // Analysis.
+            Alarm *SampleAlarm = Node->Op->getSampleAlarm();
+            if (SampleAlarm != nullptr) {
+               Node->ComputeAlarms.push_back(SampleAlarm);
+            } else {
+               auto AccumulationAlarm = std::make_unique<Alarm>(
+                   "Compute_" + OpType, Timestep, CurrentTime);
+
+               // Attach alarm to clock and store pointer
+               ModelClock->attachAlarm(AccumulationAlarm.get());
+               Node->ComputeAlarms.push_back(AccumulationAlarm.get());
+               AccumulationAlarms.push_back(std::move(AccumulationAlarm));
+            }
 
             // 2. Output alarm (from stream) - triggers finalization and write
-            // Time reduction operators have exactly one associated stream
-            auto StreamAlarm = IOStream::getAlarm(Node->StreamNames[0]);
             Node->ComputeAlarms.push_back(StreamAlarm);
-
-            // Tell the operator which alarm triggers period finalization
-            Node->Op->setPeriodAlarm(StreamAlarm);
 
          } else {
             // Discrete sampling operators: borrow alarm pointers from streams
