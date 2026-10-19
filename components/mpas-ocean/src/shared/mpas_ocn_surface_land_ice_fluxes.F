@@ -190,7 +190,6 @@ contains
 
       err = 0
       if (.not.landIceFluxesOn) return
-      if (config_use_implicit_top_drag) return
 
       call mpas_timer_start("top_drag", .false.)
 
@@ -198,25 +197,31 @@ contains
       !$acc update device (topDrag, topDragMag)
 
       !*** simply add input values to accumulated stresses
+      !*** with implicit top drag, vertical mixing applies the stress,
+      !*** but the friction velocity still includes its magnitude
 
+      if (.not. config_use_implicit_top_drag) then
 #ifdef MPAS_OPENACC
-      !$acc parallel loop &
-      !$acc    present(sfcStress, topDrag)
+         !$acc parallel loop &
+         !$acc    present(sfcStress, topDrag)
 #else
-      !$omp parallel
-      !$omp do schedule(runtime)
+         !$omp parallel
+         !$omp do schedule(runtime)
 #endif
-      do iEdge = 1, nEdgesAll
-        sfcStress(iEdge) = sfcStress(iEdge) + topDrag(iEdge)
-      end do
+         do iEdge = 1, nEdgesAll
+           sfcStress(iEdge) = sfcStress(iEdge) + topDrag(iEdge)
+         end do
 #ifndef MPAS_OPENACC
-      !$omp end do
+         !$omp end do
+         !$omp end parallel
 #endif
+      end if
 
 #ifdef MPAS_OPENACC
       !$acc parallel loop &
       !$acc    present(sfcStressMag, topDragMag)
 #else
+      !$omp parallel
       !$omp do schedule(runtime)
 #endif
       do iCell = 1, nCellsAll
