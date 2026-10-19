@@ -205,7 +205,7 @@ void SubmesoEddies::computeBuoyGrad(const Array2DReal &SpecVol,
               });
 
           // Brunt-Vaisala freq is located on interfaces
-          // Handle one remaining interpolation to edges at the bottom interface
+          // Handle one remaining interpolation to edges at the ocean bottom
           Kokkos::single(
               PerTeam(Team), INNER_LAMBDA() {
                  const int K      = MaxLyrEdgeTop + 1;
