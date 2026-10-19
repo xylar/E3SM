@@ -73,6 +73,7 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       // Read averaging period from configuration (e.g., "1day", "1month")
       std::string AvgPeriod;
       Options.get("Period", AvgPeriod);
+      PeriodStr = AvgPeriod;
 
       // Read the optional sampling interval. Empty => sample every timestep
       // (the default, bit-for-bit with prior behavior). The string is parsed
@@ -263,7 +264,7 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
             ABORT_ERROR("TimeMeanOp: SamplingInterval '{}' must request a "
                         "positive number of samples per period",
                         SamplingIntervalStr);
-         SamplingInterval = PeriodInterval / NumSamples;
+         SamplingInterval = dividePeriod(PeriodInterval, NumSamples);
       } else if (endsWith(SamplingIntervalStr, StepsSuffix)) {
          std::string NumStr = SamplingIntervalStr.substr(
              0, SamplingIntervalStr.size() - StepsSuffix.size());
@@ -597,6 +598,40 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    } // end finalize
 
  private:
+   /// Divides the averaging period into NumSamples equal sampling intervals.
+   /// TimeInterval's integer division truncates a calendar interval, so a
+   /// 1Day period divided by 4 would give zero days. Days have a fixed length
+   /// and are divided in seconds instead. Months vary in length, so a period
+   /// in months or years is divided in whole months and must divide evenly.
+   TimeInterval
+   dividePeriod(const TimeInterval &PeriodInterval, ///< [in] averaging period
+                I4 NumSamples ///< [in] number of samples per period
+   ) const {
+      std::vector<std::string> Parsed = parseFreqStr(PeriodStr);
+      const I8 Length                 = std::stoll(Parsed[0]);
+      const TimeUnits Units           = TimeUnitsFromString(Parsed[1]);
+
+      if (Units == TimeUnits::Days) {
+         const I8 PeriodSeconds = Length * Calendar::getSecondsPerDay();
+         return TimeInterval(PeriodSeconds, TimeUnits::Seconds) / NumSamples;
+      }
+
+      if (Units == TimeUnits::Months || Units == TimeUnits::Years) {
+         const I8 PeriodMonths =
+             (Units == TimeUnits::Years) ? Length * MONTHS_PER_YEAR : Length;
+         if (PeriodMonths % NumSamples != 0) {
+            ABORT_ERROR("TimeMeanOp: SamplingInterval '{}' must divide the "
+                        "{} averaging period into whole months, since months "
+                        "vary in length. Use a fixed interval such as 1day "
+                        "instead.",
+                        SamplingIntervalStr, PeriodStr);
+         }
+         return TimeInterval(PeriodMonths / NumSamples, TimeUnits::Months);
+      }
+
+      return PeriodInterval / NumSamples;
+   } // end dividePeriod
+
    /// Output data array matching input layout but with Real type, used to
    /// accumulate sum and store the final time-averaged mean
    OutputArrayT OutputData;
@@ -648,6 +683,10 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    /// every timestep). Normalized to the base-class SamplingInterval in
    /// setPeriodAlarm() once the period and timestep are known.
    std::string SamplingIntervalStr;
+
+   /// The averaging period as given in config (e.g. "1Month"), kept so that
+   /// a "<n>perPeriod" sampling interval can be built in the period's units
+   std::string PeriodStr;
 
 }; // end class TimeMeanOp
 

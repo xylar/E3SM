@@ -58,6 +58,10 @@ Behavior and constraints:
   at or after each target time. A `SamplingInterval` that is not a whole
   multiple of the timestep therefore snaps to the next step, giving a bounded
   sub-timestep phase error (zero when the interval is a timestep multiple).
+- **Samples per period:** `<n>perPeriod` divides a period given in days or
+  shorter units into `n` equal intervals. Months vary in length, so for a
+  period given in months or years `n` must divide the number of months, as
+  in `3perPeriod` for `1Year`; otherwise use a fixed interval such as `1day`.
 - **Period-divisibility (required):** the reduction period must be evenly
   divisible by the sampling interval, so the simple count-mean remains an
   unbiased estimate of the time average. A violation aborts the run. **This

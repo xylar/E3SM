@@ -1535,6 +1535,105 @@ void testTimeMeanOpSamplingInterval(const MachEnv *Env, const HorzMesh *Mesh,
 }
 
 //------------------------------------------------------------------------------
+// Runs one 1Day averaging period of a new TimeMeanOp with the given
+// SamplingInterval and returns the mean at cell 0, layer 0. The field holds
+// the step number (1, 2, ...) on each step, and the period starts on a 6-hour
+// boundary of the clock, which is what the sample alarm is anchored to.
+Real runOneDaySampledMean(const std::string &FieldSuffix,
+                          const std::string &SamplingInterval,
+                          const MachEnv *Env, const HorzMesh *Mesh,
+                          const VertCoord *VCoord, Clock *ModelClock) {
+
+   using ArrayType = Array2DR8;
+
+   const std::string FieldName = "TestFieldTMDay_" + FieldSuffix;
+   const std::vector<I4> Dims  = {Mesh->NCellsSize, VCoord->NVertLayers};
+   auto TestField              = Field::create(
+       FieldName, "Test field for a 1Day SamplingInterval", TestUnits,
+       TestStdName, -1.0e30, 1.0e30, 2, {"NCells", "NVertLayers"});
+   ArrayType TestData(FieldName + "_data", Dims[0], Dims[1]);
+   TestField->attachData<ArrayType>(TestData);
+
+   Config OpConfig = makeOpConfig(opParam("Period", std::string("1Day")));
+   OpConfig.add("SamplingInterval", SamplingInterval);
+   auto Op = AnalysisOpFactory::createOp("TimeMean", {FieldName}, OpConfig);
+
+   R8 StepSeconds;
+   ModelClock->getTimeStep().get(StepSeconds, TimeUnits::Seconds);
+   const R8 SixHourSeconds = 6.0 * SECONDS_PER_HOUR;
+   while (true) {
+      TimeInterval SinceStart =
+          ModelClock->getCurrentTime() - ModelClock->getStartTime();
+      R8 SinceStartSeconds;
+      SinceStart.get(SinceStartSeconds, TimeUnits::Seconds);
+      if (std::fmod(SinceStartSeconds, SixHourSeconds) == 0.0)
+         break;
+      ModelClock->advance();
+   }
+
+   TimeInstant StartTime = ModelClock->getCurrentTime();
+   Alarm PeriodAlarm("TMDayPeriodAlarm_" + FieldSuffix,
+                     TimeInterval(1, TimeUnits::Days), StartTime);
+   Op->initialize(Env, Mesh, VCoord, Config{});
+   Op->setPeriodAlarm(&PeriodAlarm);
+
+   const I4 NumSteps =
+       static_cast<I4>(std::llround(SECONDS_PER_DAY / StepSeconds));
+   for (I4 Step = 1; Step <= NumSteps; ++Step) {
+      auto TestDataHost = createHostMirrorCopy(TestData);
+      for (I4 ICell = 0; ICell < Dims[0]; ++ICell)
+         for (I4 K = 0; K < Dims[1]; ++K)
+            TestDataHost(ICell, K) = static_cast<Real>(Step);
+      deepCopy(TestData, TestDataHost);
+
+      ModelClock->advance();
+      TimeInstant CurrentTime = ModelClock->getCurrentTime();
+      PeriodAlarm.updateStatus(CurrentTime);
+      Op->compute(CurrentTime);
+   }
+
+   auto ResultField = Field::get(FieldName + "_TimeMean1Day");
+   auto ResultData  = ResultField->getDataArray<Array2D_t<Real>>();
+   auto ResultHost  = createHostMirrorCopy(ResultData);
+   return ResultHost(0, 0);
+}
+
+//------------------------------------------------------------------------------
+// Verify that "<n>perPeriod" divides a period given in days rather than
+// truncating it: "4perPeriod" of a 1Day period samples every 6 hours, giving
+// the same mean as "6hour". The samples fall on the steps S, 2S, 3S and 4S,
+// where S is the number of steps in 6 hours, so the mean is 2.5 S.
+void testTimeMeanOpSamplingPerDay(const MachEnv *Env, const HorzMesh *Mesh,
+                                  const VertCoord *VCoord, Clock *ModelClock) {
+
+   R8 StepSeconds;
+   ModelClock->getTimeStep().get(StepSeconds, TimeUnits::Seconds);
+   const R8 StepsPerSixHours = 6.0 * SECONDS_PER_HOUR / StepSeconds;
+   if (StepsPerSixHours != std::floor(StepsPerSixHours)) {
+      LOG_INFO("  Skipping the 1Day SamplingInterval test: the time step "
+               "does not divide 6 hours");
+      return;
+   }
+   const Real Expected = 2.5_Real * static_cast<Real>(StepsPerSixHours);
+
+   bool Passed = true;
+   for (const auto &[Suffix, Interval] :
+        std::vector<std::pair<std::string, std::string>>{
+            {"perperiod", "4perPeriod"}, {"rawinterval", "6hour"}}) {
+      const Real Mean =
+          runOneDaySampledMean(Suffix, Interval, Env, Mesh, VCoord, ModelClock);
+      if (std::abs(Mean - Expected) > 1.0e-8) {
+         Passed = false;
+         LOG_ERROR("  SamplingInterval '{}' over 1Day: expected {}, got {}",
+                   Interval, Expected, Mean);
+      }
+   }
+
+   reportTest("TimeMeanOp: SamplingInterval perPeriod over a 1Day period",
+              Passed);
+}
+
+//------------------------------------------------------------------------------
 // Test TimeMeanOp with all array types
 void testTimeMeanOp(const MachEnv *Env, const HorzMesh *Mesh,
                     const VertCoord *VCoord, Clock *ModelClock) {
@@ -1560,6 +1659,8 @@ void testTimeMeanOp(const MachEnv *Env, const HorzMesh *Mesh,
    testTimeMeanOpInterfaceField(Env, Mesh, VCoord, ModelClock);
 
    testTimeMeanOpSamplingInterval(Env, Mesh, VCoord, ModelClock);
+
+   testTimeMeanOpSamplingPerDay(Env, Mesh, VCoord, ModelClock);
 }
 
 //------------------------------------------------------------------------------
