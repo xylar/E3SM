@@ -19,10 +19,13 @@
 #include "GlobalConstants.h"
 #include "Halo.h"
 #include "IOStream.h"
+#include "Logging.h"
 #include "OmegaKokkos.h"
 #include "Reductions.h"
 
+#include <algorithm>
 #include <limits>
+#include <vector>
 
 namespace OMEGA {
 
@@ -430,7 +433,7 @@ void HorzMesh::computeEdgeSign() {
 
 //------------------------------------------------------------------------------
 // Set mesh scaling coefficients for mixing terms in momentum and tracer
-// equations so viscosity and diffusion scale with mesh, following MPAS-Ocean
+// equations so viscosity and diffusion scale with mesh
 void HorzMesh::computeMeshScaling() {
 
    Config *OmegaConfig = Config::getOmegaConfig();
@@ -439,104 +442,152 @@ void HorzMesh::computeMeshScaling() {
    CHECK_ERROR_ABORT(Err,
                      "HorzMesh: HorzMesh group not found in configuration");
 
-   Config MeshScalingConfig("MeshScaling");
-   Err = HorzMeshConfig.get(MeshScalingConfig);
-   CHECK_ERROR_ABORT(Err,
-                     "HorzMesh: MeshScaling group not found in configuration");
+   bool MeshScalingEnable;
+   Err = HorzMeshConfig.get("MeshScalingEnable", MeshScalingEnable);
+   CHECK_ERROR_ABORT(Err, "HorzMesh: MeshScalingEnable not found in HorzMesh "
+                          "configuration");
 
-   bool ScaleWithMesh;
-   bool UseRefWidth;
-   Real MaxMeshDensity;
-   Real RefWidth;
-
-   Err += MeshScalingConfig.get("ScaleWithMesh", ScaleWithMesh);
-   Err += MeshScalingConfig.get("UseRefWidth", UseRefWidth);
-   Err += MeshScalingConfig.get("RefWidth", RefWidth);
-   Err += MeshScalingConfig.get("MaxMeshDensity", MaxMeshDensity);
-   CHECK_ERROR_ABORT(Err, "HorzMesh: error reading mesh scaling configuration");
+   // Reference width (median cell width) for the scaling
+   computeMedianCellWidth();
 
    OMEGA_SCOPE(o_MeshScalingDel2, MeshScalingDel2);
    OMEGA_SCOPE(o_MeshScalingDel4, MeshScalingDel4);
 
-   if (ScaleWithMesh) {
-      if (UseRefWidth) {
-         OMEGA_REQUIRE(RefWidth > 0.0_Real,
-                       "HorzMesh: RefWidth must be positive, got {}", RefWidth);
+   if (MeshScalingEnable) {
+      OMEGA_SCOPE(o_MedianCellWidth, MedianCellWidth);
+      OMEGA_SCOPE(o_AreaCell, AreaCell);
+      OMEGA_SCOPE(o_CellsOnEdge, CellsOnEdge);
 
-         OMEGA_SCOPE(o_RefWidth, RefWidth);
-         OMEGA_SCOPE(o_AreaCell, AreaCell);
-         OMEGA_SCOPE(o_CellsOnEdge, CellsOnEdge);
+      // Mesh scaling is computed using CellWidth derived from AreaCell
+      // relative to the global median cell width.
+      parallelFor(
+          {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
+             const int Cell0 = o_CellsOnEdge(Edge, 0);
+             const int Cell1 = o_CellsOnEdge(Edge, 1);
+             const Real CellWidth =
+                 2.0_Real *
+                 Kokkos::sqrt((o_AreaCell(Cell0) + o_AreaCell(Cell1)) /
+                              (2.0_Real * Pi));
+             const Real Del2Scale = CellWidth / o_MedianCellWidth;
 
-         // Mesh scaling is computed using CellWidth derived from AreaCell
-         // and the input reference width, RefWidth (see Eqs. (1) and (2) of
-         // Hoch et al. 2020, JAMES).
-         parallelFor(
-             {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
-                const int Cell0 = o_CellsOnEdge(Edge, 0);
-                const int Cell1 = o_CellsOnEdge(Edge, 1);
-                const Real CellWidth =
-                    2.0_Real *
-                    Kokkos::sqrt((o_AreaCell(Cell0) + o_AreaCell(Cell1)) /
-                                 (2.0_Real * Pi));
-                const Real Del2Scale = CellWidth / o_RefWidth;
-
-                o_MeshScalingDel2(Edge) = Del2Scale;
-                o_MeshScalingDel4(Edge) = Del2Scale * Del2Scale * Del2Scale;
-             });
-
-      } else {
-         // Mesh scaling is set by MeshDensity. This is both confusing
-         // and inconvenient, as the flags like ViscDel2 need
-         // to be reset for every resolution. It is kept for backwards
-         // compatibility, but should become defunct.
-         // Del2 scales as Dc**1, Del4 scales as Dc**3
-         if (MaxMeshDensity < 0.0_Real) {
-            Real MaxMeshDensityLocal = 0.0_Real;
-            for (int Cell = 0; Cell < NCellsOwned; ++Cell)
-               MaxMeshDensityLocal =
-                   std::max(MaxMeshDensityLocal, MeshDensityH(Cell));
-
-            Halo *HorzMeshHalo = Halo::get(MeshName);
-            MaxMeshDensity =
-                globalMaxVal(MaxMeshDensityLocal, HorzMeshHalo->getComm());
-            MeshScalingConfig.set("MaxMeshDensity", MaxMeshDensity);
-         }
-
-         OMEGA_REQUIRE(MaxMeshDensity > 0.0_Real,
-                       "HorzMesh: MaxMeshDensity must be positive, got {}",
-                       MaxMeshDensity);
-
-         OMEGA_SCOPE(o_CellsOnEdge, CellsOnEdge);
-         OMEGA_SCOPE(o_MeshDensity, MeshDensity);
-         OMEGA_SCOPE(o_MaxMeshDensity, MaxMeshDensity);
-
-         parallelFor(
-             {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
-                const int Cell0 = o_CellsOnEdge(Edge, 0);
-                const int Cell1 = o_CellsOnEdge(Edge, 1);
-                const Real AvgDensity =
-                    0.5_Real * (o_MeshDensity(Cell0) + o_MeshDensity(Cell1));
-                const Real DensityRatio = AvgDensity / o_MaxMeshDensity;
-
-                o_MeshScalingDel2(Edge) =
-                    1.0_Real / Kokkos::pow(DensityRatio, 0.25_Real);
-                o_MeshScalingDel4(Edge) =
-                    1.0_Real / Kokkos::pow(DensityRatio, 0.75_Real);
-             });
-      } // if UseRefWidth
+             o_MeshScalingDel2(Edge) = Del2Scale;
+             o_MeshScalingDel4(Edge) = Del2Scale * Del2Scale * Del2Scale;
+          });
 
    } else {
+      // Without mesh scaling, the mesh scaling is set as 1 and
+      // is the same everywhere
       parallelFor(
           {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
              o_MeshScalingDel2(Edge) = 1.0_Real;
              o_MeshScalingDel4(Edge) = 1.0_Real;
           });
-   } // if ScaleWithMesh
+   } // if MeshScalingEnable
 
    MeshScalingDel2H = createHostMirrorCopy(MeshScalingDel2);
    MeshScalingDel4H = createHostMirrorCopy(MeshScalingDel4);
 
+   // Write the median cell width and the range of the scaling coefficients
+   // to the log. Boundary edges have only one valid cell (the other is
+   // NCellsAll) and are masked out of the mixing terms, so they are skipped.
+   Real MinDel2 = std::numeric_limits<Real>::max();
+   Real MaxDel2 = std::numeric_limits<Real>::lowest();
+   Real MinDel4 = std::numeric_limits<Real>::max();
+   Real MaxDel4 = std::numeric_limits<Real>::lowest();
+   for (int Edge = 0; Edge < NEdgesOwned; ++Edge) {
+      if (CellsOnEdgeH(Edge, 0) == NCellsAll or
+          CellsOnEdgeH(Edge, 1) == NCellsAll)
+         continue;
+      MinDel2 = std::min(MinDel2, MeshScalingDel2H(Edge));
+      MaxDel2 = std::max(MaxDel2, MeshScalingDel2H(Edge));
+      MinDel4 = std::min(MinDel4, MeshScalingDel4H(Edge));
+      MaxDel4 = std::max(MaxDel4, MeshScalingDel4H(Edge));
+   }
+
+   MPI_Comm Comm = Halo::get(MeshName)->getComm();
+   std::vector<Real> MinVals =
+       globalMinVal(std::vector<Real>{MinDel2, MinDel4}, Comm);
+   std::vector<Real> MaxVals =
+       globalMaxVal(std::vector<Real>{MaxDel2, MaxDel4}, Comm);
+
+   LOG_INFO("HorzMesh: MeshScalingEnable = {}; median cell width = {} m",
+            MeshScalingEnable, MedianCellWidth);
+   LOG_INFO("HorzMesh: MeshScalingDel2 min/max = {}/{}", MinVals[0],
+            MaxVals[0]);
+   LOG_INFO("HorzMesh: MeshScalingDel4 min/max = {}/{}", MinVals[1],
+            MaxVals[1]);
+
 } // end computeMeshScaling
+
+//------------------------------------------------------------------------------
+// Compute the global median cell width, where the width of each cell is the
+// diameter of a circle with the same area. The widths of the owned cells are
+// gathered on one task, so the result does not depend on the decomposition.
+void HorzMesh::computeMedianCellWidth() {
+
+   MPI_Comm Comm = Halo::get(MeshName)->getComm();
+   const int Root = 0;
+   int MyTask;
+   int NTasks;
+   MPI_Comm_rank(Comm, &MyTask);
+   MPI_Comm_size(Comm, &NTasks);
+
+   std::vector<Real> LocWidths(NCellsOwned);
+   for (int Cell = 0; Cell < NCellsOwned; ++Cell)
+      LocWidths[Cell] = 2.0_Real * std::sqrt(AreaCellH(Cell) / Pi);
+
+   // Gather the number of owned cells on each task to set the offsets
+   I4 LocCount = NCellsOwned;
+   std::vector<I4> Counts(NTasks, 0);
+   std::vector<I4> Offsets(NTasks, 0);
+   int Err = MPI_Gather(&LocCount, 1, MPI_INT32_T, Counts.data(), 1,
+                        MPI_INT32_T, Root, Comm);
+   if (Err != MPI_SUCCESS)
+      ABORT_ERROR("HorzMesh: MPI error gathering cell counts for the median "
+                  "cell width");
+
+   std::vector<Real> AllWidths;
+   if (MyTask == Root) {
+      I4 NCellsTot = 0;
+      for (int Task = 0; Task < NTasks; ++Task) {
+         Offsets[Task] = NCellsTot;
+         NCellsTot += Counts[Task];
+      }
+      OMEGA_REQUIRE(NCellsTot == NCellsGlobal,
+                    "HorzMesh: gathered {} cells for the median cell width, "
+                    "expected {}",
+                    NCellsTot, NCellsGlobal);
+      AllWidths.resize(NCellsTot);
+   }
+
+   Err = MPI_Gatherv(LocWidths.data(), LocCount, MPI_RealKind, AllWidths.data(),
+                     Counts.data(), Offsets.data(), MPI_RealKind, Root, Comm);
+   if (Err != MPI_SUCCESS)
+      ABORT_ERROR("HorzMesh: MPI error gathering cell widths for the median "
+                  "cell width");
+
+   // Median of all cell widths (mean of the two middle values when the number
+   // of cells is even)
+   Real Median = 0.0_Real;
+   if (MyTask == Root) {
+      auto Mid = AllWidths.begin() + AllWidths.size() / 2;
+      std::nth_element(AllWidths.begin(), Mid, AllWidths.end());
+      Median = *Mid;
+      if (AllWidths.size() % 2 == 0)
+         Median =
+             0.5_Real * (Median + *std::max_element(AllWidths.begin(), Mid));
+   }
+
+   Err = MPI_Bcast(&Median, 1, MPI_RealKind, Root, Comm);
+   if (Err != MPI_SUCCESS)
+      ABORT_ERROR("HorzMesh: MPI error broadcasting the median cell width");
+
+   OMEGA_REQUIRE(Median > 0.0_Real,
+                 "HorzMesh: median cell width must be positive, got {}",
+                 Median);
+   MedianCellWidth = Median;
+
+} // end computeMedianCellWidth
 
 //------------------------------------------------------------------------------
 // Finish filling arrays read from a file by filling halos and copying to host

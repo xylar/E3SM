@@ -93,11 +93,7 @@ Omega:
     KPPNonLocalTracerFluxTendencyEnable: true
     KPPNonLocalTracerDiagnosticsEnable: false
   HorzMesh:
-    MeshScaling:
-      ScaleWithMesh: false
-      UseRefWidth: true
-      RefWidth: 30.0e3
-      MaxMeshDensity: -1.0
+    MeshScalingEnable: true
   ManufacturedSolution:
     WavelengthX: 5.0e6
     WavelengthY: 4.33013e6

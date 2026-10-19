@@ -55,27 +55,33 @@ angles, and weights needed for the TRiSK discretization.
 
 ### Horizontal mixing mesh scaling
 
-The `HorzMesh: MeshScaling` configuration controls whether Laplacian and
-biharmonic mixing coefficients vary with horizontal mesh size:
+Omega scales horizontal viscosity and diffusivity with the local mesh size.
+This scaling is enabled by default and is controlled by the following
+configuration option:
 
 ```yaml
   HorzMesh:
-    MeshScaling:
-      ScaleWithMesh: false
-      UseRefWidth: false
-      RefWidth: 30.0e3
-      MaxMeshDensity: -1.0
+    MeshScalingEnable: true
 ```
 
-When `ScaleWithMesh` is false, both scaling coefficients are one. When it is
-true and `UseRefWidth` is true, Omega computes the effective cell width at
-each edge from the areas of its two adjacent cells. The Laplacian scaling is
-the ratio of this width to `RefWidth`, and the biharmonic scaling is the
-cube of that ratio.
+The reference width is the global median cell width, computed during mesh
+initialization. Each cell's width is defined as the diameter of a circle
+with the same area as the cell.
 
-When `UseRefWidth` is false, Omega uses the legacy MPAS-Ocean scaling based
-on `MeshDensity`. A negative `MaxMeshDensity` requests that Omega compute its
-global value from the mesh during initialization.
+At each edge, an effective cell width is computed from the mean area of the
+two adjacent cells. The Laplacian mixing coefficient is multiplied by the
+ratio of this width to the reference width, and the biharmonic mixing
+coefficient by the cube of that ratio. The parameters `ViscDel2`, `ViscDel4`,
+`EddyDiff2` and `EddyDiff4` therefore specify the mixing coefficients at the
+median resolution. Their values may need adjustment when changing to a mesh
+with a different median cell width.
+
+On a mesh with equal cell areas, both scaling factors are one. Setting
+`MeshScalingEnable` to false also sets both factors to one, giving spatially
+uniform mixing coefficients.
+
+The initialization log reports whether mesh scaling is enabled, the median
+cell width and the range of both scaling factors over interior edges.
 
 In the future, the Mesh class will optionally compute the mesh variables that
 are dependent on the Cartesian mesh coordinates internally.
