@@ -31,6 +31,47 @@ The Analysis module supports two output modes:
  frequencies (e.g., every 6 hours). Instantaneous output is configured with the
  `SnapshotPeriod` parameter.
 
+### Sampling interval for temporal reductions
+
+By default a temporal reduction accumulates a sample on **every** model
+timestep. The optional `SamplingInterval` parameter instead collects samples
+at a coarser cadence, so the time average is formed from fewer, evenly-spaced
+samples. This is the in-model equivalent of MPAS-Ocean's driver-level
+`compute_interval` for the `time_series_stats` analysis member.
+
+`SamplingInterval` accepts three forms, distinguished by suffix:
+
+| Form               | Example        | Meaning                              |
+|--------------------|----------------|--------------------------------------|
+| TimeInterval units | `6hour`        | a fixed time interval between samples |
+| Timestep count     | `4steps`       | every 4 model timesteps              |
+| Samples per period | `8perPeriod`   | 8 evenly-spaced samples per reduction period |
+
+Behavior and constraints:
+
+- **Default (omitted/empty):** sample every timestep; bit-for-bit identical to
+  the prior behavior.
+- **Phasing:** the first sample falls one `SamplingInterval` after the start of
+  each reduction period (samples at `PeriodStart + n*SamplingInterval`).
+- **Snap-to-step:** like all model alarms, sampling fires on the first timestep
+  at or after each target time. A `SamplingInterval` that is not a whole
+  multiple of the timestep therefore snaps to the next step, giving a bounded
+  sub-timestep phase error (zero when the interval is a timestep multiple).
+- **Period-divisibility (required):** the reduction period must be evenly
+  divisible by the sampling interval, so the simple count-mean remains an
+  unbiased estimate of the time average. A violation aborts the run. **This
+  check is unrelated to the restart interval** — temporal reductions may still
+  span restarts with no restart-interval divisibility requirement.
+- **Accuracy caveat:** the averaged value stays unbiased, but when the interval
+  is not a timestep multiple the per-period sample count may differ by ±1
+  between periods (a boundary-adjacent sample can snap to either side). This
+  per-period count variation is **reproducible across restarts**: the sample
+  schedule is anchored to the absolute clock start, so an exact-restart (ERS)
+  run reconstructs the identical boundaries and reproduces the straight-through
+  result bit-for-bit. When the interval is a timestep multiple, the count is
+  constant and this does not arise at all.
+
+
 ## Configuration Overview
 
 Analysis groups are configured in the YAML input file under `Omega: Analysis:`.

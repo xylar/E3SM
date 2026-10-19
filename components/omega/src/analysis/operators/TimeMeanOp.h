@@ -28,8 +28,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "AnalysisOperator.h"
+#include "TimeStepper.h"
 
 #include <limits>
+#include <memory>
+#include <string>
 
 namespace OMEGA {
 
@@ -70,6 +73,13 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       // Read averaging period from configuration (e.g., "1day", "1month")
       std::string AvgPeriod;
       Options.get("Period", AvgPeriod);
+
+      // Read the optional sampling interval. Empty => sample every timestep
+      // (the default, bit-for-bit with prior behavior). The string is parsed
+      // and normalized to a TimeInterval later, in setPeriodAlarm(), once the
+      // reduction period and model timestep are both available.
+      SamplingIntervalStr.clear();
+      Options.get("SamplingInterval", SamplingIntervalStr);
 
       // Construct output field name and set instance name
       std::string OutputFieldName = InputNames[0] + "_TimeMean" + AvgPeriod;
@@ -199,10 +209,106 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
 
    /// Sets the period alarm that signals when to finalize the time average.
    /// Called by Analysis during initialization to provide the alarm associated
-   /// with the averaging period specified in the constructor config.
-   void setPeriodAlarm(Alarm *Alarm ///< [in] alarm for averaging period
+   /// with the averaging period specified in the constructor config. If a
+   /// SamplingInterval was configured, this is also where the three accepted
+   /// forms are normalized to a single TimeInterval, the period-divisibility
+   /// constraint is enforced, and the operator-owned recurring SampleAlarm is
+   /// built and attached to the model clock.
+   void setPeriodAlarm(Alarm *AlarmIn ///< [in] alarm for averaging period
                        ) override {
-      PeriodAlarm = Alarm;
+      PeriodAlarm = AlarmIn;
+
+      // Nothing more to do when sampling every timestep (empty => default).
+      if (SamplingIntervalStr.empty())
+         return;
+
+      // The reduction period comes from the period alarm; the model timestep
+      // and the absolute simulation start come from the default clock.
+      const TimeInterval PeriodInterval = *(PeriodAlarm->getInterval());
+
+      auto *Stepper = TimeStepper::getDefault();
+      OMEGA_REQUIRE(Stepper,
+                    "TimeMeanOp: null default TimeStepper in setPeriodAlarm");
+      Clock *ModelClock = Stepper->getClock();
+      OMEGA_REQUIRE(ModelClock,
+                    "TimeMeanOp: null model clock in setPeriodAlarm");
+      const TimeInterval ModelTimeStep = ModelClock->getTimeStep();
+
+      // Anchor the sample schedule to the fixed absolute clock start rather
+      // than to the period alarm's runtime-mutated previous ring time. The
+      // clock start (Clock::getStartTime) is identical in straight-through and
+      // restart runs, so the sample-boundary sequence it generates is a
+      // deterministic walk from a fixed origin.
+      const TimeInstant ClockStart = ModelClock->getStartTime();
+
+      // Normalize the configured string to a single TimeInterval. The suffix
+      // selects the form:
+      //   "<n>perPeriod" => PeriodInterval / n (n samples per period)
+      //   "<n>steps"     => n * ModelTimeStep  (every n timesteps)
+      //   otherwise      => parsed directly as a TimeInterval string
+      const std::string PerPeriodSuffix = "perPeriod";
+      const std::string StepsSuffix     = "steps";
+
+      auto endsWith = [](const std::string &Str, const std::string &Suffix) {
+         return Str.size() >= Suffix.size() &&
+                Str.compare(Str.size() - Suffix.size(), Suffix.size(),
+                            Suffix) == 0;
+      };
+
+      if (endsWith(SamplingIntervalStr, PerPeriodSuffix)) {
+         std::string NumStr = SamplingIntervalStr.substr(
+             0, SamplingIntervalStr.size() - PerPeriodSuffix.size());
+         I4 NumSamples = std::stoi(NumStr);
+         if (NumSamples <= 0)
+            ABORT_ERROR("TimeMeanOp: SamplingInterval '{}' must request a "
+                        "positive number of samples per period",
+                        SamplingIntervalStr);
+         SamplingInterval = PeriodInterval / NumSamples;
+      } else if (endsWith(SamplingIntervalStr, StepsSuffix)) {
+         std::string NumStr = SamplingIntervalStr.substr(
+             0, SamplingIntervalStr.size() - StepsSuffix.size());
+         I4 NumSteps = std::stoi(NumStr);
+         if (NumSteps <= 0)
+            ABORT_ERROR("TimeMeanOp: SamplingInterval '{}' must request a "
+                        "positive number of timesteps",
+                        SamplingIntervalStr);
+         SamplingInterval = NumSteps * ModelTimeStep;
+      } else {
+         // Raw frequency-string form (e.g. "600seconds", "6hour"). Parse it
+         // the same way AnalysisGroup does, via the numeric (value, TimeUnits)
+         // TimeInterval constructor, so "<n>unit" strings are accepted.
+         std::vector<std::string> Parsed = parseFreqStr(SamplingIntervalStr);
+         I4 Freq                         = std::stoi(Parsed[0]);
+         TimeUnits FreqUnits             = TimeUnitsFromString(Parsed[1]);
+         SamplingInterval                = TimeInterval(Freq, FreqUnits);
+      }
+
+      // Enforce the single period-divisibility constraint: the sampling
+      // interval must divide the reduction period evenly so the unweighted
+      // count-mean stays an unbiased estimate of the time-average.
+      if (!PeriodInterval.isDivisibleBy(SamplingInterval)) {
+         ABORT_ERROR("TimeMeanOp: SamplingInterval '{}' must divide the "
+                     "averaging period evenly (PeriodInterval % "
+                     "SamplingInterval == 0).",
+                     SamplingIntervalStr);
+      }
+
+      HasSamplingInterval = true;
+
+      // Build and own a recurring sample alarm anchored to the absolute clock
+      // start, so its boundary sequence (ClockStart + n*SamplingInterval) is a
+      // deterministic walk reproduced identically on fresh starts and restarts.
+      OwnedSampleAlarm = std::make_unique<Alarm>(InstanceName + "_SampleAlarm",
+                                                 SamplingInterval, ClockStart);
+      ModelClock->attachAlarm(OwnedSampleAlarm.get());
+      SampleAlarm = OwnedSampleAlarm.get();
+
+      // Seed the freshly constructed alarm to the current clock time. Per
+      // Alarm::reset, a periodic alarm walks its boundaries forward to the
+      // first interval after the input time, so on a mid-run restart this lands
+      // on exactly the boundary a straight-through run would hold at this
+      // instant -- without introducing any new restart state.
+      OwnedSampleAlarm->reset(ModelClock->getCurrentTime());
    }
 
    /// TimeMeanOp maintains mid-period accumulation state (the partial sum in
@@ -287,35 +393,36 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       auto InputField = Field::get(InputNames[0]);
       auto InputData  = InputField->template getDataArray<ArrayT>();
 
-      // Accumulate input values into output array
-      if (IsNewPeriod) {
-         // Start of new averaging period: initialize with first input
-         NumAccum = 1;
-         accumInit(InputData);
-         IsNewPeriod = false;
-
-         // If the period alarm rings on the first sample of a period, finalize
-         // immediately (mean == current value) and start a new period next
-         // call.
-         if (PeriodAlarm != nullptr && PeriodAlarm->isRinging()) {
-            IsNewPeriod = true;
+      // Sampling gate: when a SamplingInterval is configured, only accumulate
+      // on sample steps (SampleAlarm ringing); otherwise (default) the gate is
+      // always open and every timestep is sampled, bit-for-bit with prior
+      // behavior. Accumulation is gated, but the period-finalize logic below
+      // runs every call so a period boundary is always honored -- even when it
+      // lands on a non-sample step.
+      if (shouldSample(TimeStamp)) {
+         // Accumulate input values into output array
+         if (IsNewPeriod) {
+            // Start of new averaging period: initialize with first input
+            NumAccum = 1;
+            accumInit(InputData);
+            IsNewPeriod = false;
+         } else {
+            // Continue accumulation: add input to running sum
+            accumAdd(InputData);
+            ++NumAccum;
          }
-      } else {
-         // Continue accumulation: add input to running sum
-         accumAdd(InputData);
-         ++NumAccum;
+      }
 
-         // Check if period alarm is ringing (time to finalize average)
-         bool ShouldFinalize =
-             (PeriodAlarm != nullptr && PeriodAlarm->isRinging());
+      // Period finalization runs outside the sampling gate so a boundary that
+      // falls on a non-sample step is still honored. Only act when a partial
+      // period is in progress (NumAccum > 0 / not IsNewPeriod); a boundary that
+      // arrives before the first sample of a period has nothing to finalize.
+      if (!IsNewPeriod && PeriodAlarm != nullptr && PeriodAlarm->isRinging()) {
+         // Finalize: divide accumulated sum by count to get mean
+         finalize();
 
-         if (ShouldFinalize) {
-            // Finalize: divide accumulated sum by count to get mean
-            finalize();
-
-            // Reset state for next averaging period
-            IsNewPeriod = true;
-         }
+         // Reset state for next averaging period
+         IsNewPeriod = true;
       }
 
       // Update cache validity markers
@@ -530,6 +637,17 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    /// (normalized) count into it after each accumulation step and
    /// applyRestartState() copies it back after a restart read.
    HostArray1DI4 NumAccumData;
+
+   /// Operator-owned recurring sample alarm, non-null only when a
+   /// SamplingInterval is configured. The base-class SampleAlarm pointer
+   /// borrows this instance; keeping it here ties its lifetime to the
+   /// operator and keeps it attached to the model clock.
+   std::unique_ptr<Alarm> OwnedSampleAlarm;
+
+   /// Raw, un-normalized SamplingInterval string from config (empty => sample
+   /// every timestep). Normalized to the base-class SamplingInterval in
+   /// setPeriodAlarm() once the period and timestep are known.
+   std::string SamplingIntervalStr;
 
 }; // end class TimeMeanOp
 

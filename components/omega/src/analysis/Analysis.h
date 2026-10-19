@@ -55,14 +55,6 @@
 
 namespace OMEGA {
 
-/// Parses a frequency string into numeric and unit components
-/// Frequency strings are of the form "1day", "6hour", "1month", etc.
-/// Returns a vector with two elements: [0] = numeric part, [1] = units
-/// If units do not end with 's', appends 's'.
-std::vector<std::string>
-parseFreqStr(const std::string &FreqStr ///< [in] frequency string to parse
-);
-
 /// Internal representation of a node in the Analysis operator dependency
 /// graph. Each node contains an operator instance, pointers to its upstream
 /// dependencies, the names of output streams that consume its output, and

@@ -212,6 +212,13 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
    // Update Halo/Host arrays with new state, auxiliary state, and tracer fields
    Err = initUpdateHaloAndHostArrays();
 
+   // Restore the sample count and period flag for each restart-persisting
+   // analysis operator from the checkpoint Fields just read. (The partial sum
+   // is restored directly by the restart read.)
+   if (ReadRestart) {
+      Analysis::getDefault()->applyRestartState();
+   }
+
    // Finish any time-stepper specific state initialization
    initStateForTimeStepper(ReadRestart);
 
@@ -327,6 +334,13 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
    }
 
    Err = initUpdateHaloAndHostArrays();
+
+   // Restore the sample count and period flag for each restart-persisting
+   // analysis operator from the checkpoint Fields just read. (The partial sum
+   // is restored directly by the restart read.)
+   if (CoupledReadRestart) {
+      Analysis::getDefault()->applyRestartState();
+   }
 
    // Finish any time-stepper specific state initialization
    initStateForTimeStepper(CoupledReadRestart);

@@ -48,8 +48,15 @@
 #include "VertCoord.h"
 
 #include <string>
+#include <vector>
 
 namespace OMEGA {
+
+/// Parses a frequency string into numeric and unit components.
+/// Frequency strings are of the form "1day", "6hour", "1month", etc.
+/// Returns a vector with two elements: [0] = numeric part, [1] = units.
+/// If units do not end with 's', appends 's'. Defined in Analysis.cpp.
+std::vector<std::string> parseFreqStr(const std::string &FreqStr);
 
 /// Base case for variadic template recursion - returns an empty Config.
 /// This terminates the recursive construction in makeOpConfig.
@@ -156,6 +163,16 @@ class AnalysisOperator {
    virtual void setPeriodAlarm(Alarm *Alarm ///< [in] period alarm ptr
    ) {}
 
+   /// Sets the sampling alarm for temporal reduction operators that use a
+   /// configurable SamplingInterval. The alarm fires on the first model step
+   /// at or after each sampling target time; the operator resets it on each
+   /// ring to schedule the next sample. Default implementation does nothing;
+   /// only temporal operators that support SamplingInterval override. When no
+   /// sampling interval is configured the operator leaves this unset and
+   /// samples every timestep (the default, bit-for-bit with prior behavior).
+   virtual void setSampleAlarm(Alarm *Alarm ///< [in] sample alarm ptr
+   ) {}
+
    /// Returns true if this operator maintains mid-period accumulation state
    /// that must be checkpointed to and restored from the restart file.
    /// Default is false; temporal reduction operators (e.g. TimeMeanOp)
@@ -237,6 +254,26 @@ class AnalysisOperator {
        const std::vector<std::string> &DimNames ///< [in] dimension names
    );
 
+   /// Reusable sampling gate for temporal reduction operators. Returns true
+   /// when a sample should be accumulated on this step. If no sampling
+   /// interval is configured (HasSamplingInterval == false), the gate is
+   /// always open, so the operator samples every timestep and is bit-for-bit
+   /// identical to the prior every-step behavior. Otherwise it returns true
+   /// only on steps where the SampleAlarm is ringing, and resets the alarm to
+   /// schedule the next sample. The alarm rings on the first model step at or
+   /// after each target time, so a sampling interval that is not a timestep
+   /// multiple snaps to the next step (bounded sub-timestep phase error).
+   bool shouldSample(const TimeInstant &TimeStamp ///< [in] current timestamp
+   ) {
+      if (!HasSamplingInterval)
+         return true;
+      if (SampleAlarm != nullptr && SampleAlarm->isRinging()) {
+         SampleAlarm->reset(TimeStamp);
+         return true;
+      }
+      return false;
+   } // end shouldSample
+
    const HorzMesh *Mesh;    ///< Horizontal mesh for spatial operations
    const VertCoord *VCoord; ///< Vertical coordinate for vertical ops
    MPI_Comm Comm;           ///< MPI communicator for parallel reductions
@@ -248,6 +285,19 @@ class AnalysisOperator {
 
    TimeInstant LastComputed; ///< Timestamp of last compute for caching
    bool FieldComputed;       ///< Flag indicating whether output is valid
+
+   /// Normalized sampling interval between accumulated samples within a
+   /// reduction period. Only meaningful when HasSamplingInterval is true.
+   TimeInterval SamplingInterval;
+
+   /// Whether a configurable SamplingInterval is active. False (default)
+   /// means sample every timestep (bit-for-bit with prior behavior).
+   bool HasSamplingInterval = false;
+
+   /// Recurring alarm that fires when the next sample should be taken. Owned
+   /// by the derived operator (not by the Clock's alarm registry). Null when
+   /// HasSamplingInterval is false.
+   Alarm *SampleAlarm = nullptr;
 
 }; // end class AnalysisOperator
 
