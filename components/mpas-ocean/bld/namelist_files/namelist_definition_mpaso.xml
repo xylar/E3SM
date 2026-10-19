@@ -2308,6 +2308,22 @@ Valid values: any real between 0 and 1
 Default: Defined in namelist_defaults.xml
 </entry>
 
+<entry id="config_jacobian_limit_to_water_column" type="logical"
+	category="pressure_gradient" group="pressure_gradient">
+If true, Jacobian_from_TS blends each layer's pressure gradient toward the pressure_and_zmid form where its common level lies outside either cell's water column (above the column top or below the bed), as next to a thin film at a grounding line, where it would otherwise extrapolate temperature and salinity into ice or rock.
+
+Valid values: .true. or .false.
+Default: Defined in namelist_defaults.xml
+</entry>
+
+<entry id="config_jacobian_water_column_ramp" type="real"
+	category="pressure_gradient" group="pressure_gradient">
+With config_jacobian_limit_to_water_column, the distance outside a cell's water column, in units of that cell's spacing between layer midpoints, over which the blend goes from Jacobian_from_TS to pressure_and_zmid.
+
+Valid values: any positive real
+Default: Defined in namelist_defaults.xml
+</entry>
+
 <entry id="config_zonal_ssh_grad" type="real"
 	category="pressure_gradient" group="pressure_gradient">
 The zonal (x) ssh gradient to be applied.

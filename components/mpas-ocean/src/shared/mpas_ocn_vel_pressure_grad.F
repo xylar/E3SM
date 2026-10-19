@@ -69,13 +69,17 @@ module ocn_vel_pressure_grad
 
    logical :: &
       pGradOff,         &! flag for turning pressure gradient on/off
-      timeIntegratorLTS  ! flag for Local Time Stepping
+      timeIntegratorLTS,&! flag for Local Time Stepping
+      limitJacobianToWaterColumn ! blend Jacobian_from_TS toward the
+                                 ! two-term form outside the water column
 
    real (kind=RKIND) :: &! precomputed constants for efficiency
       density0Inv,      &! 1/density0
       gdensity0Inv,     &! g/density0
       inv12,            &! 1/12
-      pGradLvlWgt        ! weighting for levels in Jacobian formulations
+      pGradLvlWgt,      &! weighting for levels in Jacobian formulations
+      jacobianWaterColumnRamp ! layer spacings outside the water column
+                              ! over which the blend reaches the two-term form
 
 !***********************************************************************
 
@@ -159,12 +163,15 @@ contains
          zStar, zC, zGamma,&! z coordinate combination for Jacobian
          rhoL, rhoR,       &! density neighbors for Jacobian
          TL, TR,           &! temperature neighbors for Jacobian
-         SL, SR             ! salinity neighbors for Jacobian
+         SL, SR,           &! salinity neighbors for Jacobian
+         outside1, outside2,&! common level outside each water column
+         pGradTwoTerm       ! two-term (pressure_and_zmid) pGrad
 
       real (kind=RKIND), dimension(:,:), allocatable :: &
          JacobianDxDs,     &! Jacobian in density * Dx * DS
          JacobianTz,       &! Jacobian associated with temperature
-         JacobianSz         ! Jacobian associated with salinity
+         JacobianSz,       &! Jacobian associated with salinity
+         JacobianWeight     ! weight of the Jacobian against the two-term form
 
       real (kind=RKIND) :: &
          meridSshGrad,     &! config_meridional_ssh_grad
@@ -464,9 +471,10 @@ contains
 
          allocate(JacobianDxDs(nVertLevels,nEdgesAll), &
                   JacobianTz(nVertLevels,nEdgesAll), &
-                  JacobianSz(nVertLevels,nEdgesAll))
+                  JacobianSz(nVertLevels,nEdgesAll), &
+                  JacobianWeight(nVertLevels,nEdgesAll))
          !$acc enter data create(JacobianDxDs, &
-         !$acc                   JacobianTz, JacobianSz)
+         !$acc                   JacobianTz, JacobianSz, JacobianWeight)
 
 #ifdef MPAS_OPENACC
          !$acc parallel loop &
@@ -474,14 +482,17 @@ contains
          !$acc            zMid, tracers, edgeMask, pressure, &
          !$acc            density, tend, thermExpCoeff, &
          !$acc            salineContractCoeff, &
-         !$acc            JacobianTz, JacobianSz, JacobianDxDs) &
+         !$acc            JacobianTz, JacobianSz, JacobianDxDs, &
+         !$acc            JacobianWeight, ssh, bottomDepth) &
          !$acc    private(cell1, cell2, invdcEdge, k, kMin, kMax, alpha, beta,&
-         !$acc         TL, TR, SL, SR, Area, zStar, zC, zGamma, pGrad)
+         !$acc         TL, TR, SL, SR, Area, zStar, zC, zGamma, pGrad, &
+         !$acc         outside1, outside2, pGradTwoTerm)
 #else
          !$omp parallel
          !$omp do schedule(runtime) &
          !$omp private(cell1, cell2, invdcEdge, k, kMin, kMax, alpha, beta, &
-         !$omp         TL, TR, SL, SR, Area, zStar, zC, zGamma, pGrad)
+         !$omp         TL, TR, SL, SR, Area, zStar, zC, zGamma, pGrad, &
+         !$omp         outside1, outside2, pGradTwoTerm)
 #endif
          do iEdge=1,nEdgesOwned
             cell1 = cellsOnEdge(1,iEdge)
@@ -536,6 +547,22 @@ contains
                ! eqn 2.6 in Shchepetkin and McWilliams (2003)
                JacobianTz(k,iEdge) = Area*(TL - TR)
                JacobianSz(k,iEdge) = Area*(SL - SR)
+
+               if (limitJacobianToWaterColumn) then
+                  ! how far the common level lies above the top (ssh) or
+                  ! below the bed of each cell's water column, in units of
+                  ! that cell's spacing between layer midpoints.  There, T
+                  ! and S are extrapolated into ice or rock, as next to a
+                  ! thin film at a grounding line.
+                  outside1 = max(0.0_RKIND, zGamma - ssh(cell1), &
+                                 -bottomDepth(cell1) - zGamma) / &
+                             (zMid(k-1,cell1) - zMid(k,cell1))
+                  outside2 = max(0.0_RKIND, zGamma - ssh(cell2), &
+                                 -bottomDepth(cell2) - zGamma) / &
+                             (zMid(k-1,cell2) - zMid(k,cell2))
+                  JacobianWeight(k,iEdge) = max(0.0_RKIND, 1.0_RKIND - &
+                     max(outside1, outside2)/jacobianWaterColumnRamp)
+               end if
             end do
 
             ! In top layer, use pressure for generalized coordinates
@@ -576,6 +603,19 @@ contains
 
                pGrad = pGrad + gdensity0Inv * JacobianDxDs(k,iEdge) * invdcEdge
 
+               if (limitJacobianToWaterColumn) then
+                  ! blend toward the two-term form, which uses each cell's
+                  ! own pressure, where the common level leaves either
+                  ! water column
+                  pGradTwoTerm = invdcEdge*( &
+                     - density0Inv*(pressure(k,cell2) - pressure(k,cell1)) &
+                     - gdensity0Inv*0.5_RKIND* &
+                       (density(k,cell1) + density(k,cell2))* &
+                       (zMid(k,cell2) - zMid(k,cell1)) )
+                  pGrad = JacobianWeight(k,iEdge)*pGrad + &
+                          (1.0_RKIND - JacobianWeight(k,iEdge))*pGradTwoTerm
+               end if
+
                tend(k,iEdge) = tend(k,iEdge) + pGrad
 
             end do
@@ -585,8 +625,9 @@ contains
          !$omp end parallel
 #endif
 
-         !$acc exit data delete (JacobianDxDs, JacobianTz, JacobianSz)
-         deallocate(JacobianDxDs, JacobianTz, JacobianSz)
+         !$acc exit data delete (JacobianDxDs, JacobianTz, JacobianSz, &
+         !$acc                   JacobianWeight)
+         deallocate(JacobianDxDs, JacobianTz, JacobianSz, JacobianWeight)
 
       case (pGradTypeConstForced)
 
@@ -655,6 +696,8 @@ contains
       pGradOff    = .true.
       pGradType   = pGradTypeNone
       pGradLvlWgt = 0.0_RKIND
+      limitJacobianToWaterColumn = .false.
+      jacobianWaterColumnRamp = 1.0_RKIND
 
       density0Inv = 1.0_RKIND / rho_sw
       gdensity0Inv = gravity / rho_sw
@@ -668,6 +711,8 @@ contains
       else
          pGradOff = .false.
          pGradLvlWgt = config_common_level_weight
+         limitJacobianToWaterColumn = config_jacobian_limit_to_water_column
+         jacobianWaterColumnRamp = config_jacobian_water_column_ramp
       endif
 
       select case (trim(config_pressure_gradient_type))

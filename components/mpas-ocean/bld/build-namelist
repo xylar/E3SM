@@ -984,6 +984,8 @@ add_default($nl, 'config_density0');
 
 add_default($nl, 'config_pressure_gradient_type');
 add_default($nl, 'config_common_level_weight');
+add_default($nl, 'config_jacobian_limit_to_water_column');
+add_default($nl, 'config_jacobian_water_column_ramp');
 add_default($nl, 'config_zonal_ssh_grad');
 add_default($nl, 'config_meridional_ssh_grad');
 

@@ -638,6 +638,8 @@
 <!-- pressure_gradient -->
 <config_pressure_gradient_type>'Jacobian_from_TS'</config_pressure_gradient_type>
 <config_common_level_weight>0.5</config_common_level_weight>
+<config_jacobian_limit_to_water_column>.false.</config_jacobian_limit_to_water_column>
+<config_jacobian_water_column_ramp>1.0</config_jacobian_water_column_ramp>
 <config_zonal_ssh_grad>0.0</config_zonal_ssh_grad>
 <config_meridional_ssh_grad>0.0</config_meridional_ssh_grad>
 
