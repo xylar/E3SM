@@ -163,15 +163,15 @@ class AnalysisOperator {
    virtual void setPeriodAlarm(Alarm *Alarm ///< [in] period alarm ptr
    ) {}
 
-   /// Sets the sampling alarm for temporal reduction operators that use a
-   /// configurable SamplingInterval. The alarm fires on the first model step
-   /// at or after each sampling target time; the operator resets it on each
-   /// ring to schedule the next sample. Default implementation does nothing;
-   /// only temporal operators that support SamplingInterval override. When no
-   /// sampling interval is configured the operator leaves this unset and
-   /// samples every timestep (the default, bit-for-bit with prior behavior).
-   virtual void setSampleAlarm(Alarm *Alarm ///< [in] sample alarm ptr
-   ) {}
+   /// Returns the alarm that rings when a temporal reduction operator with a
+   /// configurable SamplingInterval should take a sample, or null when the
+   /// operator samples every timestep. The alarm fires on the first model
+   /// step at or after each sampling target time, and the operator resets it
+   /// on each ring to schedule the next sample. Analysis uses it as the
+   /// operator's accumulation alarm, so that the operator and everything
+   /// upstream of it are computed only on sample steps. Only valid after
+   /// setPeriodAlarm(), where the operator builds the alarm.
+   Alarm *getSampleAlarm() const { return SampleAlarm; }
 
    /// Returns true if this operator maintains mid-period accumulation state
    /// that must be checkpointed to and restored from the restart file.

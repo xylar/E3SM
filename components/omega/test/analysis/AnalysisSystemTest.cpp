@@ -767,6 +767,93 @@ void testMaskedMOCChainConstruction(const HorzMesh *Mesh,
               Passed);
 }
 
+//------------------------------------------------------------------------------
+// Verifies that a temporal reduction with a SamplingInterval computes the
+// operators upstream of it only on sample steps. A GlobalStats group whose
+// mean is averaged over four time steps, sampled every other one, is built in
+// an Analysis of its own, and after each computeAll() the spatial mean that
+// feeds the time mean must be fresh on sample steps and stale in between.
+void testSampledReductionUpstreamCompute(const HorzMesh *Mesh,
+                                         const VertCoord *VCoord,
+                                         Clock *ModelClock) {
+
+   bool Passed = true;
+
+   const std::string FieldName       = "SampledUpstreamTestField";
+   std::vector<std::string> DimNames = {"NCells"};
+   auto TestField =
+       Field::create(FieldName, "Test field for sampled upstream compute", "m",
+                     "", -1.0e30, 1.0e30, 1, DimNames);
+   Array1DReal TestData(FieldName + "_data", Mesh->NCellsSize);
+   Kokkos::deep_copy(TestData, 1.0_Real);
+   TestField->attachData<Array1DReal>(TestData);
+
+   R8 StepSeconds;
+   ModelClock->getTimeStep().get(StepSeconds, TimeUnits::Seconds);
+   const std::string Period =
+       std::to_string(static_cast<int>(4 * StepSeconds)) + "seconds";
+
+   Config GroupConfig;
+   GroupConfig.add("Fields", std::vector<std::string>{FieldName});
+   GroupConfig.add("SpatialStats", std::vector<std::string>{"Mean"});
+   GroupConfig.add("ReductionPeriod", std::vector<std::string>{Period});
+   GroupConfig.add("SnapshotPeriod", std::vector<std::string>{});
+   GroupConfig.add("SamplingInterval", "2steps");
+   GroupConfig.add("Filename", "testsampledupstream");
+
+   auto DefEnv = MachEnv::getDefault();
+   Config TestConfig;
+   TestConfig.add("Analysis", "");
+   auto TestAnalysis = Analysis::create("TestSampledAnalysis", DefEnv, Mesh,
+                                        VCoord, ModelClock, &TestConfig);
+   GlobalStats TestGroup("TestSampledStats", GroupConfig, TestAnalysis);
+   TestAnalysis->buildOperatorDependencies();
+   TestAnalysis->setComputeAlarms();
+   TestAnalysis->initializeAllOps();
+
+   const OperatorNode *MeanNode     = nullptr;
+   const OperatorNode *TimeMeanNode = nullptr;
+   for (const auto *Node : TestAnalysis->getOpNodes()) {
+      if (Node->Op->getOperatorType() == "SpatialMean")
+         MeanNode = Node;
+      if (Node->Op->getOperatorType() == "TimeMean")
+         TimeMeanNode = Node;
+   }
+
+   if (MeanNode == nullptr || TimeMeanNode == nullptr) {
+      Passed = false;
+      LOG_ERROR("  Sampled GlobalStats chain has no SpatialMean or TimeMean");
+   } else {
+      // The clock has been advanced well past its start by earlier tests, so
+      // the new stream's alarm, anchored at the start, would ring at once.
+      // Move it to the boundary a run at this time would hold.
+      TimeInstant Now = ModelClock->getCurrentTime();
+      IOStream::getAlarm(TimeMeanNode->StreamNames[0])->reset(Now);
+
+      for (int Step = 0; Step < 4; ++Step) {
+         ModelClock->advance();
+         Now = ModelClock->getCurrentTime();
+         TestAnalysis->computeAll();
+
+         TimeInterval SinceStart = Now - ModelClock->getStartTime();
+         R8 SinceStartSeconds;
+         SinceStart.get(SinceStartSeconds, TimeUnits::Seconds);
+         const bool IsSampleStep =
+             std::llround(SinceStartSeconds / StepSeconds) % 2 == 0;
+         const bool Computed = MeanNode->Op->isCacheValid(Now);
+         if (Computed != IsSampleStep) {
+            Passed = false;
+            LOG_ERROR("  Upstream SpatialMean computed: {}, sample step: {}",
+                      Computed, IsSampleStep);
+         }
+      }
+   }
+
+   reportTest("Integration: sampled reduction computes upstream only on "
+              "sample steps",
+              Passed);
+}
+
 //===----------------------------------------------------------------------===//
 // Test 5.6.5: TimeMeanOp restart persistence
 //===----------------------------------------------------------------------===//
@@ -1177,6 +1264,7 @@ int main(int argc, char *argv[]) {
       testStreamOutput();
       testTimeMeanRestart(DefEnv, Mesh, VCoord, ModelClock);
       testMaskedMOCChainConstruction(Mesh, VCoord);
+      testSampledReductionUpstreamCompute(Mesh, VCoord, ModelClock);
 
       if (NumFailed > 0) {
          ErrCode = 1;

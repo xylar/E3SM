@@ -220,7 +220,8 @@ sampling gate from the `AnalysisOperator` base class. The base class provides:
 
 - `TimeInterval SamplingInterval`, `bool HasSamplingInterval`, and
   `Alarm *SampleAlarm` members (sampling disabled by default).
-- `virtual void setSampleAlarm(Alarm *)` mirroring `setPeriodAlarm()`.
+- `Alarm *getSampleAlarm()`, which returns `SampleAlarm` (null when sampling
+  every timestep).
 - `bool shouldSample(const TimeInstant &)`: returns `true` on every call when
   no sampling interval is configured (`HasSamplingInterval == false`), so the
   default path is bit-for-bit with the prior every-step behavior; otherwise it
@@ -256,6 +257,12 @@ restarts, making arbitrary `SamplingInterval` values ERS-safe.
 No new restart state is needed: the sample schedule is reconstructed purely from
 the absolute clock start, `SamplingInterval`, and the current time, so a restart
 lands on the same boundary a straight-through run would hold.
+
+`Analysis::setComputeAlarms()` uses the sample alarm, in place of the
+every-step accumulation alarm, as the operator's accumulation alarm. Since
+compute alarms propagate upstream, the operators that feed a sampled reduction
+(for example, the MOC binning or a spatial mean) are also computed only on
+sample steps, as with MPAS-Ocean's `compute_interval`.
 
 (omega-dev-analysis-spatial-weights)=
 ### Spatial weights
@@ -463,9 +470,12 @@ Each `OperatorNode` carries a list of compute alarms in `ComputeAlarms`.
 - **Terminal operators** (those that write to one or more output streams)
   borrow the write alarm from each associated stream via
   `IOStream::getAlarm()`.
-- **Temporal reduction operators** additionally receive an accumulation alarm
-  that is created and owned by the `Analysis` instance and attached to the
-  model clock. The stream's write alarm serves as the period (output) alarm;
+- **Temporal reduction operators** additionally receive an accumulation alarm.
+  With a `SamplingInterval`, it is the operator's sample alarm (see
+  [Sampling gate](#omega-dev-analysis-sampling-gate)); otherwise it rings
+  every timestep and is created and owned by the `Analysis` instance and
+  attached to the model clock. The stream's write alarm serves as the period
+  (output) alarm;
   it is passed to the operator with `setPeriodAlarm()` so the operator knows
   when to finalize and reset its accumulator. Thus a temporal operator has
   two alarms: one that triggers accumulation and one that triggers
