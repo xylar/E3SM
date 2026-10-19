@@ -252,12 +252,13 @@ int setScalar(const Functor &Fun, const Array &ScalarElement, Geometry Geom,
 template <class Functor, class Array>
 int setScalar(const Functor &Fun, const Array &ScalarElement, Geometry Geom,
               const HorzMesh *Mesh, MeshElement Element,
-              ExchangeHalos ExchangeHalosOpt = ExchangeHalos::Yes) {
+              ExchangeHalos ExchangeHalosOpt = ExchangeHalos::Yes,
+              SetBoundary SetBndOpt          = SetBoundary::No) {
    const int VMin = 0;
    const int VMax = ScalarElement.extent_int(Array::rank - 1) - 1;
    Array2DReal ZCoord;
    return setScalar(Fun, ScalarElement, Geom, Mesh, Element, VMin, VMax, ZCoord,
-                    ExchangeHalosOpt);
+                    ExchangeHalosOpt, SetBndOpt);
 }
 
 // This overload calls setScalar with null ZCoord
@@ -270,7 +271,7 @@ int setScalar(const Functor &Fun, const Array &ScalarElement, Geometry Geom,
 
    Array2DReal ZCoord;
    return setScalar(Fun, ScalarElement, Geom, Mesh, Element, VMin, VMax, ZCoord,
-                    ExchangeHalosOpt);
+                    ExchangeHalosOpt, SetBndOpt);
 }
 
 template <class F> struct CanonicalVectorLambda : F {
