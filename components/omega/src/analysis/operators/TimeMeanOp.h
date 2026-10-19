@@ -145,6 +145,12 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
 
    } // end constructor
 
+   /// Detaches the operator-owned sample alarm from the model clock, which
+   /// would otherwise keep a pointer to it after the operator is destroyed.
+   /// The clock must outlive the operator, as it does when Analysis is
+   /// finalized before the time stepper is cleared.
+   ~TimeMeanOp() override { detachSampleAlarm(); }
+
    /// Initializes the operator after all Fields exist. Determines the index
    /// space (cells, edges, or vertices) from the input field's horizontal
    /// dimension name and, for rank >= 2 mesh fields, stores the appropriate
@@ -299,16 +305,21 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
       // Build and own a recurring sample alarm anchored to the absolute clock
       // start, so its boundary sequence (ClockStart + n*SamplingInterval) is a
       // deterministic walk reproduced identically on fresh starts and restarts.
+      // An alarm from an earlier call is detached before it is replaced.
+      detachSampleAlarm();
       OwnedSampleAlarm = std::make_unique<Alarm>(InstanceName + "_SampleAlarm",
                                                  SamplingInterval, ClockStart);
       ModelClock->attachAlarm(OwnedSampleAlarm.get());
+      SampleClock = ModelClock;
       SampleAlarm = OwnedSampleAlarm.get();
 
       // Seed the freshly constructed alarm to the current clock time. Per
       // Alarm::reset, a periodic alarm walks its boundaries forward to the
-      // first interval after the input time, so on a mid-run restart this lands
-      // on exactly the boundary a straight-through run would hold at this
-      // instant -- without introducing any new restart state.
+      // first interval after the input time. On a restart, Analysis is built
+      // before the restart time is read, and it is Clock::setCurrentTime that
+      // then resets this alarm, like every other periodic alarm attached to
+      // the clock, to the boundary a straight-through run would hold at the
+      // restart time -- without introducing any new restart state.
       OwnedSampleAlarm->reset(ModelClock->getCurrentTime());
    }
 
@@ -598,6 +609,14 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    } // end finalize
 
  private:
+   /// Detaches the sample alarm, if any, from the clock it is attached to
+   void detachSampleAlarm() {
+      if (SampleClock != nullptr && OwnedSampleAlarm) {
+         SampleClock->detachAlarm(OwnedSampleAlarm.get());
+      }
+      SampleClock = nullptr;
+   } // end detachSampleAlarm
+
    /// Divides the averaging period into NumSamples equal sampling intervals.
    /// TimeInterval's integer division truncates a calendar interval, so a
    /// 1Day period divided by 4 would give zero days. Days have a fixed length
@@ -678,6 +697,10 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
    /// borrows this instance; keeping it here ties its lifetime to the
    /// operator and keeps it attached to the model clock.
    std::unique_ptr<Alarm> OwnedSampleAlarm;
+
+   /// The clock OwnedSampleAlarm is attached to, so that the destructor can
+   /// detach it; null when no sample alarm is attached
+   Clock *SampleClock = nullptr;
 
    /// Raw, un-normalized SamplingInterval string from config (empty => sample
    /// every timestep). Normalized to the base-class SamplingInterval in
