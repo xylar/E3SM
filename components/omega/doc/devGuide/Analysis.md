@@ -234,7 +234,9 @@ the `SamplingInterval` string from its own `Config` and, in `setPeriodAlarm()`
 (where the reduction period and model timestep are both available), normalizes
 the three accepted forms to a single `TimeInterval`:
 
-- `"<n>perPeriod"` → `PeriodInterval / n`
+- `"<n>perPeriod"` → `PeriodInterval / n`, divided in seconds for a period
+  in days and in whole months for a period in months or years, since
+  `TimeInterval` division truncates calendar intervals
 - `"<n>steps"` → `n * ModelTimeStep`
 - otherwise parsed directly as a `TimeInterval` string (e.g. `"6hour"`)
 
