@@ -623,10 +623,10 @@ int main(int argc, char *argv[]) {
 
       std::sort(AllWidths.begin(), AllWidths.end());
       const size_t NWidths = AllWidths.size();
-      const Real RefMedian =
-          NWidths % 2 == 1 ? AllWidths[NWidths / 2]
-                           : 0.5_Real * (AllWidths[NWidths / 2 - 1] +
-                                         AllWidths[NWidths / 2]);
+      const Real RefMedian = NWidths % 2 == 1
+                                 ? AllWidths[NWidths / 2]
+                                 : 0.5_Real * (AllWidths[NWidths / 2 - 1] +
+                                               AllWidths[NWidths / 2]);
 
       if (abs(Mesh->MedianCellWidth - RefMedian) > Tol * RefMedian)
          ABORT_ERROR("HorzMeshTest: median cell width test FAIL");

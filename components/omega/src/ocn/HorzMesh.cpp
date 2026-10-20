@@ -525,7 +525,7 @@ void HorzMesh::computeMeshScaling() {
 // gathered on one task, so the result does not depend on the decomposition.
 void HorzMesh::computeMedianCellWidth() {
 
-   MPI_Comm Comm = Halo::get(MeshName)->getComm();
+   MPI_Comm Comm  = Halo::get(MeshName)->getComm();
    const int Root = 0;
    int MyTask;
    int NTasks;
