@@ -94,11 +94,7 @@ meshes.
 
 | Mesh | $W_{med}$ (km) | $W_{ref}$ (km) | Parameter | Omega | MPAS-Ocean |
 | ---- | -------------: | -------------: | --------- | ----: | ---------: |
-| EC30to60E2r2 | 35.92 | 30.0 | `ViscDel2` (m$^2$/s) | 1197 | 1000 |
-| | | | `ViscDel4` (m$^4$/s) | 2.06e11 | 1.2e11 |
-| oRRS18to6v3 | 8.77 | 6.0 | `ViscDel4` (m$^4$/s) | 9.99e9 | 3.2e9 |
-
-In the future, the Mesh class will optionally compute the mesh variables that
-are dependent on the Cartesian mesh coordinates internally.
-This includes the various areas, lengths, angles, and weights needed for the
-TRiSK discretization (e.g. rows 5-11 in the table above).
+| EC30to60E2r2 | 35.92 | 30.00 | `ViscDel2` (m$^2$/s) | 1197 | 1000 |
+| | | | `ViscDel4` (m$^4$/s) | 2.06e11 | 1.20e11 |
+| RRS18to6v3 | 8.77 | 6.00 | `ViscDel4` (m$^4$/s) | 9.99e9 | 3.20e9 |
+| RRSwISC6to18E3r5 | 8.48 | 6.00 | `ViscDel4` (m$^4$/s) | 9.03e9 | 3.20e9 |
