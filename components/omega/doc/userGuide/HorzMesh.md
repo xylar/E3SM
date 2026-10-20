@@ -83,6 +83,21 @@ uniform mixing coefficients.
 The initialization log reports whether mesh scaling is enabled, the median
 cell width and the range of both scaling factors over interior edges.
 
+MPAS-Ocean in E3SM references its mixing coefficients to the finest cells of
+the mesh, where its scaling factors are one, rather than to the median cell.
+To reproduce the MPAS-Ocean mixing on a given mesh, multiply the MPAS-Ocean
+Laplacian coefficients by $W_{med}/W_{ref}$ and the biharmonic coefficients by
+$(W_{med}/W_{ref})^3$. Here $W_{med}$ is the median cell width and $W_{ref}$
+is the nominal finest resolution of the mesh (for example, 30 km for
+EC30to60E2r2). The table below lists the converted viscosities for some E3SM
+meshes.
+
+| Mesh | $W_{med}$ (km) | $W_{ref}$ (km) | Parameter | Omega | MPAS-Ocean |
+| ---- | -------------: | -------------: | --------- | ----: | ---------: |
+| EC30to60E2r2 | 35.92 | 30.0 | `ViscDel2` (m$^2$/s) | 1197 | 1000 |
+| | | | `ViscDel4` (m$^4$/s) | 2.06e11 | 1.2e11 |
+| oRRS18to6v3 | 8.77 | 6.0 | `ViscDel4` (m$^4$/s) | 9.99e9 | 3.2e9 |
+
 In the future, the Mesh class will optionally compute the mesh variables that
 are dependent on the Cartesian mesh coordinates internally.
 This includes the various areas, lengths, angles, and weights needed for the
