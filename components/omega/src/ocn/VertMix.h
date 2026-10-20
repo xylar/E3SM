@@ -45,7 +45,7 @@ class ConvectiveMix {
       for (int KVec = 0; KVec < KLen; ++KVec) {
          const I4 K = KStart + KVec;
 
-         // KPP is enabled when the index array in not empty
+         // KPP is enabled when the index array is not empty
          const bool KPPEnabled = KPPBoundaryLayerIndex.data();
          const bool ApplyConv =
              (!KPPEnabled) || (K > KPPBoundaryLayerIndex(ICell) + 1);
