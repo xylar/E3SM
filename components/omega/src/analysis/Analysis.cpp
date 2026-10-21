@@ -229,9 +229,17 @@ void Analysis::parseChainAndBuildOps(const std::string &OpChainStr,
             std::string TimeOp  = ChainNode.substr(0, Pos);
             std::string FreqStr = ChainNode.substr(Pos);
 
-            // Merge OpConfig with Period parameter for temporal operators
+            // Merge OpConfig with Period parameter for temporal operators. The
+            // incoming OpConfig may already carry a Period (e.g. from a group
+            // or chain config), so set it when present and add it otherwise --
+            // add() aborts on a duplicate key.
             Config TimeOpConfig = OpConfig;
-            TimeOpConfig.add("Period", FreqStr);
+            std::string ExistingPeriod;
+            if (TimeOpConfig.get("Period", ExistingPeriod).isFail()) {
+               TimeOpConfig.add("Period", FreqStr);
+            } else {
+               TimeOpConfig.set("Period", FreqStr);
+            }
             registerAnalysisOp(TimeOp, {Upstream}, TimeOpConfig);
             continue;
          }
