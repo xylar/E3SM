@@ -1,0 +1,45 @@
+schema_version: 1
+requester: xylar
+pull_request: 506
+pr_head: 3c1c8633ed940833d446f0a9224deaf77ffe8c6e
+base_branch: develop
+base_head: 1feac2f815e3b4545921e31e8d0df2e164e176b6
+test_commit: ad58598f3cdd32402071d1eb1bfe7aeee72160d7
+baseline:
+  commit: 1feac2f815e3b4545921e31e8d0df2e164e176b6
+  source: develop
+  reason: "answer-changing PRs, including the KPP fix in #603, have merged into develop
+    since the PR's base and the commit Polaris pins"
+  polaris_commit: 662796b1b7a1ec9980c667326c9be7529a5ea42b
+polaris_commit: 07c74515db676e0cc52d0f3bc6628f391e958ce7
+extra_merges: []
+rows:
+- machine: aurora
+  compiler: intel
+  mpi: mpich
+  template: aurora, intel, mpich
+- machine: aurora
+  compiler: intelgpu
+  mpi: mpich
+  template: aurora, intelgpu, mpich
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, intel, openmpi
+- machine: frontier
+  compiler: craygnu
+  mpi: mpich
+  template: frontier, craygnu, mpich
+- machine: frontier
+  compiler: craygnu-mphipcc
+  mpi: mpich
+  template: frontier, craygnu-mphipcc, mpich
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
