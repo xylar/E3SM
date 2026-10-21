@@ -3839,7 +3839,6 @@
         <command name="load">netcdf-fortran/4.6.2</command>
         <command name="load">moab/5.6.0</command>
         <command name="load">mpich-config/collective-tuning/1024</command>
-        <command name="load">py-pyyaml/6.0.3</command>
       </modules>
     </module_system>
     <RUNDIR>$CIME_OUTPUT_ROOT/$CASE/run</RUNDIR>
