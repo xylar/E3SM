@@ -267,9 +267,9 @@ Omega:
     #   ReductionPeriod - time-averaged output over a window (reduction)
     #   SnapshotPeriod  - instantaneous snapshots at a fixed cadence
     # Either or both may be used; an empty list ([]) disables that mode.
-    # An optional SamplingInterval (reductions only) sets the accumulation
-    # cadence as "<n>steps", "<n>perPeriod", or a TimeInterval (e.g. 6Hours).
-    # When omitted, the accumulation occurs every timestep.
+    # SamplingInterval (reductions only) sets the accumulation cadence
+    # as "<n>steps", "<n>perPeriod", or a TimeInterval (e.g. 6Hours).
+    # The default "dt" means the accumulation occurs every timestep.
     GlobalStats:
       Enable: false
       # Global Statistics (GlobalStats) analysis group
@@ -281,6 +281,7 @@ Omega:
                                 # Spatial statistics to compute (one per field)
       ReductionPeriod: [1Day, 1Month]
                                 # Temporal reduction periods
+      SamplingInterval: "dt"    # Accumulation cadence of the reductions
       SnapshotPeriod: [6Hours]
                                 # Instantaneous snapshot output intervals
       Filename: global.stats.$Y.nc
@@ -300,6 +301,7 @@ Omega:
       Transects: []             # List of transect names for transect-based MOC
                                 # NOTE: Transect masks not yet implemented
       ReductionPeriod: [1Month] # Temporal reduction periods
+      SamplingInterval: "dt"    # Accumulation cadence of the reductions
       SnapshotPeriod: []        # Instantaneous output periods
       Filename: moc.$Y.nc
       Stream:
@@ -318,6 +320,7 @@ Omega:
                                 # List of global fields to average
       ReductionPeriod: [1Month]
                                 # Optional; averaging period(s)
+      SamplingInterval: "dt"    # Accumulation cadence of the reductions
       Filename: monthly.averages.$Y.nc
       Stream:
         FileFreq: 1

@@ -31,13 +31,16 @@ The Analysis module supports two output modes:
  frequencies (e.g., every 6 hours). Instantaneous output is configured with the
  `SnapshotPeriod` parameter.
 
+(omega-user-analysis-sampling-interval)=
 ### Sampling interval for temporal reductions
 
-By default a temporal reduction accumulates a sample on **every** model
-timestep. The optional `SamplingInterval` parameter instead collects samples
-at a coarser cadence, so the time average is formed from fewer, evenly-spaced
-samples. This is the in-model equivalent of MPAS-Ocean's driver-level
-`compute_interval` for the `time_series_stats` analysis member.
+The `SamplingInterval` parameter set the temporal reduction accumulation
+cadence. The values `dt` and `timestep` are accepted as keys to accumulate
+a sample on **every** model timestep. Setting `SamplingInterval` to one of the
+accepted forms below instead collects samples at a coarser cadence, so the time
+average is formed from fewer, evenly-spaced samples. This is the in-model
+equivalent of MPAS-Ocean's driver-level `compute_interval` for the
+`time_series_stats` analysis member.
 
 `SamplingInterval` accepts three forms, distinguished by suffix:
 
@@ -49,8 +52,7 @@ samples. This is the in-model equivalent of MPAS-Ocean's driver-level
 
 Behavior and constraints:
 
-- **Default (omitted/empty):** sample every timestep; bit-for-bit identical to
-  the prior behavior.
+- **Omitted/empty:** sample every timestep.
 - **Phasing:** the first sample falls one `SamplingInterval` after the start of
   each reduction period (samples at `PeriodStart + n*SamplingInterval`).
 - **Snap-to-step:** like all model alarms, sampling fires on the first timestep
@@ -155,6 +157,7 @@ Omega:
       Fields: [Temperature, GeomZInterface, Salinity, NormalVelocity]
       SpatialStats: [Mean, Max, Min, StdDev]
       ReductionPeriod: [1Day, 1Month]
+      SamplingInterval: "dt"
       SnapshotPeriod: [6Hour]
       Filename: global.stats.$Y.nc
       Stream:
@@ -173,6 +176,11 @@ Omega:
 - **ReductionPeriod:** Optional list of time periods for temporal reduction
   (e.g., `1Hour`, `1Day`, `1Month`, `1Year`). At least one of `ReductionPeriod`
   or `SnapshotPeriod` must be specified.
+
+- **SamplingInterval:** Cadence at which the temporal reductions accumulate
+  samples; see
+  [Sampling interval for temporal reductions](#omega-user-analysis-sampling-interval).
+  Empty, `dt`, or `timestep` samples every timestep.
 
 - **SnapshotPeriod:** Optional list of intervals for instantaneous output
   (e.g., `1Hour`, `6Hour`, `1Day`). At least one of `ReductionPeriod` or
@@ -215,6 +223,7 @@ Omega:
       Regions: [Global]
       Transects: []
       ReductionPeriod: [1Month]
+      SamplingInterval: "dt"
       SnapshotPeriod: [1Day]
       Filename: moc.$Y-$M.nc
       Stream:
@@ -243,6 +252,11 @@ Omega:
 
 - **ReductionPeriod:** Optional list of time periods for temporal reduction.
   At least one of `ReductionPeriod` or `SnapshotPeriod` must be specified.
+
+- **SamplingInterval:** Cadence at which the temporal reductions accumulate
+  samples; see
+  [Sampling interval for temporal reductions](#omega-user-analysis-sampling-interval).
+  Empty, `dt`, or `timestep` samples every timestep.
 
 - **SnapshotPeriod:** Optional list of intervals for instantaneous output. At
   least one of `ReductionPeriod` or `SnapshotPeriod` must be specified.
@@ -273,9 +287,10 @@ Computes monthly time averages of a set of requested global fields. Unlike
 `GlobalStats`, no spatial reduction is applied: each requested field is passed
 directly to a temporal-reduction (`TimeMean`) operator. The averaging period
 defaults to one month, but may be overridden with the optional
-`ReductionPeriod` parameter. This mirrors the `timeSeriesStatsMonthly` analysis
-member in MPAS-Ocean, which delivers monthly means of prognostic and derived
-fields.
+`ReductionPeriod` parameter. The `MonghtlyAverages` group is specifically for
+temporal reductions, any defined `SnapshotPeriod` parameter is ignored. This
+group mirrors the `timeSeriesStatsMonthly` analysis member in MPAS-Ocean, which
+delivers monthly means of prognostic and derived fields.
 
 **Example:**
 
@@ -286,6 +301,7 @@ Omega:
       Enable: true
       Fields: [Temperature, Salinity, NormalVelocity, PseudoThickness]
       ReductionPeriod: [1Month]   # optional; defaults to [1Month]
+      SamplingInterval: "dt"
       Filename: monthly.averages.$Y.nc
       Stream:
         FileFreq: 1
@@ -300,6 +316,11 @@ Omega:
 - **ReductionPeriod:** Optional list of time periods for temporal reduction
   (e.g., `1Day`, `1Month`, `1Year`). Defaults to `[1Month]` when not specified.
   Any `SnapshotPeriod` supplied for this group is ignored.
+
+- **SamplingInterval:** Cadence at which the temporal reductions accumulate
+  samples; see
+  [Sampling interval for temporal reductions](#omega-user-analysis-sampling-interval).
+  Empty, `dt`, or `timestep` samples every timestep.
 
 **Output fields:**
 For each requested field, a time-averaged field is produced:

@@ -30,6 +30,8 @@
 #include "AnalysisOperator.h"
 #include "TimeStepper.h"
 
+#include <algorithm>
+#include <cctype>
 #include <limits>
 #include <memory>
 #include <string>
@@ -218,7 +220,17 @@ template <typename ArrayT> class TimeMeanOp : public AnalysisOperator {
                        ) override {
       PeriodAlarm = AlarmIn;
 
-      // Nothing more to do when sampling every timestep (empty => default).
+      // Make a case-insensitive working copy of the config string to check
+      // for variations of "dt" and "timestep". If match, sampling cadence is
+      // every timestep and nothing more to do.
+      std::string SamplingIntervalLower = SamplingIntervalStr;
+      std::transform(SamplingIntervalLower.begin(), SamplingIntervalLower.end(),
+                     SamplingIntervalLower.begin(),
+                     [](unsigned char C) { return std::tolower(C); });
+      if (SamplingIntervalLower == "dt" || SamplingIntervalLower == "timestep")
+         return;
+
+      // Empty string is equivalent to sampling every timestep.
       if (SamplingIntervalStr.empty())
          return;
 
