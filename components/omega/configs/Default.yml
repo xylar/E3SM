@@ -303,10 +303,10 @@ Omega:
       ReductionPeriod: [1Month] # Temporal reduction periods
       SamplingInterval: "dt"    # Accumulation cadence of the reductions
       SnapshotPeriod: []        # Instantaneous output periods
-      Filename: moc.$Y.nc
+      Filename: moc.$Y-$M.nc
       Stream:
         FileFreq: 1
-        FileFreqUnits: years
+        FileFreqUnits: months
     MonthlyAverages:
       Enable: false
       # Monthly Averages (MonthlyAverages) analysis group
