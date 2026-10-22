@@ -496,8 +496,10 @@ void HorzMesh::computeMeshScaling() {
           {"MeshScalingDel2", MeshScalingDel2},
           {"MeshScalingDel4", MeshScalingDel4}};
       for (const auto &[Name, Data] : ScalingFields) {
-         Field::create(Name, "Mesh scaling of horizontal mixing", "1", "", 0.0,
-                       1.0e30, 1, EdgeDims, false, true);
+         auto ScalingField =
+             Field::create(Name, "Mesh scaling of horizontal mixing", "1", "",
+                           0.0, 1.0e30, 1, EdgeDims, false, true);
+         ScalingField->addMetadata("_FillValue", FillValue<Real>);
          ScalingGroup->addField(Name);
          // do not overwrite the computed values with the fill value
          Field::attachFieldData<Array1DReal>(Name, Data, false);
