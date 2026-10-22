@@ -487,6 +487,23 @@ void HorzMesh::computeMeshScaling() {
    MeshScalingDel2H = createHostMirrorCopy(MeshScalingDel2);
    MeshScalingDel4H = createHostMirrorCopy(MeshScalingDel4);
 
+   // TESTING ONLY: register the scaling coefficients in a "MeshScaling"
+   // group so they can be added to an output stream
+   if (MeshName == "Default" and !FieldGroup::exists("MeshScaling")) {
+      auto ScalingGroup = FieldGroup::create("MeshScaling");
+      std::vector<std::string> EdgeDims{"NEdges"};
+      std::vector<std::pair<std::string, Array1DReal>> ScalingFields{
+          {"MeshScalingDel2", MeshScalingDel2},
+          {"MeshScalingDel4", MeshScalingDel4}};
+      for (const auto &[Name, Data] : ScalingFields) {
+         Field::create(Name, "Mesh scaling of horizontal mixing", "1", "", 0.0,
+                       1.0e30, 1, EdgeDims, false, true);
+         ScalingGroup->addField(Name);
+         // do not overwrite the computed values with the fill value
+         Field::attachFieldData<Array1DReal>(Name, Data, false);
+      }
+   }
+
    // Write the median cell width and the range of the scaling coefficients
    // to the log. Boundary edges have only one valid cell (the other is
    // NCellsAll) and are masked out of the mixing terms, so they are skipped.
