@@ -50,7 +50,5 @@ meshes:
       ModeSplitShare:
         BtrTimeStep: 0000_00:01:15
     Tendencies:
-      VelDiffTendencyEnable: true
       ViscDel2: 1197.0
-      VelHyperDiffTendencyEnable: true
       ViscDel4: 2.06e11
