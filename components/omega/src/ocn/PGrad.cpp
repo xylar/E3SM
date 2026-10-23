@@ -260,27 +260,24 @@ void PressureGrad::computeReconSlopes(
    OMEGA_SCOPE(LocMinLayerCell, MinLayerCell);
    OMEGA_SCOPE(LocMaxLayerCell, MaxLayerCell);
 
-   parallelFor(
-       "pgrad-recon-slopes", {NCellsAll, NVertLayers},
-       KOKKOS_LAMBDA(I4 ICell, I4 K) {
+   parallelForOuter(
+       "pgrad-recon-slopes", {NCellsAll},
+       KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
           const I4 KMin = LocMinLayerCell(ICell);
           const I4 KMax = LocMaxLayerCell(ICell);
 
-          if (K < KMin || K > KMax) {
-             LocReconSlopeCt(ICell, K) = 0.0_Real;
-             LocReconSlopeSa(ICell, K) = 0.0_Real;
-             return;
-          }
+          parallelForInner(
+              Team, Range{KMin, KMax}, INNER_LAMBDA(int K) {
+                 I4 KLo, KHi;
+                 linearReconStencil(K, KMin, KMax, KLo, KHi);
 
-          I4 KLo, KHi;
-          linearReconStencil(K, KMin, KMax, KLo, KHi);
-
-          LocReconSlopeCt(ICell, K) = linearReconSlope(
-              ConservTemp(ICell, KLo), ConservTemp(ICell, KHi),
-              PressureMid(ICell, KLo), PressureMid(ICell, KHi));
-          LocReconSlopeSa(ICell, K) = linearReconSlope(
-              AbsSalinity(ICell, KLo), AbsSalinity(ICell, KHi),
-              PressureMid(ICell, KLo), PressureMid(ICell, KHi));
+                 LocReconSlopeCt(ICell, K) = linearReconSlope(
+                     ConservTemp(ICell, KLo), ConservTemp(ICell, KHi),
+                     PressureMid(ICell, KLo), PressureMid(ICell, KHi));
+                 LocReconSlopeSa(ICell, K) = linearReconSlope(
+                     AbsSalinity(ICell, KLo), AbsSalinity(ICell, KHi),
+                     PressureMid(ICell, KLo), PressureMid(ICell, KHi));
+              });
        });
 
 } // end computeReconSlopes
@@ -292,12 +289,13 @@ void PressureGrad::computeReconSlopes(
 // interface pressures, which makes its mid-layer pressure and its pressure
 // thickness exactly the edge averages of the two columns' own.
 //
-// The scan runs in two passes. The first evaluates the matched-pressure
-// integrand at the quadrature points of each edge layer and forms two
-// integrals of it over the same points: the increment of the recurrence, and
-// its first moment about the layer's top interface, which the layer mean
-// needs. The second anchors the column and turns the increments into the
-// height difference at every interface.
+// The scan runs in two passes, both inside one team per edge with a barrier
+// between them, so each covers only the edge's active layers. The first
+// evaluates the matched-pressure integrand at the quadrature points of each
+// edge layer and forms two integrals of it over the same points: the increment
+// of the recurrence, and its first moment about the layer's top interface,
+// which the layer mean needs. The second anchors the column and turns the
+// increments into the height difference at every interface.
 //
 // The anchor is at the sea floor. Design section 3.7.4 leaves the end open and
 // prefers this one on conditioning grounds: VertCoord builds geometric height
@@ -335,82 +333,6 @@ void PressureGrad::computeColumnScan(
    OMEGA_SCOPE(LocMinLayerEdgeBot, MinLayerEdgeBot);
    OMEGA_SCOPE(LocMaxLayerEdgeTop, MaxLayerEdgeTop);
 
-   // Pass one: the two integrals of the matched-pressure integrand over each
-   // edge layer, from the same quadrature points.
-   parallelFor(
-       "pgrad-fv-integrals", {NEdgesAll, NVertLayers},
-       KOKKOS_LAMBDA(I4 IEdge, I4 K) {
-          LocDeltaZIncr(IEdge, K)   = 0.0_Real;
-          LocDeltaZMoment(IEdge, K) = 0.0_Real;
-
-          const I4 KTop = LocMinLayerEdgeBot(IEdge);
-          const I4 KBot = LocMaxLayerEdgeTop(IEdge);
-          if (K < KTop || K > KBot)
-             return;
-
-          const I4 ICell0 = LocCellsOnEdge(IEdge, 0);
-          const I4 ICell1 = LocCellsOnEdge(IEdge, 1);
-
-          // one shared expansion for this edge layer, multiplying both
-          // columns
-          const PGradEdgeEos EdgeEos = buildEdgeEos(
-              SpecVol, SpecVolDCt, SpecVolDSa, SpecVolDP, ConservTemp,
-              AbsSalinity, PressureMid, ICell0, ICell1, K);
-
-          const Real EdgeTop  = 0.5_Real * (PressureInterface(ICell0, K) +
-                                           PressureInterface(ICell1, K));
-          const Real EdgeBot  = 0.5_Real * (PressureInterface(ICell0, K + 1) +
-                                           PressureInterface(ICell1, K + 1));
-          const Real EdgeMid  = 0.5_Real * (EdgeTop + EdgeBot);
-          const Real EdgeHalf = 0.5_Real * (EdgeBot - EdgeTop);
-
-          Real Nodes[MaxPGradQuadPoints];
-          Real Weights[MaxPGradQuadPoints];
-          gaussLegendreRule(NQuad, Nodes, Weights);
-
-          Real Incr   = 0.0_Real;
-          Real Moment = 0.0_Real;
-
-          for (int IQuad = 0; IQuad < NQuad; ++IQuad) {
-
-             const Real Press  = EdgeMid + EdgeHalf * Nodes[IQuad];
-             const Real Weight = EdgeHalf * Weights[IQuad];
-
-             // each column supplies its own temperature and salinity from
-             // whichever of its own layers contains this pressure, which
-             // under tilt is generally not layer K
-             const I4 KFound0 = findLayerForPress(
-                 PressureInterface, ICell0, LocMinLayerCell(ICell0),
-                 LocMaxLayerCell(ICell0), Press, K);
-             const I4 KFound1 = findLayerForPress(
-                 PressureInterface, ICell1, LocMinLayerCell(ICell1),
-                 LocMaxLayerCell(ICell1), Press, K);
-
-             const Real Temp0 = linearReconEval(
-                 ConservTemp(ICell0, KFound0), LocReconSlopeCt(ICell0, KFound0),
-                 PressureMid(ICell0, KFound0), Press);
-             const Real Salt0 = linearReconEval(
-                 AbsSalinity(ICell0, KFound0), LocReconSlopeSa(ICell0, KFound0),
-                 PressureMid(ICell0, KFound0), Press);
-             const Real Temp1 = linearReconEval(
-                 ConservTemp(ICell1, KFound1), LocReconSlopeCt(ICell1, KFound1),
-                 PressureMid(ICell1, KFound1), Press);
-             const Real Salt1 = linearReconEval(
-                 AbsSalinity(ICell1, KFound1), LocReconSlopeSa(ICell1, KFound1),
-                 PressureMid(ICell1, KFound1), Press);
-
-             const Real SpecVolDiff =
-                 matchedPressSpecVolDiff(EdgeEos, Temp0, Salt0, Temp1, Salt1);
-
-             Incr += Weight * SpecVolDiff;
-             Moment += Weight * (Press - EdgeTop) * SpecVolDiff;
-          }
-
-          LocDeltaZIncr(IEdge, K)   = InvGravity * Incr;
-          LocDeltaZMoment(IEdge, K) = InvGravity * Moment;
-       });
-
-   // Pass two: the anchor at the sea floor, then the recurrence upward.
    parallelForOuter(
        "pgrad-fv-column-scan", {NEdgesAll},
        KOKKOS_LAMBDA(I4 IEdge, const TeamMember &Team) {
@@ -422,6 +344,79 @@ void PressureGrad::computeColumnScan(
           const I4 ICell0 = LocCellsOnEdge(IEdge, 0);
           const I4 ICell1 = LocCellsOnEdge(IEdge, 1);
 
+          Real Nodes[MaxPGradQuadPoints];
+          Real Weights[MaxPGradQuadPoints];
+          gaussLegendreRule(NQuad, Nodes, Weights);
+
+          // Pass one: the two integrals of the matched-pressure integrand
+          // over each edge layer, from the same quadrature points.
+          parallelForInner(
+              Team, Range{KTop, KBot}, INNER_LAMBDA(int K) {
+                 // one shared expansion for this edge layer, multiplying both
+                 // columns
+                 const PGradEdgeEos EdgeEos = buildEdgeEos(
+                     SpecVol, SpecVolDCt, SpecVolDSa, SpecVolDP, ConservTemp,
+                     AbsSalinity, PressureMid, ICell0, ICell1, K);
+
+                 const Real EdgeTop = 0.5_Real * (PressureInterface(ICell0, K) +
+                                                  PressureInterface(ICell1, K));
+                 const Real EdgeBot =
+                     0.5_Real * (PressureInterface(ICell0, K + 1) +
+                                 PressureInterface(ICell1, K + 1));
+                 const Real EdgeMid  = 0.5_Real * (EdgeTop + EdgeBot);
+                 const Real EdgeHalf = 0.5_Real * (EdgeBot - EdgeTop);
+
+                 Real Incr   = 0.0_Real;
+                 Real Moment = 0.0_Real;
+
+                 for (int IQuad = 0; IQuad < NQuad; ++IQuad) {
+
+                    const Real Press  = EdgeMid + EdgeHalf * Nodes[IQuad];
+                    const Real Weight = EdgeHalf * Weights[IQuad];
+
+                    // each column supplies its own temperature and salinity
+                    // from whichever of its own layers contains this
+                    // pressure, which under tilt is generally not layer K
+                    const I4 KFound0 = findLayerForPress(
+                        PressureInterface, ICell0, LocMinLayerCell(ICell0),
+                        LocMaxLayerCell(ICell0), Press, K);
+                    const I4 KFound1 = findLayerForPress(
+                        PressureInterface, ICell1, LocMinLayerCell(ICell1),
+                        LocMaxLayerCell(ICell1), Press, K);
+
+                    const Real Temp0 =
+                        linearReconEval(ConservTemp(ICell0, KFound0),
+                                        LocReconSlopeCt(ICell0, KFound0),
+                                        PressureMid(ICell0, KFound0), Press);
+                    const Real Salt0 =
+                        linearReconEval(AbsSalinity(ICell0, KFound0),
+                                        LocReconSlopeSa(ICell0, KFound0),
+                                        PressureMid(ICell0, KFound0), Press);
+                    const Real Temp1 =
+                        linearReconEval(ConservTemp(ICell1, KFound1),
+                                        LocReconSlopeCt(ICell1, KFound1),
+                                        PressureMid(ICell1, KFound1), Press);
+                    const Real Salt1 =
+                        linearReconEval(AbsSalinity(ICell1, KFound1),
+                                        LocReconSlopeSa(ICell1, KFound1),
+                                        PressureMid(ICell1, KFound1), Press);
+
+                    const Real SpecVolDiff = matchedPressSpecVolDiff(
+                        EdgeEos, Temp0, Salt0, Temp1, Salt1);
+
+                    Incr += Weight * SpecVolDiff;
+                    Moment += Weight * (Press - EdgeTop) * SpecVolDiff;
+                 }
+
+                 LocDeltaZIncr(IEdge, K)   = InvGravity * Incr;
+                 LocDeltaZMoment(IEdge, K) = InvGravity * Moment;
+              });
+
+          // the scan below reads increments other threads of the team wrote
+          teamBarrier(Team);
+
+          // Pass two: the anchor at the sea floor, then the recurrence upward.
+          //
           // The anchor sits at the deepest interface the two columns share.
           // Each column's height there is shifted from its own interface
           // pressure to the common one by integrating its own reconstruction
@@ -435,10 +430,6 @@ void PressureGrad::computeColumnScan(
           const PGradEdgeEos AnchorEos = buildEdgeEos(
               SpecVol, SpecVolDCt, SpecVolDSa, SpecVolDP, ConservTemp,
               AbsSalinity, PressureMid, ICell0, ICell1, KBot);
-
-          Real Nodes[MaxPGradQuadPoints];
-          Real Weights[MaxPGradQuadPoints];
-          gaussLegendreRule(NQuad, Nodes, Weights);
 
           Real Anchor = GeomZInterface(ICell1, KBot + 1) -
                         GeomZInterface(ICell0, KBot + 1);

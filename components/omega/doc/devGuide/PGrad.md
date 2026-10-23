@@ -182,9 +182,10 @@ the integrand over each layer.
 
 **This cannot live in the functor.** It is a prefix sum down each column with
 edge-dependent coefficients, so it is not expressible as an independent
-per-vertical-chunk operation. It runs as a `parallelForOuter` over edges with a
-`parallelScanInner` down the column, in the same shape as
-`VertCoord::computeGeomZHeight`, and it is the one structural addition the
+per-vertical-chunk operation. It runs as a `parallelForOuter` over edges: a
+`parallelForInner` over the edge's active layers forms both integrals, and after a
+team barrier a `parallelScanInner` accumulates them up the column, in the same
+shape as `VertCoord::computeGeomZHeight`. It is the one structural addition the
 finite-volume scheme makes beyond the per-edge, per-chunk pattern the centered
 scheme uses.
 
