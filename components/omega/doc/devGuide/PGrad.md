@@ -248,8 +248,7 @@ Specific volume is never integrated directly and the equation of state is never
 evaluated inside any integral. The four expansion coefficients come from the
 `SpecVol`, `SpecVolDCt`, `SpecVolDSa` and `SpecVolDP` fields `Eos` already
 computes, one evaluation per cell per layer, and the pressure gradient adds none
-of its own -- which the cost check in `PGradTest.cpp` asserts directly, using the
-`Eos::SpecVolEvalCount` counter.
+of its own.
 
 ## Configuration
 
@@ -303,8 +302,8 @@ The `PressureGrad` class stores the following key data:
 
 The last five are allocated only when the `FiniteVolume` scheme is selected, so a
 centered run pays no memory for them. The reconstruction slopes are computed once
-per cell and layer and reused across each cell's edges; recomputing them per edge
-is what the cost check exists to catch.
+per cell and layer and reused across each cell's edges rather than recomputed per
+edge.
 
 ## Removal
 

@@ -297,8 +297,8 @@ class PressureGrad {
 
    // Compute the mean-preserving reconstruction slopes of temperature and
    // salinity in pressure, once per cell and layer. These are the per-cell
-   // quantities the per-edge work reuses; recomputing them per edge is what
-   // the cost check exists to catch. Public because of CUDA requirements.
+   // quantities the per-edge work reuses rather than recomputing them per
+   // edge. Public because of CUDA requirements.
    void computeReconSlopes(const Array2DReal &ConservTemp,
                            const Array2DReal &AbsSalinity,
                            const Array2DReal &PressureMid) const;
