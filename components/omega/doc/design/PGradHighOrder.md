@@ -1269,12 +1269,9 @@ Because `computeSpecVolAndDerivs` fills `SpecVol` as well, it replaces rather th
 a call to `computeSpecVol`; the two are kept separate so that the derivative arithmetic is
 paid only where it is needed.
 
-`Eos` also carries a count of specific-volume evaluations, incremented by one per cell per
-active layer in each of `computeSpecVol`, `computeSpecVolDisp` and `computeSpecVolAndDerivs`,
-together with a method to reset it. This is the instrumentation §5.6 needs: Requirement 2.2 bounds
-a call count, and nothing else in the test suite would notice it being exceeded, since an extra
-evaluation changes run time without changing any answer. Maintaining it costs one host addition
-per call.
+The pressure gradient receives the equation of state as a `const Eos *`, so it cannot call any of
+these compute methods, and the per-edge functions read only the four cached fields. That interface,
+not a run-time count, is what keeps Requirement 2.2 in force; §5.6 gives the reason.
 
 The TEOS-10 derivatives are obtained by differentiating the 75-term polynomial analytically.
 The pressure derivative reuses the coefficients `calcPCoeffs` already assembles for
@@ -1533,7 +1530,7 @@ Which tests gate which phase:
 | §5.3 Seamount resting state | gates | rerun; error should drop further |
 | §5.4 Overflow | gates | rerun |
 | §5.5 Reduction to centered | gates | rerun unchanged |
-| §5.6 Cost check | gates | gates; stencil width must not change the EOS count |
+| §5.6 Cost check | recorded | recorded; stencil width must not add EOS evaluations |
 
 The A4 diagnostic within §5.3 gates nothing — it informs whether the work was prioritized correctly
 rather than whether it is correct. It requires `FiniteVolume` and so can only be run *after* Phase 1,
@@ -1994,18 +1991,16 @@ now reduce to one another, and a violation indicates a defect in one of them.
 
 Requirement 2.2 bounds the number of TEOS-10 evaluations, and nothing above tests it — the scheme
 could satisfy every accuracy gate while quietly calling the equation of state inside the column loop.
-Two cheap checks close that:
+Two things guard against that:
 
-- **Evaluation count.** With an instrumented `Eos` (§4.1.2), confirm the number of specific-volume
-  evaluations the pressure gradient performs is **zero**, at every setting of `QuadraturePoints` —
-  the quadrature loop being where an equation-of-state call would most naturally creep in. Zero is
-  sharper than Requirement 2.2 asks for and is what the design actually delivers: the one evaluation
-  per cell per layer the requirement allows is paid once by `AuxiliaryState`, before the tendency is
+- **Interface.** The pressure gradient performs **no** equation-of-state evaluations: the one per
+  cell per layer the requirement allows is paid once by `AuxiliaryState`, before the tendency is
   formed, and the scheme works from the specific volume and derivatives that call leaves behind.
-  Because a count of zero would also be produced by broken instrumentation, confirm alongside it
-  that one call to `computeSpecVolAndDerivs` registers exactly one evaluation per cell per layer.
-  This is a counter comparison, not a timing measurement, so it is deterministic and suitable for CI.
-  Measured in Omega: zero at `QuadraturePoints` 1, 2, 3 and 4.
+  `computePressureGrad` receives `Eos` as a `const Eos *`, so the compiler rejects a call to any of
+  its compute methods. A run-time counter in those methods would add nothing: it could only see the
+  host-side calls the `const` already forbids, while an evaluation inside the quadrature loop would
+  be a device-side call to the TEOS-10 polynomial that no such counter sees. That remaining case is
+  left to review and to the wall-time check below.
 - **Wall time.** Record PGF kernel time relative to `PressureGradCentered` on a representative
   configuration, as a performance regression guard. The expected cost is dominated by the per-edge
   column scan (§4.1.3), roughly three times as many column evaluations as a cell-based formulation on
@@ -2095,7 +2090,7 @@ layers and interfaces offset by up to three layer thicknesses.
 | the integrand is zero *pointwise* | §3.5, §3.7.2 | $5.8\times10^{-21}$ m$^3$ kg$^{-1}$ at every quadrature point on a profile linear in pressure, against $5.3\times10^{-10}$ on a quadratic one — the Polaris harness measured $5.3\times10^{-21}$ on the same check |
 | $O(\tilde h^2)$ off the exact set | §3.7.3 | rates above 2 on quadratic and cubic profiles over 15, 30 and 60 layers at fixed tilt. The rates *rise* under refinement rather than settling, so the sweep is not yet in the asymptotic regime and the gate is a lower bound |
 | the centered identity | §3.9, §5.5 | $0.49\,\epsilon$ of the hydrostatic scale over eight tilts, reproducing the harness' $0.5\,\epsilon$ through independently written code. The dropped-pressure-term guard is exactly linear in tilt, to six significant figures — §3.7.3's first-order-in-tilt statement falling out of a check written for another purpose |
-| bounded equation-of-state cost | §2.2, §5.6 | zero evaluations in the pressure gradient at every quadrature setting |
+| bounded equation-of-state cost | §2.2, §5.6 | by construction: the pressure gradient holds a `const Eos *` and reads only the four cached fields |
 | single precision | §3.7.5 | the exactness gate passes; see §3.7.5 for the numbers |
 
 ### 6.2 Corrections owed to `OmegaV1GoverningEqns.md`
