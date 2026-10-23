@@ -3015,8 +3015,6 @@
       <env name="BLOSC2_ROOT">$SHELL{if [ -z "$BLOSC2_ROOT" ]; then echo /lcrc/soft/climate/c-blosc2/2.15.2/intel-20.0.4; else echo "$BLOSC2_ROOT"; fi}</env>
       <env name="SZ_ROOT">$SHELL{if [ -z "$SZ_ROOT" ]; then echo /lcrc/soft/climate/sz/2.1.12.5/intel-20.0.4; else echo "$SZ_ROOT"; fi}</env>
       <env name="ZFP_ROOT">$SHELL{if [ -z "$ZFP_ROOT" ]; then echo /lcrc/soft/climate/zfp/1.0.1/intel-20.0.4; else echo "$ZFP_ROOT"; fi}</env>
-      <env name="METIS_ROOT">$SHELL{if [ -z "$METIS_ROOT" ]; then echo /lcrc/soft/climate/polaris/chrysalis/spack/dev_polaris_1.2.0/var/spack/environments/spack_env_intel-classic_openmpi/.spack-env/view/; else echo "$METIS_ROOT"; fi}</env>
-      <env name="PARMETIS_ROOT">$SHELL{if [ -z "$PARMETIS_ROOT" ]; then echo /lcrc/soft/climate/polaris/chrysalis/spack/dev_polaris_1.2.0/var/spack/environments/spack_env_intel-classic_openmpi/.spack-env/view/; else echo "$PARMETIS_ROOT"; fi}</env>
     </environment_variables>
     <environment_variables compiler="gnu" mpilib="openmpi">
       <env name="MOAB_ROOT">$SHELL{if [ -z "$MOAB_ROOT" ]; then echo /lcrc/soft/climate/moab/chrysalis/gnu; else echo "$MOAB_ROOT"; fi}</env>
