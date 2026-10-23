@@ -40,7 +40,6 @@ meshes:
         BtrTimeStep: 0000_00:03:00
     Tendencies:
       VelDiffTendencyEnable: false
-      VelHyperDiffTendencyEnable: true
       ViscDel4: 2.0e14
     HorzMesh:
       MeshScalingEnable: false
