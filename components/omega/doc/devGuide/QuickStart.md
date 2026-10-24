@@ -87,13 +87,20 @@ Omega. Instead, rely on Polaris auto-build during `polaris setup` or
 - Building E3SM components:
     <https://docs.e3sm.org/polaris/main/developers_guide/quick_start.html#building-e3sm-components>
 
-For Omega development, you are expected to validate changes with the Polaris
-`omega_pr` suite before non-trivial PRs (see {ref}`omega-dev-testing`):
+For Omega development, testing comprises two equally important pillars:
+standalone testing and coupled testing. Developers are expected to validate
+changes with both the Polaris `omega_pr` regression suite and targeted coupled
+CIME tests (especially `ERS` and `PEM` tests; see {ref}`omega-dev-testing`):
 
 - `omega_pr` suite:
     <https://docs.e3sm.org/polaris/main/users_guide/ocean/suites.html#omega-pr-suite>
+- Coupled CIME tests:
+    see {ref}`omega-dev-cime-testing` (and the test catalog in [`cime_config/tests.py`](https://github.com/E3SM-Project/Omega/blob/develop/cime_config/tests.py))
 
-Both Polaris-based and standalone/manual workflows are supported.
+Both Polaris-based standalone workflows and CIME coupled workflows are supported.
+To build and test Omega as part of a coupled E3SM simulation or run CIME
+system tests, see {ref}`omega-dev-cime-testing`. Remember to source the machine's
+{ref}`CIME environment <omega-cime-env>` before running CIME commands.
 
 (omega-dev-quick-start-ctest-util)=
 
