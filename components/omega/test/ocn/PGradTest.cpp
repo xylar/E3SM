@@ -1234,7 +1234,8 @@ int testExactnessAndGuards(HorzMesh *Mesh,    ///< [in] Horizontal mesh
 
    //
    // Group one: the exact set. The tendency must be zero to machine precision
-   // at every edge and layer, for any tilt, thickness or bathymetry.
+   // at every edge and layer, for any tilt or thickness, over the flat floor
+   // setupProfileState builds.
    //
    const Real PressBot = setupProfileState(
        Mesh, VCoord, State, EqState, NLayers, DC, Bulge, Linear, 0.0_Real);
