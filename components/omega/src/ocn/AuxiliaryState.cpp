@@ -5,6 +5,7 @@
 #include "Logging.h"
 #include "PGrad.h"
 #include "Pacer.h"
+#include "SubmesoEddies.h"
 #include "Tendencies.h"
 #include "TimeStepper.h"
 
@@ -31,7 +32,8 @@ AuxiliaryState::AuxiliaryState(const std::string &Name, const HorzMesh *Mesh,
       VelocityDel2Aux(stripDefault(Name), Mesh, VCoord),
       SurfTracerRestAux(stripDefault(Name), Mesh, NTracers),
       TracerAux(stripDefault(Name), Mesh, VCoord, NTracers),
-      TransportAux(stripDefault(Name), Mesh, VCoord), TimeStep(TimeStep) {
+      TransportAux(stripDefault(Name), Mesh, VCoord),
+      MixedLayerAux(stripDefault(Name), Mesh, VCoord), TimeStep(TimeStep) {
 
    GroupName = "AuxiliaryState";
    if (Name != "Default") {
@@ -48,6 +50,7 @@ AuxiliaryState::AuxiliaryState(const std::string &Name, const HorzMesh *Mesh,
    SurfTracerRestAux.registerFields(GroupName, AuxMeshName);
    TracerAux.registerFields(GroupName, AuxMeshName);
    TransportAux.registerFields(GroupName, AuxMeshName);
+   MixedLayerAux.registerFields(GroupName, AuxMeshName);
 }
 
 // Destructor. Unregisters the fields with IOStreams and destroys this auxiliary
@@ -60,6 +63,7 @@ AuxiliaryState::~AuxiliaryState() {
    SurfTracerRestAux.unregisterFields();
    TracerAux.unregisterFields();
    TransportAux.unregisterFields();
+   MixedLayerAux.unregisterFields();
 
    FieldGroup::destroy(GroupName);
 }
@@ -112,8 +116,24 @@ void AuxiliaryState::computeMomVertAux(const OceanState *State,
 
    EosInstance->computeDepthMeanSpecificVolume(PseudoThickCell);
 
+   // compute Brunt-Vaisala freqency squared
+   EosInstance->computeBruntVaisalaFreqSq(ConservTemp, AbsSalinity, PressureMid,
+                                          EosInstance->SpecVol);
+
    // compute target thickness
    VCoord->computeTargetThickness();
+
+   // compute displaced spec volume for mixed layer depth
+   EosInstance->computeSpecVolDisp(ConservTemp, AbsSalinity,
+                                   MixedLayerAux.ReferencePressure, 0);
+
+   // compute mixed layer depth
+   const auto &SpecVolDisplaced = EosInstance->SpecVolDisplaced;
+   OMEGA_SCOPE(LocMixedlLayerAux, this->MixedLayerAux);
+   parallelForOuter(
+       {Mesh->NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
+          LocMixedlLayerAux.computeVarsOnCell(Team, ICell, SpecVolDisplaced);
+       });
 
    Pacer::stop("AuxState:computeMomVertAux", 2);
 }
@@ -130,6 +150,29 @@ void AuxiliaryState::computeTransportVelocity(
    OMEGA_SCOPE(MinLayerEdgeBot, VCoord->MinLayerEdgeBot);
    OMEGA_SCOPE(MaxLayerEdgeTop, VCoord->MaxLayerEdgeTop);
 
+   auto *SubEddies = SubmesoEddies::getInstance();
+   Array2DReal EddyVelocity;
+   if (SubEddies && SubEddies->Enable) {
+
+      Eos *EosInstance = Eos::getInstance();
+
+      const auto &MeanPseudoThickEdge = PseudoThicknessAux.MeanPseudoThickEdge;
+      const auto &SpecVol             = EosInstance->SpecVol;
+      const auto &BVFreqSq            = EosInstance->BruntVaisalaFreqSq;
+      const auto &GeomZMid            = VCoord->GeomZMid;
+      const auto &MinLayerEdgeBot     = VCoord->MinLayerEdgeBot;
+      const auto &MaxLayerEdgeTop     = VCoord->MaxLayerEdgeTop;
+      const auto &DenMixLayerDepth    = MixedLayerAux.DenMixLayerDepth;
+      const auto &DenMixLayerIndex    = MixedLayerAux.DenMixLayerIndex;
+
+      SubEddies->computeBuoyGrad(SpecVol, MeanPseudoThickEdge, GeomZMid,
+                                 BVFreqSq);
+      SubEddies->computeEddyVelocity(DenMixLayerDepth, DenMixLayerIndex,
+                                     BVFreqSq, MeanPseudoThickEdge);
+
+      EddyVelocity = SubEddies->EddyVelocity;
+   }
+
    parallelForOuter(
        "computeTransportVelocity", {Mesh->NEdgesAll},
        KOKKOS_LAMBDA(int IEdge, const TeamMember &Team) {
@@ -142,6 +185,9 @@ void AuxiliaryState::computeTransportVelocity(
                  if (TransportVelocityAdd.data()) {
                     NormalTransportVelocity(IEdge, K) +=
                         TransportVelocityAdd(IEdge, K);
+                 }
+                 if (EddyVelocity.data()) {
+                    NormalTransportVelocity(IEdge, K) += EddyVelocity(IEdge, K);
                  }
               });
        });
@@ -171,6 +217,10 @@ void AuxiliaryState::computePseudoThicknessAux(
                                                   NormalVelEdge);
        });
    Pacer::stop("AuxState:computePseudoThickAux", 2);
+
+   auto *SubEddies = SubmesoEddies::getInstance();
+
+   computeMomVertAux(State, TracerArray, ThickTimeLevel);
 
    computeTransportVelocity(State, VelTimeLevel);
 
@@ -221,10 +271,13 @@ void AuxiliaryState::computeMomAux(const OceanState *State,
 
    computeMomVertAux(State, TracerArray, ThickTimeLevel);
 
+   // Restrict to vertices fully surrounded by local cells in NCellAll
+   // to avoid division by zero in PsuedoThickVertex on outer halo vertices.
+   const auto HaloWidth = Mesh->NVerticesHaloH.extent_int(0);
    Pacer::start("AuxState:vertexAuxState1", 2);
    parallelForOuter(
        "vertexAuxState1",
-       LaunchConfig({Mesh->NVerticesAll},
+       LaunchConfig({Mesh->NVerticesHaloH(HaloWidth - 1)},
                     TeamScratch<Real>(2 * VCoord->NVertLayers)),
        KOKKOS_LAMBDA(int IVertex, const TeamMember &Team) {
           LocVorticityAux.computeVarsOnVertex(Team, IVertex, PseudoThickCell,
@@ -342,6 +395,10 @@ void AuxiliaryState::computeTracerAux(const OceanState *State,
                                           MeanPseudoThickEdge, TracerArray);
        });
    Pacer::stop("Tend:computeTracerAuxCell", 2);
+
+   auto *SubEddies = SubmesoEddies::getInstance();
+
+   computeMomVertAux(State, TracerArray, ThickTimeLevel);
 
    computeTransportVelocity(State, VelTimeLevel);
 

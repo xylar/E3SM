@@ -612,6 +612,13 @@ add_omega_test(
     "-n;2"
 )
 
+add_omega_test(
+  FRAZIL_TEST
+  testFrazil.exe
+  ocn/FrazilTest.cpp
+  "-n;2"
+)
+
 ################
 # VertCoord test
 ################
@@ -639,6 +646,17 @@ add_omega_test(
     FILL_VALUE_TEST
     testFillValue.exe
     ocn/FillValueTest.cpp
+    "-n;8"
+)
+
+###################
+# CF metadata test
+###################
+
+add_omega_test(
+    CF_METADATA_TEST
+    testCFMetadata.exe
+    ocn/CFMetadataTest.cpp
     "-n;8"
 )
 
@@ -710,6 +728,7 @@ add_omega_test(
     ocn/SfcCouplingTest.cpp
     "-n;8"
 )
+
 ##################
 # Analysis tests
 ##################
@@ -726,4 +745,15 @@ add_omega_test(
     testAnalysisSys.exe
     analysis/AnalysisSystemTest.cpp
     "-n;8"
+)
+
+##########################
+# Submeso Eddies test
+##########################
+
+add_omega_test(
+    SUBMESOEDDIES_TEST
+    testSubmesoEddies.exe
+    ocn/SubmesoEddiesTest.cpp
+    "-n;2"
 )

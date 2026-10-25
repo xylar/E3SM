@@ -94,6 +94,12 @@ SfcTracerForcingOnCell::SfcTracerForcingOnCell(const HorzMesh *Mesh,
       MinLayerCell(VCoord->MinLayerCell), MaxLayerCell(VCoord->MaxLayerCell),
       EosChoice(EosInst->EosChoice) {}
 
+PenetratingShortwaveOnCell::PenetratingShortwaveOnCell(const HorzMesh *Mesh,
+                                                       const VertCoord *VCoord,
+                                                       I4 TempTracerIndex)
+    : TempIndex(TempTracerIndex), NVertLayers(VCoord->NVertLayers),
+      MinLayerCell(VCoord->MinLayerCell), MaxLayerCell(VCoord->MaxLayerCell) {}
+
 TracerHorzAdvOnCell::TracerHorzAdvOnCell(const HorzMesh *Mesh,
                                          const VertCoord *VCoord,
                                          const VertAdv *VAdv)
@@ -157,6 +163,81 @@ TracerHyperDiffOnCell::TracerHyperDiffOnCell(const HorzMesh *Mesh,
 SurfaceTracerRestoringOnCell::SurfaceTracerRestoringOnCell(
     const HorzMesh *Mesh) {}
 
+FrazilOnCell::FrazilOnCell(const HorzMesh *Mesh, const VertCoord *VCoord)
+    : NCellsAll(Mesh->NCellsAll), TempTracerIndex(-1), SaltTracerIndex(-1),
+      MinLayerCell(VCoord->MinLayerCell), MaxLayerCell(VCoord->MaxLayerCell) {
+   Tracers::getIndex(TempTracerIndex, "Temperature");
+   Tracers::getIndex(SaltTracerIndex, "Salinity");
+
+   OMEGA_REQUIRE(TempTracerIndex >= 0,
+                 "FrazilOnCell: Temperature tracer index is undefined");
+   OMEGA_REQUIRE(SaltTracerIndex >= 0,
+                 "FrazilOnCell: Salinity tracer index is undefined");
+}
+
+void FrazilOnCell::operator()(const Array2DReal &PseudoThicknessTend,
+                              const Array3DReal &TracerTend,
+                              const Array3DReal &TracerArray,
+                              const Array2DReal &PressureMid,
+                              const Array2DReal &PseudoThickness,
+                              const TimeInterval &TimeStep,
+                              const Real FinalUpdateWeight) const {
+   auto *Frazil = Frazil::getDefault();
+   if (!Enabled || !Frazil) {
+      return;
+   }
+
+   R8 TimeStepSeconds;
+   TimeStep.get(TimeStepSeconds, TimeUnits::Seconds);
+   deepCopy(Frazil->FrazilTTend, 0.0_Real);
+   deepCopy(Frazil->FrazilSTend, 0.0_Real);
+   deepCopy(Frazil->FrazilHTend, 0.0_Real);
+   deepCopy(Frazil->AccMIce, 0.0_Real);
+   deepCopy(Frazil->AccEIce, 0.0_Real);
+   deepCopy(Frazil->AccMLiq, 0.0_Real);
+   deepCopy(Frazil->AccELiq, 0.0_Real);
+   deepCopy(Frazil->AccMSalt, 0.0_Real);
+
+   const auto ConservTemp =
+       Kokkos::subview(TracerArray, TempTracerIndex, Kokkos::ALL, Kokkos::ALL);
+   const auto AbsSalinity =
+       Kokkos::subview(TracerArray, SaltTracerIndex, Kokkos::ALL, Kokkos::ALL);
+
+   Frazil->computeFrazil(ConservTemp, AbsSalinity, PressureMid,
+                         PseudoThickness);
+   Frazil->accumulateOcnStepFluxes(FinalUpdateWeight, TimeStepSeconds);
+
+   const auto FrazilHTend = Frazil->FrazilHTend;
+   const auto FrazilTTend = Frazil->FrazilTTend;
+   const auto FrazilSTend = Frazil->FrazilSTend;
+   const I4 TempIndex     = TempTracerIndex;
+   const I4 SaltIndex     = SaltTracerIndex;
+
+   OMEGA_SCOPE(LocPseudoThicknessTend, PseudoThicknessTend);
+   OMEGA_SCOPE(LocTracerTend, TracerTend);
+   OMEGA_SCOPE(LocFrazilHTend, FrazilHTend);
+   OMEGA_SCOPE(LocFrazilTTend, FrazilTTend);
+   OMEGA_SCOPE(LocFrazilSTend, FrazilSTend);
+   OMEGA_SCOPE(LocMinLayerCell, MinLayerCell);
+   OMEGA_SCOPE(LocMaxLayerCell, MaxLayerCell);
+
+   parallelForOuter(
+       {NCellsAll}, KOKKOS_LAMBDA(int ICell, const TeamMember &Team) {
+          const int KMin = LocMinLayerCell(ICell);
+          const int KMax = LocMaxLayerCell(ICell);
+
+          parallelForInner(
+              Team, Range{KMin, KMax}, INNER_LAMBDA(int K) {
+                 LocPseudoThicknessTend(ICell, K) +=
+                     LocFrazilHTend(ICell, K) / TimeStepSeconds;
+                 LocTracerTend(TempIndex, ICell, K) +=
+                     LocFrazilTTend(ICell, K) / TimeStepSeconds;
+                 LocTracerTend(SaltIndex, ICell, K) +=
+                     LocFrazilSTend(ICell, K) / TimeStepSeconds;
+              });
+       });
+}
+
 void TracerHorzAdvOnCell::init() {
    const HorzMesh *Mesh    = this->HorzontalMesh;
    const VertCoord *VCoord = this->VerticalCoord;
@@ -211,45 +292,47 @@ void TracerHorzAdvOnCell::init() {
       deepCopy(FlxIn, 0.0);
       deepCopy(FlxOut, 0.0);
       if (ComputeBudgets) {
+         // Sized like the NEdges and NCells dimensions they are written with
          const int NTracers = Tracers::getNumTracers();
-         const int NEdges   = Mesh->NEdgesHaloH(1);
          ActiveTracerHorizontalAdvectionEdgeFlux =
              Array3DReal("FCTActiveTracerHorizontalAdvectionEdgeFlux", NTracers,
-                         NEdges, NVertLayers);
+                         NEdgesSize, NVertLayers);
          ActiveTracerHorizontalAdvectionTendency =
              Array3DReal("FCTActiveTracerHorizontalAdvectionTendency", NTracers,
-                         NCellsAll, NVertLayers);
+                         NCellsSize, NVertLayers);
          deepCopy(ActiveTracerHorizontalAdvectionEdgeFlux, 0.0);
          deepCopy(ActiveTracerHorizontalAdvectionTendency, 0.0);
-         const int NDims             = 1;
          const std::string GroupName = "AuxiliaryState";
-         std::vector<std::string> FluxDimNames(NDims, "NEdges");
+         // Both budget arrays hold every tracer on every layer
+         std::vector<std::string> FluxDimNames{"NTracers", "NEdges",
+                                               "NVertLayers"};
+         std::vector<std::string> TendDimNames{"NTracers", "NCells",
+                                               "NVertLayers"};
+
          auto BudgetAdvectionEdgeFlux = Field::create(
              ActiveTracerHorizontalAdvectionEdgeFlux.label(),    // field name
-             "Tracer FCT Horizontal Advection Edge Flux Budget", // long name or
-                                                                 // description
+             "Tracer FCT Horizontal Advection Edge Flux Budget", // long name
              "",                                                 // units
-             "",                             // CF standard Name
-             0,                              // min valid value
-             std::numeric_limits<I4>::max(), // max valid value
-             NDims,                          // number of dimensions
-             FluxDimNames                    // dimension names
+             "",                                  // CF standard Name
+             std::numeric_limits<Real>::lowest(), // min valid value
+             std::numeric_limits<Real>::max(),    // max valid value
+             3,                                   // number of dimensions
+             FluxDimNames                         // dimension names
          );
          BudgetAdvectionEdgeFlux->attachData<Array3DReal>(
              ActiveTracerHorizontalAdvectionEdgeFlux);
          FieldGroup::addFieldToGroup(
              ActiveTracerHorizontalAdvectionEdgeFlux.label(), GroupName);
-         std::vector<std::string> TendDimNames(NDims, "NCells");
+
          auto BudgetAdvectionCellTend = Field::create(
-             ActiveTracerHorizontalAdvectionTendency.label(), // field name
-             "Tracer FCT Horizontal Advection Cell Flux "
-             "Tendency",                     // long name or description
-             "",                             // units
-             "",                             // CF standard Name
-             0,                              // min valid value
-             std::numeric_limits<I4>::max(), // max valid value
-             NDims,                          // number of dimensions
-             TendDimNames                    // dimension names
+             ActiveTracerHorizontalAdvectionTendency.label(),      // field name
+             "Tracer FCT Horizontal Advection Cell Flux Tendency", // long name
+             "",                                                   // units
+             "",                                  // CF standard Name
+             std::numeric_limits<Real>::lowest(), // min valid value
+             std::numeric_limits<Real>::max(),    // max valid value
+             3,                                   // number of dimensions
+             TendDimNames                         // dimension names
          );
          BudgetAdvectionCellTend->attachData<Array3DReal>(
              ActiveTracerHorizontalAdvectionTendency);

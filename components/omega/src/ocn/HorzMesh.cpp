@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "HorzMesh.h"
+#include "Config.h"
 #include "DataTypes.h"
 #include "Decomp.h"
 #include "Dimension.h"
@@ -18,9 +19,13 @@
 #include "GlobalConstants.h"
 #include "Halo.h"
 #include "IOStream.h"
+#include "Logging.h"
 #include "OmegaKokkos.h"
+#include "Reductions.h"
 
+#include <algorithm>
 #include <limits>
+#include <vector>
 
 namespace OMEGA {
 
@@ -428,24 +433,161 @@ void HorzMesh::computeEdgeSign() {
 
 //------------------------------------------------------------------------------
 // Set mesh scaling coefficients for mixing terms in momentum and tracer
-// equations so viscosity and diffusion scale with mesh.
+// equations so viscosity and diffusion scale with mesh
 void HorzMesh::computeMeshScaling() {
+
+   Config *OmegaConfig = Config::getOmegaConfig();
+   Config HorzMeshConfig("HorzMesh");
+   Error Err = OmegaConfig->get(HorzMeshConfig);
+   CHECK_ERROR_ABORT(Err,
+                     "HorzMesh: HorzMesh group not found in configuration");
+
+   bool MeshScalingEnable;
+   Err = HorzMeshConfig.get("MeshScalingEnable", MeshScalingEnable);
+   CHECK_ERROR_ABORT(Err, "HorzMesh: MeshScalingEnable not found in HorzMesh "
+                          "configuration");
+
+   // Reference width (median cell width) for the scaling
+   computeMedianCellWidth();
 
    OMEGA_SCOPE(o_MeshScalingDel2, MeshScalingDel2);
    OMEGA_SCOPE(o_MeshScalingDel4, MeshScalingDel4);
 
-   // TODO: implement mesh scaling by cell area, only no scaling
-   // option for now
-   parallelFor(
-       {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
-          o_MeshScalingDel2(Edge) = 1.0;
-          o_MeshScalingDel4(Edge) = 1.0;
-       });
+   if (MeshScalingEnable) {
+      OMEGA_SCOPE(o_MedianCellWidth, MedianCellWidth);
+      OMEGA_SCOPE(o_AreaCell, AreaCell);
+      OMEGA_SCOPE(o_CellsOnEdge, CellsOnEdge);
+
+      // Mesh scaling is computed using CellWidth derived from AreaCell
+      // relative to the global median cell width.
+      parallelFor(
+          {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
+             const int Cell0 = o_CellsOnEdge(Edge, 0);
+             const int Cell1 = o_CellsOnEdge(Edge, 1);
+             const Real CellWidth =
+                 2.0_Real *
+                 Kokkos::sqrt((o_AreaCell(Cell0) + o_AreaCell(Cell1)) /
+                              (2.0_Real * Pi));
+             const Real Del2Scale = CellWidth / o_MedianCellWidth;
+
+             o_MeshScalingDel2(Edge) = Del2Scale;
+             o_MeshScalingDel4(Edge) = Del2Scale * Del2Scale * Del2Scale;
+          });
+
+   } else {
+      // Without mesh scaling, the mesh scaling is set as 1 and
+      // is the same everywhere
+      parallelFor(
+          {NEdgesAll}, KOKKOS_LAMBDA(int Edge) {
+             o_MeshScalingDel2(Edge) = 1.0_Real;
+             o_MeshScalingDel4(Edge) = 1.0_Real;
+          });
+   } // if MeshScalingEnable
 
    MeshScalingDel2H = createHostMirrorCopy(MeshScalingDel2);
    MeshScalingDel4H = createHostMirrorCopy(MeshScalingDel4);
 
+   // Write the median cell width and the range of the scaling coefficients
+   // to the log. Boundary edges have only one valid cell (the other is
+   // NCellsAll) and are masked out of the mixing terms, so they are skipped.
+   Real MinDel2 = std::numeric_limits<Real>::max();
+   Real MaxDel2 = std::numeric_limits<Real>::lowest();
+   Real MinDel4 = std::numeric_limits<Real>::max();
+   Real MaxDel4 = std::numeric_limits<Real>::lowest();
+   for (int Edge = 0; Edge < NEdgesOwned; ++Edge) {
+      if (CellsOnEdgeH(Edge, 0) == NCellsAll or
+          CellsOnEdgeH(Edge, 1) == NCellsAll)
+         continue;
+      MinDel2 = std::min(MinDel2, MeshScalingDel2H(Edge));
+      MaxDel2 = std::max(MaxDel2, MeshScalingDel2H(Edge));
+      MinDel4 = std::min(MinDel4, MeshScalingDel4H(Edge));
+      MaxDel4 = std::max(MaxDel4, MeshScalingDel4H(Edge));
+   }
+
+   MPI_Comm Comm = Halo::get(MeshName)->getComm();
+   std::vector<Real> MinVals =
+       globalMinVal(std::vector<Real>{MinDel2, MinDel4}, Comm);
+   std::vector<Real> MaxVals =
+       globalMaxVal(std::vector<Real>{MaxDel2, MaxDel4}, Comm);
+
+   LOG_INFO("HorzMesh: MeshScalingEnable = {}; median cell width = {} m",
+            MeshScalingEnable, MedianCellWidth);
+   LOG_INFO("HorzMesh: MeshScalingDel2 min/max = {}/{}", MinVals[0],
+            MaxVals[0]);
+   LOG_INFO("HorzMesh: MeshScalingDel4 min/max = {}/{}", MinVals[1],
+            MaxVals[1]);
+
 } // end computeMeshScaling
+
+//------------------------------------------------------------------------------
+// Compute the global median cell width, where the width of each cell is the
+// diameter of a circle with the same area. The widths of the owned cells are
+// gathered on one task, so the result does not depend on the decomposition.
+void HorzMesh::computeMedianCellWidth() {
+
+   MPI_Comm Comm  = Halo::get(MeshName)->getComm();
+   const int Root = 0;
+   int MyTask;
+   int NTasks;
+   MPI_Comm_rank(Comm, &MyTask);
+   MPI_Comm_size(Comm, &NTasks);
+
+   std::vector<Real> LocWidths(NCellsOwned);
+   for (int Cell = 0; Cell < NCellsOwned; ++Cell)
+      LocWidths[Cell] = 2.0_Real * std::sqrt(AreaCellH(Cell) / Pi);
+
+   // Gather the number of owned cells on each task to set the offsets
+   I4 LocCount = NCellsOwned;
+   std::vector<I4> Counts(NTasks, 0);
+   std::vector<I4> Offsets(NTasks, 0);
+   int Err = MPI_Gather(&LocCount, 1, MPI_INT32_T, Counts.data(), 1,
+                        MPI_INT32_T, Root, Comm);
+   if (Err != MPI_SUCCESS)
+      ABORT_ERROR("HorzMesh: MPI error gathering cell counts for the median "
+                  "cell width");
+
+   std::vector<Real> AllWidths;
+   if (MyTask == Root) {
+      I4 NCellsTot = 0;
+      for (int Task = 0; Task < NTasks; ++Task) {
+         Offsets[Task] = NCellsTot;
+         NCellsTot += Counts[Task];
+      }
+      OMEGA_REQUIRE(NCellsTot == NCellsGlobal,
+                    "HorzMesh: gathered {} cells for the median cell width, "
+                    "expected {}",
+                    NCellsTot, NCellsGlobal);
+      AllWidths.resize(NCellsTot);
+   }
+
+   Err = MPI_Gatherv(LocWidths.data(), LocCount, MPI_RealKind, AllWidths.data(),
+                     Counts.data(), Offsets.data(), MPI_RealKind, Root, Comm);
+   if (Err != MPI_SUCCESS)
+      ABORT_ERROR("HorzMesh: MPI error gathering cell widths for the median "
+                  "cell width");
+
+   // Median of all cell widths (mean of the two middle values when the number
+   // of cells is even)
+   Real Median = 0.0_Real;
+   if (MyTask == Root) {
+      auto Mid = AllWidths.begin() + AllWidths.size() / 2;
+      std::nth_element(AllWidths.begin(), Mid, AllWidths.end());
+      Median = *Mid;
+      if (AllWidths.size() % 2 == 0)
+         Median =
+             0.5_Real * (Median + *std::max_element(AllWidths.begin(), Mid));
+   }
+
+   Err = MPI_Bcast(&Median, 1, MPI_RealKind, Root, Comm);
+   if (Err != MPI_SUCCESS)
+      ABORT_ERROR("HorzMesh: MPI error broadcasting the median cell width");
+
+   OMEGA_REQUIRE(Median > 0.0_Real,
+                 "HorzMesh: median cell width must be positive, got {}",
+                 Median);
+   MedianCellWidth = Median;
+
+} // end computeMedianCellWidth
 
 //------------------------------------------------------------------------------
 // Finish filling arrays read from a file by filling halos and copying to host
@@ -609,8 +751,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                           // field name
                      "X Coordinates of cell centers (m)", // long Name
                      "m",                                 // units
-                     "x",                                 // CF standard Name
-                     0.0,                                 // min valid value
+                     "",                                  // CF standard Name
+                     -7.0E+6,                             // min valid value
                      7.0E+6,                              // max valid value
                      NDims,                               // num of dimensions
                      DimNames,                            // dimension names
@@ -625,8 +767,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                           // field name
                      "Y Coordinates of cell centers (m)", // long Name
                      "m",                                 // units
-                     "y",                                 // CF standard Name
-                     0.0,                                 // min valid value
+                     "",                                  // CF standard Name
+                     -7.0E+6,                             // min valid value
                      7.0E+6,                              // max valid value
                      NDims,                               // num of dimensions
                      DimNames,                            // dimension names
@@ -641,8 +783,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                           // field name
                      "Z Coordinates of cell centers (m)", // long Name
                      "m",                                 // units
-                     "z",                                 // CF standard Name
-                     0.0,                                 // min valid value
+                     "",                                  // CF standard Name
+                     -7.0E+6,                             // min valid value
                      7.0E+6,                              // max valid value
                      NDims,                               // num of dimensions
                      DimNames,                            // dimension names
@@ -691,8 +833,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                         // field name
                      "X Coordinates of cell edges (m)", // long Name
                      "m",                               // units
-                     "x",                               // CF standard Name
-                     0.0,                               // min valid value
+                     "",                                // CF standard Name
+                     -7.0E+6,                           // min valid value
                      7.0E+6,                            // max valid value
                      NDims,                             // num of dimensions
                      DimNames,                          // dimension names
@@ -707,8 +849,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                         // field name
                      "Y Coordinates of cell edges (m)", // long Name
                      "m",                               // units
-                     "y",                               // CF standard Name
-                     0.0,                               // min valid value
+                     "",                                // CF standard Name
+                     -7.0E+6,                           // min valid value
                      7.0E+6,                            // max valid value
                      NDims,                             // num of dimensions
                      DimNames,                          // dimension names
@@ -723,8 +865,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                         // field name
                      "Z Coordinates of cell edges (m)", // long Name
                      "m",                               // units
-                     "z",                               // CF standard Name
-                     0.0,                               // min valid value
+                     "",                                // CF standard Name
+                     -7.0E+6,                           // min valid value
                      7.0E+6,                            // max valid value
                      NDims,                             // num of dimensions
                      DimNames,                          // dimension names
@@ -773,8 +915,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                            // field name
                      "X Coordinates of cell vertices (m)", // long Name
                      "m",                                  // units
-                     "x",                                  // CF standard Name
-                     0.0,                                  // min valid value
+                     "",                                   // CF standard Name
+                     -7.0E+6,                              // min valid value
                      7.0E+6,                               // max valid value
                      NDims,                                // num of dimensions
                      DimNames,                             // dimension names
@@ -789,8 +931,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                            // field name
                      "Y Coordinates of cell vertices (m)", // long Name
                      "m",                                  // units
-                     "y",                                  // CF standard Name
-                     0.0,                                  // min valid value
+                     "",                                   // CF standard Name
+                     -7.0E+6,                              // min valid value
                      7.0E+6,                               // max valid value
                      NDims,                                // num of dimensions
                      DimNames,                             // dimension names
@@ -805,8 +947,8 @@ void HorzMesh::defineMeshFields() {
        Field::create(FieldName,                            // field name
                      "Z Coordinates of cell vertices (m)", // long Name
                      "m",                                  // units
-                     "z",                                  // CF standard Name
-                     0.0,                                  // min valid value
+                     "",                                   // CF standard Name
+                     -7.0E+6,                              // min valid value
                      7.0E+6,                               // max valid value
                      NDims,                                // num of dimensions
                      DimNames,                             // dimension names
@@ -853,8 +995,8 @@ void HorzMesh::defineMeshFields() {
    FieldName          = "AreaCell";
    AreaCell           = Array1DReal("AreaCell", NCellsSize); // allocate space
    auto AreaCellField = Field::create(FieldName,             // field name
-                                      "Area of each cell (m^2)", // long name
-                                      "m2",                      // units
+                                      "Area of each cell (m2)", // long name
+                                      "m2",                     // units
                                       "cell_area", // CF standard name
                                       0.0,         // min valid value
                                       9.99E+30,    // max valid value
@@ -887,8 +1029,8 @@ void HorzMesh::defineMeshFields() {
    AreaTriangle = Array1DReal("AreaTriangle", NVerticesSize); // allocate space
    auto AreaTriangleField =
        Field::create(FieldName, // field name
-                     "Area of each triangle in the dual grid (m^2)", // lng name
-                     "m2",                                           // units
+                     "Area of each triangle in the dual grid (m2)", // lng name
+                     "m2",                                          // units
                      "cell_area", // CF standard name
                      0.0,         // min valid value
                      9.99E+30,    // max valid value
@@ -961,14 +1103,14 @@ void HorzMesh::defineMeshFields() {
    auto KiteAreasOnVertexField =
        Field::create(FieldName, // field name
                      "Area of the portions of each dual cell that are part of "
-                     "each cellsOnVertex (m^2)", // long name
-                     "m2",                       // units
-                     "",                         // CF standard name
-                     0.0,                        // min valid value
-                     9.99E+30,                   // max valid value
-                     NDims,                      // num of dimensions
-                     DimNames,                   // dimension names
-                     false                       // not time dependent
+                     "each cellsOnVertex (m2)", // long name
+                     "m2",                      // units
+                     "",                        // CF standard name
+                     0.0,                       // min valid value
+                     9.99E+30,                  // max valid value
+                     NDims,                     // num of dimensions
+                     DimNames,                  // dimension names
+                     false                      // not time dependent
        );
    MeshGroupIn->addField(FieldName);
    Field::attachFieldData<Array2DReal>(FieldName, KiteAreasOnVertex);
@@ -1000,9 +1142,9 @@ void HorzMesh::defineMeshFields() {
    FieldName   = "FEdge";
    FEdge       = Array1DReal("FEdge", NEdgesSize);
    auto FEdgeField =
-       Field::create(FieldName,                                    // field name
-                     "Coriolis parameter at edges (radians s^-1)", // long name
-                     "radians s-1",                                // units
+       Field::create(FieldName,                                   // field name
+                     "Coriolis parameter at edges (radians s-1)", // long name
+                     "radians s-1",                               // units
                      "coriolis_parameter", // CF standard name
                      -1.0E-3,              // min valid value
                      1.0E-3,               // max valid value
@@ -1018,7 +1160,7 @@ void HorzMesh::defineMeshFields() {
    FVertex     = Array1DReal("FVertex", NVerticesSize);
    auto FVertexField =
        Field::create(FieldName, // field name
-                     "Coriolis parameter at vertices (radians s^-1)",
+                     "Coriolis parameter at vertices (radians s-1)",
                      "radians s-1",        // units
                      "coriolis_parameter", // CF standard name
                      -1.0E-3,              // min valid value
@@ -1035,7 +1177,7 @@ void HorzMesh::defineMeshFields() {
    FCell       = Array1DReal("FCell", NCellsSize);
    auto FCellField =
        Field::create(FieldName, // field name
-                     "Coriolis parameter at cell centers (radians s^-1)",
+                     "Coriolis parameter at cell centers (radians s-1)",
                      "radians s-1",        // units
                      "coriolis_parameter", // CF standard name
                      -1.0E-3,              // min valid value

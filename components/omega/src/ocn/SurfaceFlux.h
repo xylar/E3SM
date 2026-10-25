@@ -23,10 +23,12 @@ KOKKOS_INLINE_FUNCTION Real sfcHeatFluxWithoutMassEnthalpy(
     const Array1DReal &SeaIceSaltFlux, const Array1DReal &LatentHeatFluxEvap,
     const Array1DReal &SnowFlux, const Array1DReal &IceRunoffFlux) {
 
-   const Real SaSeaIce =
-       SeaIceFreshWaterFlux(ICell) > 0.0_Real
-           ? SeaIceSaltFlux(ICell) / SeaIceFreshWaterFlux(ICell) * Salt2PPt
-           : SaTop;
+   const Real SeaIceFreshWater = SeaIceFreshWaterFlux(ICell);
+   const Real SeaIceSalt       = SeaIceSaltFlux(ICell);
+   const Real SaSeaIce = SeaIceFreshWater > 0.0_Real && SeaIceSalt > 0.0_Real
+                             ? SeaIceSalt / SeaIceFreshWater * Salt2PPt
+                             : SaTop;
+
    const Real SeaIceLiqEnthalpyEstimate =
        SeaIceFreshWaterFlux(ICell) * Cp0Sw *
        Eos::calcCtFreezing(EosChoice, SaSeaIce, PTopDb, 0.0_Real);

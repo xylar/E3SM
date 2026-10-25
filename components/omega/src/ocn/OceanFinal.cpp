@@ -11,6 +11,7 @@
 #include "Eos.h"
 #include "Field.h"
 #include "Forcing.h"
+#include "Frazil.h"
 #include "Halo.h"
 #include "HorzMesh.h"
 #include "IO.h"
@@ -20,6 +21,7 @@
 #include "OceanState.h"
 #include "PGrad.h"
 #include "SfcCoupling.h"
+#include "SubmesoEddies.h"
 #include "Tendencies.h"
 #include "TimeMgr.h"
 #include "TimeStepper.h"
@@ -46,12 +48,14 @@ int ocnFinalize(const TimeInstant &CurrTime ///< [in] current sim time
    SfcCoupling::clear();
    Tracers::clear();
    TimeStepper::clear();
+   SubmesoEddies::destroyInstance();
    PressureGrad::clear();
    Eos::destroyInstance();
    Tendencies::clear();
    AuxiliaryState::clear();
    Forcing::clear();
    OceanState::clear();
+   Frazil::clear();
    VertAdv::clear();
    VertCoord::clear();
    Dimension::clear();
@@ -65,7 +69,6 @@ int ocnFinalize(const TimeInstant &CurrTime ///< [in] current sim time
    // destroy singletons that use raw new/delete
    Eos::destroyInstance();
    VertMix::destroyInstance();
-
    return RetVal;
 } // end ocnFinalize
 

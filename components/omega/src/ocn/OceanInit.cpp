@@ -16,6 +16,7 @@
 #include "Error.h"
 #include "Field.h"
 #include "Forcing.h"
+#include "Frazil.h"
 #include "Halo.h"
 #include "HorzMesh.h"
 #include "IO.h"
@@ -28,6 +29,7 @@
 #include "PGrad.h"
 #include "Pacer.h"
 #include "SfcCoupling.h"
+#include "SubmesoEddies.h"
 #include "Tendencies.h"
 #include "TimeMgr.h"
 #include "TimeStepper.h"
@@ -142,6 +144,15 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
    if (!StreamsValid)
       ABORT_ERROR("ocnInit: Error validating IO Streams");
 
+   if (Tendencies::getDefault()->PenetratingShortwave.Enabled) {
+      Metadata ShortwaveExtinctionMeta;
+      Error ShortwaveExtinctionError = IOStream::read(
+          "ShortwaveExtinctionIn", ModelClock, ShortwaveExtinctionMeta);
+      if (ShortwaveExtinctionError.isFail()) {
+         ABORT_ERROR("Errors encountered reading ShortwaveExtinctionIn");
+      }
+   }
+
    // Initialize data from Restart or InitialState files
    std::shared_ptr<Field> SimField = Field::get(SimMeta);
    std::string SimTimeStr          = " ";
@@ -151,6 +162,9 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
    Metadata ReqMeta; // empty requested metadata from file
    TimeStepperStartType StartType = DefStepper->getStartType();
    bool ReadRestart               = false;
+   // ContinueRestart is True only for true temporal continuations
+   // (Continue/Branch), which resume at the restart time.
+   bool ContinueRestart = false;
 
    // Read from either initial state stream or restart stream based
    // on the start option
@@ -167,8 +181,9 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
    case TimeStepperStartType::Branch:
    case TimeStepperStartType::Continue: {
       ReqMeta["SimulationTime"] = SimTimeStr; // request current sim time
-      Err1        = IOStream::read("RestartRead", ModelClock, ReqMeta);
-      ReadRestart = true;
+      Err1            = IOStream::read("RestartRead", ModelClock, ReqMeta);
+      ReadRestart     = true;
+      ContinueRestart = true;
 
       // Reset the current time to the input time from restart file and
       // update the end alarm and stop time.
@@ -180,11 +195,13 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
       DefStepper->resetEndAlarm();
    } break;
 
-   // Branch a simulation from a previous restart file but keep the
-   // simulation StartTime rather than the restart time
+   // Start a simulation from a previous restart file but keep the
+   // simulation StartTime rather than the restart time. Because the clock is
+   // re-dated to StartTime, analysis accumulators must begin a fresh period, so
+   // ContinueRestart is intentionally left false (no applyRestartState below).
    case TimeStepperStartType::Hybrid:
       Err1 = IOStream::read("RestartRead", ModelClock, ReqMeta);
-      CHECK_ERROR_ABORT(Err1, "Error reading restart file for branch run");
+      CHECK_ERROR_ABORT(Err1, "Error reading restart file for hybrid run");
       ReadRestart = true;
       break;
 
@@ -201,6 +218,16 @@ int ocnInit(MPI_Comm Comm ///< [in] ocean MPI communicator
 
    // Update Halo/Host arrays with new state, auxiliary state, and tracer fields
    Err = initUpdateHaloAndHostArrays();
+
+   // Restore the sample count and period flag for each restart-persisting
+   // analysis operator from the checkpoint Fields just read. (The partial sum
+   // is restored directly by the restart read.) Only done for true temporal
+   // continuations (Continue/Branch); Hybrid keeps the config StartTime and so
+   // begins a fresh averaging period, with the first sample overwriting any
+   // partial sum left in the output array by the restart read.
+   if (ContinueRestart) {
+      Analysis::getDefault()->applyRestartState();
+   }
 
    // Finish any time-stepper specific state initialization
    initStateForTimeStepper(ReadRestart);
@@ -255,7 +282,18 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
    std::shared_ptr<Field> SimField = Field::get(SimMeta);
    SimField->addMetadata("SimulationTime", SimTimeStr);
    Error Err1;
+
    Metadata ReqMeta; // empty requested metadata from file
+
+   Metadata ShortwaveExtinctionMeta;
+   if (Tendencies::getDefault()->PenetratingShortwave.Enabled) {
+      Metadata ShortwaveExtinctionMeta;
+      Error ShortwaveExtinctionError = IOStream::read(
+          "ShortwaveExtinctionIn", ModelClock, ShortwaveExtinctionMeta);
+      if (ShortwaveExtinctionError.isFail()) {
+         ABORT_ERROR("Errors encountered reading ShortwaveExtinctionIn");
+      }
+   }
 
    // Read from either initial state stream or restart stream based
    // on the start option
@@ -306,6 +344,13 @@ int ocnInit1(MPI_Comm Comm,                 ///< [in] ocean MPI communicator
    }
 
    Err = initUpdateHaloAndHostArrays();
+
+   // Restore the sample count and period flag for each restart-persisting
+   // analysis operator from the checkpoint Fields just read. (The partial sum
+   // is restored directly by the restart read.)
+   if (CoupledReadRestart) {
+      Analysis::getDefault()->applyRestartState();
+   }
 
    // Finish any time-stepper specific state initialization
    initStateForTimeStepper(CoupledReadRestart);
@@ -366,9 +411,11 @@ static int initOmegaModulesImpl() {
    Forcing::init();
    AuxiliaryState::init();
    Eos::init();
+   Frazil::init();
    PressureGrad::init();
    VertMix::init();
    KPPMix::init();
+   SubmesoEddies::init();
    Tendencies::init();
 
    // Validate SurfaceTracerRestoring configuration

@@ -101,7 +101,7 @@ template <typename ArrayT> class PseudoToGeometricOp : public AnalysisOperator {
       // dimensionless, so the geometric quantity has the units of the pseudo
       // quantity.
       std::string PseudoDescr;
-      PseudoField->getMetadata("Description", PseudoDescr);
+      PseudoField->getMetadata("long_name", PseudoDescr);
       auto Meta = inheritMetadata(InputNames[0]);
 
       // Create output Field with updated metadata

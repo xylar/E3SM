@@ -78,6 +78,12 @@ Omega:
       BottomDragCoeff: 1.0e-3
     SfcThicknessForcingTendencyEnable: false
     SfcTracerForcingTendencyEnable: false
+    PenetratingShortwaveTendency:
+      Enable: false
+      NearIrFraction: 0.58
+      NearIrCoeff: 2.86
+      BlueFraction: 0.21
+      RedFraction: 0.21
     TracerHorzAdvTendencyEnable: true
     TracerDiffTendencyEnable: true
     EddyDiff2: 10.0
@@ -89,10 +95,13 @@ Omega:
     VelocityVertAdvTendencyEnable: true
     TracerVertAdvTendencyEnable: true
     PressureGradTendencyEnable: true
+    FrazilTendencyEnable: false
     VelVertMixTendencyEnable: true
     TracerVertMixTendencyEnable: true
     KPPNonLocalTracerFluxTendencyEnable: true
     KPPNonLocalTracerDiagnosticsEnable: false
+  HorzMesh:
+    MeshScalingEnable: true
   ManufacturedSolution:
     WavelengthX: 5.0e6
     WavelengthY: 4.33013e6
@@ -106,6 +115,18 @@ Omega:
       DRhoDT: -0.2
       DRhoDS: 0.8
       RhoT0S0: 1000.0
+  Frazil:
+    FrazilType: teos10
+    LayerMassFracMax: 0.1
+    Phi: 0.75
+    DepthLimit: -1.0
+    ConservationCheck: true
+  Submeso:
+    Enable: false
+    Tau: 172800.0
+    Ce: 0.08
+    LfMin: 1.0e3
+    DsMax: 100.0e3
   VertMix:
     Background:
       Diffusivity: 1.0e-5
@@ -181,6 +202,16 @@ Omega:
       UseStartEnd: false
       Contents:
         - Forcing
+    ShortwaveExtinctionIn:
+      UsePointerFile: false
+      Filename: shortwave_extinction_coeffs.nc
+      Mode: read
+      Precision: double
+      Freq: 1
+      FreqUnits: OnStartup
+      UseStartEnd: false
+      Contents:
+        - ShortwaveExtinction
     # Restarts are used to initialize for all job submissions after the very
     # first startup job. This stream is only read if the StartType requires a
     # restart (Continue or Branch) and this stream is ignored otherwise
@@ -219,6 +250,19 @@ Omega:
         - Tracers
         - State
         - SshCell
+    FrazilOutput:
+      UsePointerFile: false
+      Filename: ocn.frazil.$Y-$M-$D_$h.$m.$s
+      Mode: write
+      IfExists: append
+      Precision: double
+      Freq: 600
+      FreqUnits: Never
+      FileFreq: 1
+      FileFreqUnits: days
+      UseStartEnd: false
+      Contents:
+        - Frazil
     Highfreq:
       UsePointerFile: false
       Filename: ocn.hifreq.$Y-$M
@@ -235,18 +279,25 @@ Omega:
       Contents:
         - Tracers
   Analysis:
+    # Each group below unless otherwise noted supports two output modes:
+    #   ReductionPeriod - time-averaged output over a window (reduction)
+    #   SnapshotPeriod  - instantaneous snapshots at a fixed cadence
+    # Either or both may be used; an empty list ([]) disables that mode.
+    # SamplingInterval (reductions only) sets the accumulation cadence
+    # as "<n>steps", "<n>perPeriod", or a TimeInterval (e.g. 6Hours).
+    # The default "dt" means the accumulation occurs every timestep.
     GlobalStats:
       Enable: false
       # Global Statistics (GlobalStats) analysis group
       # Computes spatial reduction statistics (Mean, Min, Max, StdDev)
-      # for a set of ocean fields. Supports temporal reduction (time-averaged
-      # output over a window) and instantaneous snapshots (discrete sampling).
+      # for a set of ocean fields.
       Fields: [NormalVelocity, PseudoThickness, Temperature, Salinity]
                                 # List of field names to compute statistics for
       SpatialStats: [Max, Min, Mean, StdDev]
                                 # Spatial statistics to compute (one per field)
       ReductionPeriod: [1Day, 1Month]
-                                # Temporal reduction periods (time-averaged stats)
+                                # Temporal reduction periods
+      SamplingInterval: "dt"    # Accumulation cadence of the reductions
       SnapshotPeriod: [6Hours]
                                 # Instantaneous snapshot output intervals
       Filename: global.stats.$Y.nc
@@ -265,24 +316,27 @@ Omega:
                                 # NOTE: Region masks not yet implemented
       Transects: []             # List of transect names for transect-based MOC
                                 # NOTE: Transect masks not yet implemented
-      ReductionPeriod: [1Month]       # Temporal reduction periods
-      SnapshotPeriod: []  # Instantaneous output periods
-      Filename: moc.$Y.nc
+      ReductionPeriod: [1Month] # Temporal reduction periods
+      SamplingInterval: "dt"    # Accumulation cadence of the reductions
+      SnapshotPeriod: []        # Instantaneous output periods
+      Filename: moc.$Y-$M.nc
       Stream:
         FileFreq: 1
         FileFreqUnits: months
     MonthlyAverages:
       Enable: false
       # Monthly Averages (MonthlyAverages) analysis group
-      # Computes time averages of the requested global fields. Each field is
-      # averaged over a temporal window. The averaging period defaults to one
-      # month but can be overridden with the optional ReductionPeriod parameter.
+      # Reduction-only: computes time averages of the requested global fields
+      # (SnapshotPeriod is discarded if set). Each field is averaged over a
+      # temporal window. The averaging period defaults to one month but can be
+      # overridden with the optional ReductionPeriod parameter.
       # Output is written to the stream MonthlyAverages_<Period>TimeStats
       # (e.g., MonthlyAverages_1MonthTimeStats).
       Fields: [Temperature, Salinity, NormalVelocity, PseudoThickness]
                                 # List of global fields to average
       ReductionPeriod: [1Month]
-                                # Optional; averaging period(s), defaults to [1Month]
+                                # Optional; averaging period(s)
+      SamplingInterval: "dt"    # Accumulation cadence of the reductions
       Filename: monthly.averages.$Y.nc
       Stream:
         FileFreq: 1

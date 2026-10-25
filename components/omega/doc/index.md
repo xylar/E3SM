@@ -55,8 +55,10 @@ userGuide/PGrad
 userGuide/Timing
 userGuide/VerticalMixingCoeff
 userGuide/KPPMix
+userGuide/SubmesoEddies
 userGuide/VertAdv
 userGuide/Forcing
+userGuide/Frazil
 userGuide/SfcCoupling
 userGuide/Analysis
 ```
@@ -107,8 +109,10 @@ devGuide/PGrad
 devGuide/Timing
 devGuide/VerticalMixingCoeff
 devGuide/KPPMix
+devGuide/SubmesoEddies
 devGuide/VertAdv
 devGuide/Forcing
+devGuide/Frazil
 devGuide/SfcCoupling
 devGuide/Analysis
 ```
@@ -129,12 +133,14 @@ design/Driver
 design/EOS
 design/Error
 design/FillValues
+design/Frazil
 design/Halo
 design/HorzMeshClass
 design/Logging
 design/MachEnv
 design/Metadata
 design/PGrad
+design/PGradHighOrder
 design/IO
 design/IOStreams
 design/Reductions

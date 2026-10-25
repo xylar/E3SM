@@ -147,9 +147,9 @@ template <typename ArrayT> class PrefixSumOp : public AnalysisOperator {
       // summed.
       std::string InputDescr;
       ScalarT InputValidMin, InputValidMax;
-      InputField->getMetadata("Description", InputDescr);
-      InputField->getMetadata("ValidMin", InputValidMin);
-      InputField->getMetadata("ValidMax", InputValidMax);
+      InputField->getMetadata("long_name", InputDescr);
+      InputField->getMetadata("valid_min", InputValidMin);
+      InputField->getMetadata("valid_max", InputValidMax);
       auto Meta = inheritMetadata(InputNames[0]);
 
       // The BC field seeds the sum, so it must be in the same units as the
