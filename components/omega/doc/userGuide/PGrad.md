@@ -63,12 +63,11 @@ like a passing centered run.
   ocean whose temperature and salinity vary linearly with pressure, at any
   coordinate tilt or layer thickness, provided the two columns' sea floors are
   at the same pressure
-- Over a sloping sea floor a residual remains, from shifting the two columns'
-  sea-floor heights to a common pressure. It grows with the cube of the
-  pressure difference between the two floors, so it stays small where partial
-  bottom cells cut the floor beneath level interior layers, but with
-  terrain-following layers over slopes of order 100 m/km it approaches the
-  centered scheme's error
+- Over a sloping sea floor a small residual remains, because the two columns'
+  sea-floor heights come from `VertCoord`'s sums over different layers. It is
+  smallest where partial bottom cells cut the floor beneath level interior
+  layers, and with terrain-following layers it shrinks as the layers are
+  refined
 - Intended for simulations with ice shelf cavities and steep bathymetry, where
   the centered scheme carries an error that is first order in the coordinate
   tilt and accumulates downward through the column
