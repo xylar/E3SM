@@ -16,10 +16,12 @@ This document specifies a more accurate discretization of the horizontal pressur
 a fourth-order one. It is the "future design document" promised in
 {ref}`Pressure Gradient <omega-design-pressure-grad>` (§2.3, §3.2), which commits Omega to a
 high-order option "similar to
-[Adcroft et al. 2008](https://doi.org/10.1016/j.ocemod.2008.02.001)" but defers the details. The
-existing centered, second-order Montgomery-potential scheme (`PressureGradCentered`) remains the
-default and the reference implementation; this design fills in the second `PressureGradType` entry,
-which the `PressureGrad` class already anticipates as a placeholder.
+[Adcroft et al. 2008](https://doi.org/10.1016/j.ocemod.2008.02.001)" but defers the details. This
+design fills in the second `PressureGradType` entry, which the `PressureGrad` class anticipated as a
+placeholder. The existing centered, second-order Montgomery-potential scheme
+(`PressureGradCentered`) is kept as a runtime option and as an independent cross-check; once Phase 1
+had been measured in a realistic global configuration, the new scheme replaced it as the default
+(§4.4).
 
 That entry, and the functor behind it, are named **`FiniteVolume`** and
 **`PressureGradFiniteVolume`** — not anything containing "high order" (§4.1.1). The choice is
@@ -136,6 +138,14 @@ suite; Phase 2 widens settings that Phase 1 puts in place. Section 3 marks which
 the formulation belong to which phase, and §4.5 records what each phase delivers and what it
 depends on.
 
+Phase 1 is implemented in Omega
+([#493](https://github.com/E3SM-Project/Omega/pull/493), with the sea-floor anchor refined in
+[#635](https://github.com/E3SM-Project/Omega/pull/635)) and tested in Polaris
+([#675](https://github.com/E3SM-Project/polaris/pull/675),
+[#681](https://github.com/E3SM-Project/polaris/pull/681) and
+[#900](https://github.com/E3SM-Project/polaris/pull/900)). The implementation details in §4 describe
+that code, and §4.5.2 says where Phase 2 attaches to it.
+
 ## 2 Requirements
 
 ### 2.1 Requirement: Higher accuracy than the centered scheme at affordable resolution
@@ -211,11 +221,14 @@ of $\Theta$, $S$, $p$, or $z$.
 ### 2.5 Requirement: Runtime-selectable, backward-compatible option
 
 The new scheme must be selectable at runtime through the existing `PressureGrad`
-configuration group and `PressureGradType` enum, leaving `Centered` as the default. Its
-sub-options (edge stencil width, vertical-reconstruction mode, quadrature) must be configurable,
-and the centered scheme must be recoverable as a configuration of the new one. The two phases must
+configuration group and `PressureGradType` enum, and `Centered` must remain selectable through the
+same key. Its sub-options (edge stencil width, vertical-reconstruction mode, quadrature) must be
+configurable and optional, so that a configuration that omits them still runs. The two phases must
 share one set of configuration keys, so that a configuration written for Phase 1 continues to work
 unchanged when Phase 2 lands.
+
+Which scheme is the default is not part of this requirement. `Centered` was the default when this
+design was written; Phase 1 changed that once it had been measured (§4.4).
 
 ### 2.6 Requirement: Verified order of accuracy
 
@@ -440,10 +453,10 @@ sets of their own — though it shares the square root and the normalization, an
 exactly the `Eos::SpecVol` field Omega already computes, so only the three derivative fields
 are additional work.
 
-The first-order expansion [](#alpha-taylor) is the default. A second-order expansion (adding
-$\alpha_{\Theta\Theta}$, $\alpha_{SS}$, $\alpha_{\Theta S}$, $\alpha_{pp}$, …) is an option
-where stratification is strong; it adds derivative evaluations but still no in-integral
-TEOS-10 calls.
+The first-order expansion [](#alpha-taylor) is what Phase 1 implements. A second-order expansion
+(adding $\alpha_{\Theta\Theta}$, $\alpha_{SS}$, $\alpha_{\Theta S}$, $\alpha_{pp}$, …) is a Phase 2
+option where stratification is strong; it adds derivative evaluations but still no in-integral
+TEOS-10 calls. It has no configuration key yet.
 
 #### 3.3.1 The expansion point must be shared across the edge
 
@@ -527,6 +540,17 @@ places two requirements on how the deviations are built:
   untouched, or it will break the cancellation of §3.7.2 precisely where the profile is well
   resolved.
 
+**The Phase 1 estimator.** Layer $k$'s deviation is $\Theta'_{i,k}(p) = s_{i,k}\,(p -
+p^{\text{mid}}_{i,k})$, with the slope $s_{i,k}$ the difference of the two neighbouring layer means
+divided by the difference of their `PressureMid`. The difference is centred, over layers $k-1$ and
+$k+1$, in the interior; it is one-sided in the shallowest and deepest valid layers, and the slope is
+zero in a column with a single valid layer. Because the mean of a linear function over a layer is
+its value at the layer's exact pressure midpoint, the layer means of a profile linear in pressure
+lie exactly on that line as a function of `PressureMid`, so this recovers the slope exactly for
+any distribution of layer thicknesses. The one-sided branches matter: the deepest valid layer is
+the partial cell that carries the whole signal where bathymetry steps. No limiter is applied. The
+slopes are formed once per cell and layer and reused across each cell's edges.
+
 The isopycnal-model assumption of constant properties within a layer is the degenerate choice
 $\Theta'_{i,k} = S'_{i,k} = 0$. This is retained as a **verification-only** configuration — it is
 what makes the reduction to the centered scheme in §3.9 possible, and it isolates compressibility
@@ -577,7 +601,7 @@ horizontal contrast in reconstructed $\Theta$ and $S$ *at matched pressure*, and
    other rule cannot break the robustness property. What is load-bearing is that **one** set
    multiply both columns: [](#dalpha) collapses to a coefficient times a contrast only then. Give
    each column its own expansion point and the $\bar\alpha_0$ and $\bar\alpha_p$ terms no longer
-   cancel, and exactness is lost — measured at $10^{-5}$, which is guard (e) of §5.2. The
+   cancel, and exactness is lost — measured at $10^{-5}$, which is guard (b) of §5.2. The
    edge-shared expansion point of §3.3.1 is therefore load-bearing, and it is load-bearing for
    *sharing* rather than for where the point sits.
 2. **Exactness does not depend on the quadrature.** The integrand is zero at every point, so any
@@ -603,30 +627,72 @@ $$
 D_{k+1} \;=\; D_k \;-\; \frac{1}{g}\int_{\bar q_k}^{\bar q_{k+1}} \Delta_e\hat\alpha(p)\; dp,
 $$ (d-recurrence)
 
-and the layer mean [](#ho-exact) needs is obtained from $D_k$ and a second moment of the same
-integrand over the same interval. Both integrals use the same quadrature points, and at each point
-each column's $\Theta$, $S$ come from the layer of that column containing the point.
+and the layer mean [](#ho-exact) needs is obtained from $D_{k+1}$ and the first moment of the same
+integrand about the layer's top interface, $\int_{\bar q_k}^{\bar q_{k+1}} (p - \bar q_k)\,
+\Delta_e\hat\alpha\,dp$. Both integrals use the same quadrature points, and at each point each
+column's $\Theta$, $S$ come from the layer of that column containing the point.
 
-**The anchor.** $D_{K+1} = \Delta_e z(\bar q_{K+1})$ at the deepest interface the two columns share,
-where they are in general at different pressures. It is the height difference there corrected to a
+**The anchor.** $K$ is the edge's deepest layer, the deepest layer valid in both columns, so
+$\bar q_{K+1}$ lies at the shallower column's floor and, where `maxLevelCell` differs, at an interior
+interface of the deeper one. The two columns' interfaces $K+1$ are in general at different
+pressures, and $D_{K+1} = \Delta_e z(\bar q_{K+1})$ is the height difference there corrected to a
 common pressure,
 
 $$
 D_{K+1} \;=\; \Delta_e Z_{K+1} \;+\; \frac{1}{g}\sum_{i \in CE(e)} -n_{e,i} \int_{\bar q_{K+1}}^{q_{i,K+1}} \hat\alpha^{(e)}_i(p)\,dp ,
 $$ (anchor)
 
-with both short integrals in closed form, each spanning half the cross-edge pressure difference at
-that interface, and both vanishing where the two columns' interface pressures agree. Anchored at the
-surface instead, the same expression applies at $k = 1$ with the sea-surface height difference and
-the surface pressures.
+with both short integrals evaluated exactly by the scan's Gauss rule, each spanning half the
+cross-edge pressure difference at that interface, and both vanishing where the two columns'
+interface pressures agree. Anchored at the surface instead, the same expression applies at $k = 1$
+with the sea-surface height difference and the surface pressures.
+
+**The shift to a common pressure must stay within one layer.** The short integrals use one
+first-order expansion, shared by the two layers that meet at the anchor (§3.3.1), and it is accurate
+across a pressure difference of about a layer. That covers a flat floor, and a sloping one cut by
+partial bottom cells beneath level interior layers: there the two columns' interfaces $K+1$ are
+always within a layer of each other. Terrain-following layers over a steep slope put one floor
+several layers deeper than the other, and [](#anchor) then stretches the expansion across the whole
+offset. The resulting error grows with the cube of the offset and is the same at every depth.
+Measured in Omega on a resting state linear in pressure with the floors 6.4 layers apart, it leaves
+the scheme at 0.45 of `PressureGradCentered`'s error (§5.2).
+
+The comparison is therefore made where the two columns are within a layer of each other. Let column
+$s$ be the one whose interface $K+1$ is at the lower pressure and column $d$ the other, and let $j
+\le K+1$ be the interface of column $d$ at or just below $q_{s,K+1}$, the lower interface of the
+layer of $d$ that contains $q_{s,K+1}$. Each column contributes one interface, $(Z^\ast_i,
+q^\ast_i) = (Z_{s,K+1}, q_{s,K+1})$ or $(Z_{d,j}, q_{d,j})$, and with $q^\ast = \tfrac12(q^\ast_s +
+q^\ast_d)$
+
+$$
+D(q^\ast) \;=\; \Delta_e Z^\ast \;+\; \frac{1}{g}\sum_{i \in CE(e)} -n_{e,i} \int_{q^\ast}^{q^\ast_i} \hat\alpha^{(a)}_i(p)\,dp,
+\qquad
+D_{K+1} \;=\; D(q^\ast) \;-\; \frac{1}{g}\int_{q^\ast}^{\bar q_{K+1}} \Delta_e\hat\alpha(p)\,dp ,
+$$ (anchor-one-layer)
+
+in which $\hat\alpha^{(a)}$ uses one expansion averaged from the two layers that meet at the
+comparison, layer $K$ of column $s$ and layer $j-1$ of column $d$, and the second integral is the
+matched-pressure integrand [](#dalpha) with edge layer $K$'s shared expansion. That integral is an
+increment of the same kind as every step of [](#d-recurrence): it vanishes on the exact set, so it
+carries the anchor down to $\bar q_{K+1}$ without disturbing exactness. Where $j = K+1$,
+$q^\ast = \bar q_{K+1}$, the second integral has zero width, and [](#anchor-one-layer) is
+[](#anchor) bit for bit. The rule changes answers only where the floors are more than a layer
+apart, and on the 6.4-layer state above it brings the scheme from 0.45 to 0.014 of
+`PressureGradCentered`.
+
+What it cannot remove is the difference between the two columns' `VertCoord` heights. $Z_{s,K+1}$
+and $Z_{d,j}$ are each `VertCoord`'s midpoint-rule sum over its own column's layers (§3.7.4), and
+two different layer partitions give sums that differ at $O(\tilde h^2)$. That residual converges
+with layer thickness rather than growing with the slope. It is why Requirement 2.3.1 is met to
+machine precision only where the two columns' floors are at the same depth and the same pressure.
 
 $D_{K+1}$ is **computed, not assumed**: it is whatever the model's geometric heights and interface
 pressures imply, evaluated at a common pressure. Like every other quantity in the scan it is a
-fixed-pressure height difference, and it is zero exactly when the state carries no horizontal
-pressure gradient at the surface — which is what a state at rest means. A state that is only
-approximately at rest carries a real gradient there, and the scheme reports it. The anchor is
-therefore not a place where the scheme assumes anything about the state; it is the $k=1$ instance
-of the same comparison [](#d-recurrence) makes at every other interface.
+fixed-pressure height difference, and it is zero exactly when the two columns' heights agree at a
+common pressure there — which is what a state at rest means. A state that is only approximately at
+rest carries a real gradient there, and the scheme reports it. The anchor is therefore not a place
+where the scheme assumes anything about the state; it is the deepest instance of the same
+comparison [](#d-recurrence) makes at every other interface.
 
 **Which end of the column the anchor sits at is not a conditioning choice**, though it was described
 as one here before it was measured; §3.7.4 gives the argument and the trade-off. What follows is the
@@ -656,8 +722,9 @@ cancel. The increments in [](#d-recurrence) are smaller still, being integrals o
 contrast.
 
 **The anchor is the exception, and only at the sea floor.** Where the bathymetry steps,
-$\Delta_e Z$ at the deepest shared interface is of order the step, and the two short integrals of
-[](#anchor) span that step and cancel it. Measured on a two-column state with a stepped floor and a
+$\Delta_e Z$ at the anchor is of order the part of the step that falls within the deepest shared
+layer, which [](#anchor-one-layer) keeps below a layer thickness, and the two short integrals of
+[](#anchor) span it and cancel it. Measured on a two-column state with a stepped floor and a
 profile linear in pressure: at a floor gradient of 1 m/km the anchor forms and cancels $4.0$ m to
 leave $1.9\times10^{-12}$ m; at 25 m/km, $100$ m to leave $2.6\times10^{-8}$; at 200 m/km,
 $205.6$ m to leave $1.7\times10^{-7}$ — nine to twelve decimal digits consumed. Anchored at the
@@ -665,10 +732,10 @@ surface the same states form nothing at all: $\Delta_e Z$ there is zero and, bot
 surface pressure, the correction is a zero-width integral. §3.7.4 records what this does to the
 choice of end.
 
-**`VertCoord`'s geometric height is used once**, for $\Delta_e Z_1$ in [](#anchor) — the free-surface
-height difference. It is not accumulated and not re-derived, so Requirement 2.4 is met by the PGF
-not constructing a geometric height at all: it constructs a *difference*, which is not a height
-field.
+**`VertCoord`'s geometric height is used once**, for $\Delta_e Z^\ast$ in [](#anchor-one-layer): one
+value of `GeomZInterface` per column, at the interface that column contributes to the anchor. It is
+not accumulated and not re-derived, so Requirement 2.4 is met by the PGF not constructing a
+geometric height at all: it constructs a *difference*, which is not a height field.
 
 ### 3.6 The edge operator
 
@@ -771,18 +838,23 @@ For each edge and layer:
    [](#dz-dp)–[](#dalpha). Integrating each column separately and subtracting satisfies condition 1
    only to the order of whatever shift is used to reconcile the two, and reintroduces the
    large-number cancellation §3.7.5 is about.
-3. **The anchor is shifted to a common pressure too.** [](#anchor), not $\Delta_e Z_1$. Wherever
-   surface pressure varies horizontally the two columns' sea surfaces sit at different pressures, so
-   the comparison condition 2 imposes in the interior must be made at the top of the column as well.
-   This is the $k=1$ instance of condition 2 rather than a separate idea, but it is stated separately
-   because it is a distinct place in the code and fails in a distinguishable way — a depth-independent
-   offset in $D_k$ (§5.2, guard (d)).
+3. **The anchor is shifted to a common pressure too.** [](#anchor-one-layer), not the raw
+   $\Delta_e Z$ at the anchor. Under any coordinate tilt, and wherever the bathymetry slopes, the
+   two columns' interfaces at the sea floor sit at different pressures, so the comparison condition
+   2 imposes in the interior must be made at the bottom of the column as well. This is the deepest
+   instance of condition 2 rather than a separate idea, but it is stated separately because it is a
+   distinct place in the code and fails in a distinguishable way — a depth-independent offset in
+   $D_k$ (§5.2, guard (d)). The shift must also stay within one layer (§3.5.1), or the anchor's
+   first-order expansion is stretched across the floor offset and leaves a depth-independent offset
+   of its own.
 
 Conditions 2 and 3 are about the discretization alone. Condition 1 is about
 whether the *reconstruction* reproduces the true profile: it holds exactly for profiles in the exact
 set of §3.7.3, and fails by however much the reconstruction misses when it does not. Meeting all
-three gives a PGF that is **zero to machine precision**, for any tilt, any layer thickness, and any
-bathymetry.
+three gives a PGF that is **zero to machine precision**, for any tilt and any layer thickness,
+wherever the anchor's inputs are exact: the two columns' floors at the same depth and pressure.
+Elsewhere the anchor carries the difference between the two columns' `VertCoord` heights (§3.5.1,
+§3.7.4), which is small and converges with layer thickness but is not round-off.
 
 What makes this tractable, and is worth carrying away, is that condition 1 is now checked *pointwise*
 rather than assembled: [](#dalpha) is zero at each quadrature point or it is not. There is no
@@ -805,10 +877,11 @@ expansion point [](#edge-ref) this gives, for each phase:
 | Realistic (general smooth) | $O(\tilde h)$ | $O(\tilde h^2)$ | $O(\tilde h^3)$ |
 | Horizontal structure in $\Theta$, $S$ | $O(d_e^2)$ | $O(d_e^2)$ | $O(d_e^4)$ |
 
-"Exact" means zero to machine precision. Orders are in layer thickness $\tilde h$ at fixed tilt, and
-in cell spacing $d_e$ for the last row. The $\tilde h$ entries carry a factor set by how strongly
-the profile curves and by how far the interfaces are displaced between the two columns, so they
-shrink as either shrinks.
+"Exact" means zero to machine precision, given exact anchor inputs: the two columns' floors at the
+same depth and pressure (§3.7.2). Where they are not, every row also carries the anchor residual of
+§3.5.1. Orders are in layer thickness $\tilde h$ at fixed tilt, and in cell spacing $d_e$ for the
+last row. The $\tilde h$ entries carry a factor set by how strongly the profile curves and by how
+far the interfaces are displaced between the two columns, so they shrink as either shrinks.
 
 Two consequences deserve emphasis:
 
@@ -870,8 +943,9 @@ but it no longer separates the two.
 
 #### 3.7.4 What `VertCoord` supplies, and what it does not
 
-`VertCoord` is the source of `PressureInterface`, `PressureMid`, `PseudoThickness` and the
-sea-surface height that [](#anchor) differences. It is **not** the source of the height the scheme
+`VertCoord` is the source of `PressureInterface`, `PressureMid`, `PseudoThickness` and the two
+values of `GeomZInterface` that [](#anchor-one-layer) differences at the sea floor. It is **not**
+the source of the height the scheme
 integrates: [](#d-recurrence) builds $\Delta_e z$ from the reconstruction alone, so the question of
 whether `VertCoord`'s $z$ is built from the same $\hat\alpha$ the PGF uses does not arise.
 
@@ -900,11 +974,12 @@ Measured, the gap accumulates to $1.1\times10^{-3}$ m over a column.
 
 **No change to `VertCoord` and no answer-changing baseline step is required** — but not because
 [](#z-increment-exact) makes its rule exact, which it does not. It is because the scheme does not
-accumulate `VertCoord`'s $z$ at all. It uses it once, as the difference [](#anchor) takes at the sea
-floor, where over a flat floor with matching `maxLevelCell` that difference is $-\Delta_e H$, exact
-prescribed input, and no accumulation enters it. Where the two columns' floors differ the anchor
-does span a partial accumulation over the layers between them, and the gap enters at the level of
-the difference between the two columns' partial sums; §5.1's `bathymetry_step` is where that is
+accumulate `VertCoord`'s $z$ at all. It uses it once, as the difference [](#anchor-one-layer) takes
+at the sea floor, where over a flat floor with matching `maxLevelCell` that difference is
+$-\Delta_e H$, exact prescribed input, and no accumulation enters it. Where the two columns' floors
+differ the anchor does span a partial accumulation, over the deeper column's layers below the
+interface it contributes, and the gap enters at the level of the difference between the two
+columns' partial sums. §5.1's `bathymetry_step` and the sloping-floor test of §5.2 are where that is
 measured.
 
 **The sharing question.** Whether a cell-based $z$ can carry an edge-dependent $\hat\alpha$ would
@@ -929,7 +1004,7 @@ trade-off rather than a settled preference, and neither end is uniformly better:
 | | sea-floor anchor | surface anchor |
 |---|---|---|
 | coordinate tilts, flat floor | exact; $\Delta_e Z = -\Delta_e H$ is exact input | fails; the two columns' derived sea-surface heights differ by $7.1\times10^{-8}$ m, matching the difference of their midpoint-rule truncations to all figures measured |
-| bathymetry steps | forms and cancels quantities of order the step; $1.7\times10^{-7}$ m residual at 200 m/km, nine digits consumed | forms nothing; $\Delta_e Z$ at the surface is zero and the correction is a zero-width integral |
+| bathymetry steps | forms and cancels quantities of order the step within the deepest shared layer; $1.7\times10^{-7}$ m residual at 200 m/km, nine digits consumed | forms nothing; $\Delta_e Z$ at the surface is zero and the correction is a zero-width integral |
 
 **Requirement 2.3.1 asks for machine precision at any tilt, thickness *and* bathymetry, and neither
 end delivers all three.** The sea floor is chosen because it is exact on the case the requirement was
@@ -940,12 +1015,20 @@ matters; §5.1's `bathymetry_step` variants are where it is measured.
 
 The stepped-floor residual is **not** quadrature error: refining from 2 to 16 Gauss points does not
 move it at all, which is conclusive rather than suggestive, since $\hat\alpha$ is linear in pressure
-and every rule integrates it exactly. What remains is the edge-shared first-order equation-of-state
-expansion being integrated across the whole step — some $2\times10^{6}$ Pa at 200 m/km, far outside
-the range the expansion is accurate over. That attribution is a scaling argument rather than a
-measurement. If it is right, the second-order expansion of §3.3 would reduce it, and re-expanding
-about the midpoint of each short integral rather than about the edge-layer state would too; neither
-has been tried.
+and every rule integrates it exactly. Two sources remain, and only one has been settled.
+
+- **The expansion stretched across the floor offset.** Where the floors are more than a layer apart,
+  this dominates. It was confirmed on terrain-following layers, where it grows with the cube of the
+  offset, and it is what [](#anchor-one-layer) removes (§3.5.1).
+- **`VertCoord`'s midpoint-rule sums over different layers.** On `bathymetry_step` the floors are
+  within a layer of each other at the anchor, so [](#anchor-one-layer) leaves those answers bit for
+  bit unchanged. There the anchor still integrates the expansion across up to a layer, some
+  $2\times10^{6}$ Pa at 200 m/km, and also differences the deeper column's midpoint-rule sum over
+  the layers below the anchor, which the shallower column does not have. Which of the two dominates
+  there is not measured. Using the exact equation of state in the anchor's short integrals was
+  tried in a one-edge model of terrain-following layers and is not a clean fix: at gentle slopes it
+  is worse, because the midpoint-rule difference dominates there. The second-order expansion of
+  §3.3 has not been tried in the anchor.
 
 The argument for the sea floor on a tilted coordinate is unchanged and follows.
 
@@ -1053,6 +1136,11 @@ assumptions this design is making that only testing can confirm:
   A configuration whose profile falls in Phase 1's exact set gives a direct test: if spurious
   bottom-layer flow persists there, the cause lies elsewhere — most likely in the layer-mean
   treatment in the tracer and remapping operators (§4.3) — and Phase 1 will not cure it. See §5.3.
+
+  **Measured since Phase 1 landed, and supported over the open ocean** (§5.3.2). Swapping
+  `Centered` for `FiniteVolume` in a 10-day realistic global run cuts the area-mean bottom-layer
+  kinetic energy sixteenfold and removes the grid-scale noise across the open ocean. What remains is
+  mostly on shelves and in marginal seas, where A4 is not established.
 - **A5 — The treatment at the top and bottom of the column is adequate.** [](#ho-exact) averages over
   the edge control volume's pressure range, which in general is not either column's own, so near the
   sea floor — where the two columns may have different `maxLevelCell`, and where a partial cell carries
@@ -1062,9 +1150,9 @@ assumptions this design is making that only testing can confirm:
   **A5 is an accuracy assumption, not a robustness one.** [](#dalpha) is evaluated at matched pressure
   whether or not the evaluation point lies inside the layer the reconstruction was built for, and on
   the exact set an extrapolated reconstruction still reproduces the true profile, so $\Delta_e\Theta(p)$
-  is still zero and exactness survives. What extrapolation costs is accuracy off the exact set, and how
-  much is unmeasured: the derivation harness ran with equal layer counts in both columns. §5.1's
-  `bathymetry_step` and `surface_pressure_gradient` variants are where it is measured.
+  is still zero and exactness survives. What extrapolation costs is accuracy off the exact set. The
+  derivation harness could not measure it, having equal layer counts in both columns; §5.1's
+  `bathymetry_step` variants have since measured it as benign (§6.5, §6.6).
 
   **The rule is to clamp to the outermost valid layer of the column and extrapolate that layer's
   reconstruction.** A pressure above a column's shallowest valid layer uses that layer; a pressure
@@ -1090,10 +1178,11 @@ zero. Should such a change ever be contemplated, [](#ho-target) as corrected her
 §3.1 are the starting point, and §3.1.1's third consequence is the pitfall to carry forward with them.
 
 **The geopotential body force** — the first line of [](#ho-target) — is the whole target. It is
-$g\,\nabla z + \nabla(\phi_{TP}+\phi_{SAL})$; $z$ enters as `VertCoord`'s `GeomZInterface` through
-[](#centered-shift), and the tidal-potential and self-attraction-and-loading contributions are
-supplied by `VertCoord` and differenced with [](#edge-grad) (Requirement 2.7). They are zero in early
-Omega versions and are unaffected by anything in §3.5.
+$g\,\nabla z + \nabla(\phi_{TP}+\phi_{SAL})$; $z$ enters as `VertCoord`'s `GeomZInterface`, through
+[](#centered-shift) in the centered scheme and only at the anchor [](#anchor-one-layer) in this
+one, and the tidal-potential and self-attraction-and-loading contributions are differenced with
+[](#edge-grad) (Requirement 2.7). They are placeholder arrays held by `PressureGrad`, zero until a
+tidal forcing module supplies them, and are unaffected by anything in §3.5.
 
 ### 3.9 Relationship to the centered scheme
 
@@ -1155,62 +1244,81 @@ running the new scheme at all.
 Steps 1–3 are per cell and layer; step 4 is a per-edge column scan; step 5 is per edge and layer.
 Phase differences are marked.
 
-1. From `VertCoord`: read `PressureInterface`, `PressureMid`, `PseudoThickness`, the sea-surface
-   height and the tidal/SAL potentials (already computed diagnostically each step). `VertCoord`
-   itself needs no change and no baseline step (§3.7.4).
+1. From `VertCoord`: read `PressureInterface`, `PressureMid` and `GeomZInterface`, the last only
+   at the anchor (already computed diagnostically each step). `VertCoord` itself needs no change
+   and no baseline step (§3.7.4).
 2. Obtain $\alpha_0$ (= the existing `Eos::SpecVol` field) and the derivatives
-   $\alpha_\Theta$, $\alpha_S$ from one TEOS-10 evaluation ([](#alpha-derivs)). $\alpha_p$ is not
-   required by [](#dalpha) and is needed only for the anchor [](#anchor); Phase 2 optionally adds
-   second derivatives (§3.3).
+   $\alpha_\Theta$, $\alpha_S$, $\alpha_p$ from one TEOS-10 evaluation ([](#alpha-derivs)), in
+   `AuxiliaryState` before the tendencies are formed. $\alpha_p$ is not required by [](#dalpha) and
+   is needed only for the anchor [](#anchor-one-layer); Phase 2 optionally adds second derivatives
+   (§3.3).
 3. Build the mean-preserving deviations $\Theta'$, $S'$ ([](#vert-recon)) — **linear in Phase 1,
    parabolic in Phase 2** — using the actual non-uniform interface pressures (§3.4).
-4. For each edge, in one column scan from the sea surface: form the anchor [](#anchor); then for each
-   edge layer form the shared coefficients [](#edge-ref), evaluate [](#dalpha) at the layer's
-   quadrature points — each column's $\Theta$, $S$ taken from *its own* layer containing that pressure
-   — and advance $D_k$ by [](#d-recurrence).
-5. For each edge and layer: form the layer mean of $\Delta_e z$ from $D_k$ and the second moment of
-   the same integrand, assemble [](#ho-exact) with the tidal/SAL difference, and accumulate into
-   `Tend` with `EdgeMask`. **Phase 1** uses the two-cell operator [](#edge-grad); **Phase 2** uses the
-   wider stencil of §3.6.1.
+4. For each edge, in one column scan anchored at the sea floor: for each edge layer, in parallel,
+   form the shared coefficients [](#edge-ref) and evaluate [](#dalpha) at the layer's quadrature
+   points — each column's $\Theta$, $S$ taken from *its own* layer containing that pressure — to
+   form the layer's increment of [](#d-recurrence) and its first moment; then form the anchor
+   [](#anchor-one-layer) and accumulate the increments upward from it to obtain $D_k$.
+5. For each edge and layer: form the layer mean of $\Delta_e z$ from $D_{k+1}$ and the first moment,
+   assemble [](#ho-exact) with the tidal/SAL difference, and accumulate into `Tend` with
+   `EdgeMask`. **Phase 1** uses the two-cell operator [](#edge-grad); **Phase 2** uses the wider
+   stencil of §3.6.1.
 
 ## 4 Design
 
 The `FiniteVolume` scheme extends the existing `PressureGrad` class in
 `components/omega/src/ocn/PGrad.{h,cpp}`. The class manager, creation/retrieval/removal
 methods, named-instance map, and dispatch logic are unchanged; the work is to flesh out the
-`PressureGradFiniteVolume` functor (currently a no-op placeholder) and to widen the inputs the
-manager hands to it.
+`PressureGradFiniteVolume` functor (a no-op placeholder before Phase 1), to add the kernels that
+feed it, and to widen the inputs the manager hands to it. This section describes the code as Phase 1
+implements it.
 
 ### 4.1 Data types and parameters
 
 #### 4.1.1 Parameters
 
 Configuration lives under the existing `PressureGrad` YAML group. The `PressureGradType`
-enum (PGrad.h:22) is updated to give the new scheme a descriptive name and to drop
-the unimplemented second placeholder, leaving a commented stub for a future variant:
+enum in `PGrad.h` gives the new scheme a descriptive name and drops the unimplemented second
+placeholder, leaving a commented stub for a future variant. A second enum names the vertical
+reconstruction, with a commented stub for Phase 2's:
 
 ```c++
 enum class PressureGradType {
-   Centered,      // existing 2nd-order Montgomery scheme
-   FiniteVolume   // layer-integrated finite-volume scheme (this design)
-   // , <FutureVariant>   // e.g. a 6th-order option, added when implemented
+   Centered,    ///< existing 2nd-order Montgomery scheme
+   FiniteVolume ///< layer-integrated finite-volume scheme
+   // , <FutureVariant>  ///< e.g. a 6th-order option, added when implemented
+};
+
+enum class PressureGradVertRecon {
+   Linear ///< linear deviations
+   // , PPM  ///< parabolic (PPM-style) deviations, added when implemented
 };
 ```
 
 New sub-options for `FiniteVolume`. Both phases use the same keys; Phase 2 adds values
-rather than keys, so no configuration written for Phase 1 needs to change when Phase 2 lands:
+rather than keys, so no configuration written for Phase 1 needs to change when Phase 2 lands.
+`Default.yml` carries:
 
 ```yaml
     PressureGrad:
-       PressureGradType: 'FiniteVolume'   # Centered | FiniteVolume
+       PressureGradType: FiniteVolume     # Centered | FiniteVolume
        HorzOrder: 2                       # 2 = two-cell stencil (Phase 1); 4 = wide stencil (Phase 2)
-       VerticalReconstruction: 'linear'   # 'linear' (Phase 1) | 'ppm' (Phase 2)
+       VerticalReconstruction: linear     # 'linear' (Phase 1) | 'ppm' (Phase 2)
        QuadraturePoints: 2                # per-edge-layer points for the matched-pressure integrand
 ```
 
 - **Phase 1 default and target:** `HorzOrder: 2`, `VerticalReconstruction: 'linear'`,
   `QuadraturePoints: 2`.
 - **Phase 2 target:** `HorzOrder: 4`, `VerticalReconstruction: 'ppm'`.
+
+The three sub-options are optional: where a key is absent the Phase 1 default is used, so a
+configuration written before they existed still runs. They are read and validated in the
+`PressureGrad` constructor and cached on the `PressureGradFiniteVolume` functor. **Values that are
+not implemented are rejected with an error rather than falling back** — today any `HorzOrder` other
+than 2, and `VerticalReconstruction: 'ppm'` — so that a configuration requesting Phase 2 cannot
+quietly run as Phase 1. `QuadraturePoints` must lie between 1 and 4 (`MaxPGradQuadPoints`). An
+unrecognized `PressureGradType` is likewise a fatal error rather than a fallback to `Centered`,
+which would otherwise turn a typo into a run that looks like a passing centered run.
 
 `QuadraturePoints` sets the number of points at which [](#dalpha) is evaluated within each edge
 layer. **It is an accuracy setting only.** Because the integrand is zero *pointwise* on the exact set
@@ -1239,15 +1347,15 @@ needs no setting of its own. Tests that mean to isolate compressibility, includi
 
 `PressureGradFiniteVolume` needs $\alpha$ together with its first derivatives. Note that
 [](#dalpha) uses only $\alpha_\Theta$ and $\alpha_S$ — $\alpha_p$ cancels in the matched-pressure
-difference and is required only by the anchor [](#anchor). The three derivative arrays are provided
+difference and is required only by the anchor [](#anchor-one-layer). The three derivative arrays are provided
 together regardless, since `Eos` computes them from one evaluation and `BruntVaisalaFreqSq` already
 consumes $\alpha_p$. The `Eos` class
-(Eos.h) currently exposes `computeSpecVol`, `computeSpecVolDisp`, and
-`computeBruntVaisalaFreqSq`, but no specific-volume derivatives. This design adds one method
-and three device arrays:
+(Eos.h) exposed `computeSpecVol`, `computeSpecVolDisp`, and
+`computeBruntVaisalaFreqSq`, but no specific-volume derivatives. One method and three device
+arrays were added ahead of Phase 1, in [Omega#485](https://github.com/E3SM-Project/Omega/pull/485):
 
 ```c++
-// New on the Eos class
+// On the Eos class
 Array2DReal SpecVolDCt; ///< d(alpha)/d(ConservTemp) at cell centers
 Array2DReal SpecVolDSa; ///< d(alpha)/d(AbsSalinity) at cell centers
 Array2DReal SpecVolDP;  ///< d(alpha)/d(Pressure)    at cell centers
@@ -1267,7 +1375,10 @@ $\alpha_S < 0$ everywhere, and $\alpha_\Theta < 0$ in cold fresh water — unlik
 
 Because `computeSpecVolAndDerivs` fills `SpecVol` as well, it replaces rather than accompanies
 a call to `computeSpecVol`; the two are kept separate so that the derivative arithmetic is
-paid only where it is needed.
+paid only where it is needed. `AuxiliaryState::computeMomVertAux` makes that choice: it calls
+`computeSpecVolAndDerivs` when the default `PressureGrad` instance is `FiniteVolume` and
+`computeSpecVol` otherwise, querying the default instance because the scheme is a model-wide choice
+and `AuxiliaryState` holds no `PressureGrad` of its own.
 
 The pressure gradient receives the equation of state as a `const Eos *`, so it cannot call any of
 these compute methods, and the per-edge functions read only the four cached fields. That interface,
@@ -1312,38 +1423,66 @@ Three aspects of the loop structure differ from the obvious implementation:
   values. This is what keeps Requirement 2.2 satisfied despite roughly three times as many column
   evaluations on a hexagonal mesh.
 - **The column scan of §3.10 step 4 cannot live in this functor.** [](#d-recurrence) is a prefix sum
-  down each column with edge-dependent coefficients, so it is not expressible as an independent
-  per-vertical-chunk operation. It is computed in a separate kernel filling per-edge arrays,
+  up each column with edge-dependent coefficients, so it is not expressible as an independent
+  per-vertical-chunk operation. `PressureGrad::computeColumnScan` computes it in a separate kernel
+  filling three per-edge arrays,
 
   ```c++
+  Array2DReal DeltaZIncr;    ///< (NEdgesSize, NVertLayers) — the recurrence's increment per layer
+  Array2DReal DeltaZMoment;  ///< (NEdgesSize, NVertLayers) — its first moment about the top interface
   Array2DReal DeltaZFixedP;  ///< (NEdgesSize, NVertLayersP1) — D_k at edge interfaces
-  Array2DReal DeltaZMoment;  ///< (NEdgesSize, NVertLayers) — first moment over the layer
   ```
 
-  with a `parallelForOuter` over edges and a `parallelScanInner` down the column, in the same shape as
-  `VertCoord::computeGeomZHeight`. The functor then reads them chunk-wise like any other input.
+  as a `parallelForOuter` over edges, each edge a team that makes two passes over the edge's active
+  layers. In the first, a `parallelForInner` over the layers forms each layer's shared expansion
+  and evaluates the matched-pressure integrand at the layer's quadrature points, accumulating the
+  increment of [](#d-recurrence) and its first moment from the same points. After a `teamBarrier`,
+  the second forms the anchor [](#anchor-one-layer) and turns the increments into $D_k$ with a
+  `parallelScanInner` upward from it, in the same shape as `VertCoord::computeGeomZHeight`. The
+  functor then reads `DeltaZFixedP` and `DeltaZMoment` chunk-wise like any other input.
 
-  $D_k$ is held at interfaces, so its extent is `NVertLayersP1`. The second array holds the first
-  moment $\int (p - \bar q_k)\,\Delta_e\hat\alpha\,dp$ over each layer, which is what the layer
-  mean of [](#ho-exact) needs alongside $D_k$; forming it in the same pass over the same quadrature
-  points is what §3.5.1 requires, and it is why the functor reads neither $\Theta$, $S$ nor the
-  equation-of-state derivatives. Evaluating the integrand a second time in the functor to recover the
-  moment would double the cost of the most expensive part of the scheme.
+  $D_k$ is held at interfaces, so its extent is `NVertLayersP1`. The moment
+  $\int (p - \bar q_k)\,\Delta_e\hat\alpha\,dp$ is what the layer mean of [](#ho-exact) needs
+  alongside $D_{k+1}$; forming it in the same pass over the same quadrature points is what §3.5.1
+  requires, and it is why the functor reads neither $\Theta$, $S$ nor the equation-of-state
+  derivatives. Evaluating the integrand a second time in the functor to recover the moment would
+  double the cost of the most expensive part of the scheme.
 
   The layer mean is then
   $D_{k+1} + \frac{1}{\Delta p_{e,k}}\int (p - \bar q_k)\,\Delta_e\hat\alpha\,dp$, taken from
-  the layer's *lower* interface because that is the end nearer the anchor.
+  the layer's *lower* interface because that is the end nearer the anchor, with $\Delta p_{e,k}$ the
+  edge average of the two columns' own layer thicknesses (§3.7.4).
 
-  The cost is two edge-sized 2-D arrays, two cell-sized arrays for the reconstruction slopes, and one
-  column scan per edge per step. This is the one structural addition Phase 1 makes beyond the
-  per-edge, per-chunk pattern the centered scheme uses. The arrays are allocated only when
-  `FiniteVolume` is selected, so a `Centered` run pays nothing for them.
+  The reconstruction slopes are formed before the scan by `PressureGrad::computeReconSlopes`, a
+  `parallelForOuter` over cells with a `parallelForInner` over each column's valid layers, into two
+  per-cell arrays `ReconSlopeCt` and `ReconSlopeSa` (`NCellsSize`, `NVertLayers`).
+
+  The cost is three edge-sized 2-D arrays, two cell-sized ones, and one column scan per edge per
+  step. This is the one structural addition Phase 1 makes beyond the per-edge, per-chunk pattern the
+  centered scheme uses. The arrays are allocated only when `FiniteVolume` is selected, so a
+  `Centered` run pays nothing for them. Both kernel launchers are public members, which `nvcc`
+  requires of a function containing a device lambda, and `getDeltaZFixedP` exposes $D_k$ so that
+  tests can assert on it directly.
 - **Each column's $\Theta$, $S$ are looked up by pressure, not by layer index.** At each quadrature
   point of edge layer $k$, [](#dalpha) needs the reconstruction of whichever of *that column's* layers
-  contains the point, which under tilt is generally not layer $k$ (§3.7.2, condition 1). Within the
-  column scan the two indices advance monotonically alongside $k$, so this is a pair of incremented
-  cursors rather than a search — but it is a real difference from the obvious implementation, and
-  getting it wrong reintroduces exactly the defect condition 1 warns about.
+  contains the point, which under tilt is generally not layer $k$ (§3.7.2, condition 1).
+  `findLayerForPress` walks from a hint, the edge layer index, up or down until the column's
+  interfaces bracket the pressure, and clamps to the column's outermost valid layer outside it
+  (§3.7.6, A5). Under tilt the walk is a few steps, and its result does not depend on the hint. It
+  is a real difference from the obvious implementation, and getting it wrong reintroduces exactly the
+  defect condition 1 warns about.
+
+The arithmetic lives in two headers of inline functions, templated on the array type so that the
+host-side reference assembly in the unit tests (§5.2) calls the same code the device kernels do:
+
+| Header | Contents |
+| ------ | -------- |
+| `PGradRecon.h` | the reconstruction stencil and slope (`linearReconStencil`, `linearReconSlope`), its evaluation at a pressure (`linearReconEval`), and the per-column pressure lookup (`findLayerForPress`) |
+| `PGradFiniteVolume.h` | the shared expansion (`PGradEdgeEos`, `buildEdgeEos`), one column's expanded $\hat\alpha$ for the anchor (`edgeSpecVol`), the matched-pressure integrand [](#dalpha) (`matchedPressSpecVolDiff`), and the Gauss-Legendre rule (`gaussLegendreRule`) |
+
+`buildEdgeEos` takes a layer index for each cell. Within an edge layer the two are the same; the
+anchor pairs layer $K$ of the shallower column with layer $j-1$ of the deeper one
+([](#anchor-one-layer)).
 
 The Phase 1 and Phase 2 code paths differ only in the reconstruction degree (§3.4) and in the width
 of the edge stencil (§3.6.1). There is one functor, not two.
@@ -1366,14 +1505,20 @@ void computePressureGrad(Array2DReal &Tend, const Array2DReal &PressureMid,
 ```
 
 The `Centered` branch ignores the new arguments and is byte-for-byte unchanged; the
-`FiniteVolume` branch dispatches to `PressureGradFiniteVolume` through the same
-`parallelForOuter`/`parallelForInner` team pattern used today (PGrad.cpp). The call site in
-`Tendencies.cpp` is updated to pass $\Theta$, $S$ (from the tracer state) and the `Eos`
-instance, which it already references for `SpecVol`.
+`FiniteVolume` branch runs `computeReconSlopes` and `computeColumnScan`, then dispatches to
+`PressureGradFiniteVolume` through the same `parallelForOuter`/`parallelForInner` team pattern the
+centered branch uses (PGrad.cpp). The call site in `Tendencies.cpp` is updated to pass $\Theta$,
+$S$ (subviews of the tracer array) and the `Eos` instance, which it already references for
+`SpecVol`.
 
 Creation, retrieval, and removal (`init`, `create`, `get`, `getDefault`, `clear`, `erase`)
-are unchanged. The `FiniteVolume` constructor additionally caches the reconstruction stencil and
-quadrature weights from config.
+are unchanged. The constructor additionally reads and validates the `FiniteVolume` options
+(§4.1.1), caches the mesh and coordinate arrays the column scan needs (`CellsOnEdge`,
+`MinLayerCell`, `MaxLayerCell`), and allocates the scheme's working arrays when it is selected.
+The Gauss-Legendre nodes and weights are formed inside the kernel from `QuadraturePoints`.
+Accessors `getType`, `getHorzOrder`, `getVertRecon` and `getQuadraturePoints` report the
+configured choice, which is how `AuxiliaryState` decides whether to compute the derivatives
+(§4.1.2).
 
 ### 4.3 Consistency and follow-up work
 
@@ -1410,15 +1555,19 @@ things that a single implementation cannot provide:
    shared upstream state — edge masks, interface indexing, `VertCoord` conventions — and not
    just the PGF arithmetic. Collapsing them would make that comparison self-referential: a
    defect upstream of the order switch would appear identically in both limits and cancel.
-2. **A stable default.** The algebraic reduction of §3.9 does not imply bit-for-bit agreement,
-   because the reduced `FiniteVolume` path performs the same operations in a different order.
-   Replacing the default PGF would be an answer-changing change for every existing
-   configuration, which this design does not require.
+2. **A fallback.** `FiniteVolume` is not a reduced form of `Centered` (§3.9), so no setting of
+   the new scheme recovers the old answers. Keeping the centered functor keeps those answers one
+   configuration key away, for comparison against earlier runs and for any configuration where
+   the new scheme misbehaves, such as the steep sigma layers of §5.3.1.
 
-Removing `PressureGradCentered` becomes reasonable once `FiniteVolume` is promoted to the
-default and has served out its period as the reference implementation. That is deliberately
-left as **follow-up work**, to be taken up as a separate, answer-changing change with its own
-baseline step — not as part of this design.
+**`FiniteVolume` is now the default.** Phase 1 made it so in the same change that introduced it,
+after a 10-day realistic global run showed it removing the grid-scale bottom-layer noise that
+`Centered` produces across the open ocean (§5.3.2). That was answer-changing for every
+configuration with a horizontal density gradient: tasks that switch the pressure gradient off are
+bit-for-bit, and tasks with no horizontal density gradient differ only at round-off.
+
+Removing `PressureGradCentered` becomes reasonable once `FiniteVolume` has served out a period as
+the default. That is deliberately left as **follow-up work**, not part of this design.
 
 ### 4.5 What each phase delivers and depends on
 
@@ -1428,37 +1577,47 @@ baseline step — not as part of this design.
 differencing the integrand at matched pressure and integrating the difference (§3.5); the
 equation-of-state expansion about a state shared across each edge (§3.3.1); mean-preserving linear
 reconstruction of $\Theta$ and $S$ in pressure (§3.4); the per-edge column scan [](#d-recurrence) and
-its anchor [](#anchor). The result is a pressure gradient that is zero to machine
-precision for any resting ocean whose profile varies linearly with pressure, at any tilt, thickness,
-or bathymetry (§3.7.3) — Requirement 2.3 in full.
+its sea-floor anchor, kept within one layer ([](#anchor-one-layer)). The result is a pressure
+gradient that is zero to machine precision for any resting ocean whose profile varies linearly with
+pressure, at any tilt and thickness, wherever the two columns' floors share depth and pressure
+(§3.7.2, §3.7.3). Over a sloping or stepped floor a residual from `VertCoord`'s column sums remains,
+small and convergent with layer thickness (§3.5.1). `FiniteVolume` is Omega's default (§4.4).
 
 **Does not deliver.** Fourth-order accuracy. The horizontal operator is the same two-cell stencil
-in use today (§3.6), so horizontal truncation error is unchanged from `PressureGradCentered`.
-Requirements 2.1 and 2.6 are met at second order only.
+the centered scheme uses (§3.6), so horizontal truncation error is unchanged from
+`PressureGradCentered`. Requirements 2.1 and 2.6 are met at second order only.
 
 **Depends on.** No change to `VertCoord` and no baseline step (§3.7.4); the scheme does not
-accumulate `VertCoord`'s geometric height at all, using the sea-surface height once in [](#anchor).
-All three conditions of §3.7.2 are properties of the PGF's own discretization; none is a dependency
-on another module.
+accumulate `VertCoord`'s geometric height at all, using `GeomZInterface` once, at the anchor
+([](#anchor-one-layer)). All three conditions of §3.7.2 are properties of the PGF's own
+discretization; none is a dependency on another module. The `Eos` derivatives it reads were added
+separately, ahead of it (§4.1.2).
 
 **Settled at implementation time.** The scan anchors at the **sea floor** (§3.7.4): anchoring at the
 surface admits into $D_1$ the disagreement between the two columns' derived sea-surface heights,
-which `VertCoord`'s midpoint rule produces even on the exact set. The treatment at the top and bottom
-of the column, assumption A5 of §3.7.6, is to **clamp to the outermost valid layer and extrapolate
-its reconstruction**; measured, the scan stays flat to $1.4\times10^{-15}$ m even where a column's
-reconstruction is evaluated three layers below its own floor, so the rule is confirmed on the
-geometry it was most doubted on.
+which `VertCoord`'s midpoint rule produces even on the exact set. The anchor's shift to a common
+pressure **never spans more than one layer** (§3.5.1); stretched across a multi-layer floor offset,
+as terrain-following layers over a steep slope produce, the shift's first-order expansion left the
+scheme at 0.45 of `PressureGradCentered`'s error, against 0.014 with the rule. The treatment at the
+top and bottom of the column, assumption A5 of §3.7.6, is to **clamp to the outermost valid layer
+and extrapolate its reconstruction**; measured, the scan stays flat to $1.4\times10^{-15}$ m even
+where a column's reconstruction is evaluated three layers below its own floor, so the rule is
+confirmed on the geometry it was most doubted on.
 
-**Reopened by measurement.** The anchor end is a trade-off, not a settled preference: at the sea
-floor a stepped bathymetry makes [](#anchor) form and cancel quantities of order the step, which the
-surface anchor does not (§3.7.4). Neither end gives machine precision at *every* tilt, thickness and
-bathymetry, so Requirement 2.3.1 is met on an unstepped floor rather than unconditionally. This is
-the open question Phase 1 leaves behind.
+**Reopened by measurement.** Two things. First, the anchor end is a trade-off, not a settled
+preference: at the sea floor a stepped bathymetry makes the anchor form and cancel quantities of
+order the step within the deepest shared layer, which the surface anchor does not (§3.7.4).
+Neither end gives machine precision at *every* tilt, thickness and bathymetry, so Requirement
+2.3.1 is met where the two columns' floors share depth and pressure rather than unconditionally.
+Second, on the seamount's sigma coordinate the scheme is unstable where `Centered` is not
+(§5.3.1). It is not caused by the anchor, and its cause is unknown.
 
-**Code and cost.** Three new `Eos` derivative fields and one new method (§4.1.2); the
-`PressureGradFiniteVolume` functor; one per-edge array and one column scan (§3.5.1, §4.1.3); no new
-TEOS-10 evaluations per cell and layer (Requirement 2.2), with roughly three times as many column
-evaluations on a hexagonal mesh (§4.1.3). Most of the arithmetic is in the column scan.
+**Code and cost.** The `PressureGradFiniteVolume` functor; two kernels, `computeReconSlopes` and
+`computeColumnScan`, with three per-edge and two per-cell working arrays (§4.1.3); two headers of
+shared inline functions; no new TEOS-10 evaluations per cell and layer (Requirement 2.2), with
+roughly three times as many column evaluations on a hexagonal mesh as a cell-based formulation
+would need (§4.1.3). Most of the arithmetic is in the column scan, and §5.6 gives the measured
+cost.
 
 #### 4.5.2 Phase 2 — fourth order
 
@@ -1477,6 +1636,38 @@ unchanged.
 variable-resolution TRiSK mesh is an ordinary accuracy-and-cost choice, settled by measurement against
 Requirement 2.6, because exactness does not constrain it (§3.6.1).
 
+One implementation question is new since Phase 1, though it does not block. The anchor
+[](#anchor-one-layer) is defined for a pair of columns. A stencil built as a weighted sum of pairs
+can reuse it, and the whole column scan, pair by pair. One built from a single
+neighbourhood-wide expansion would need an anchor across several columns, whose floors may lie
+several layers apart, and none exists. That favours the pair-sum form on implementation grounds as
+well as on the assumption-A2 grounds §3.6.1 gives.
+
+**Where Phase 2 attaches to the Phase 1 code.**
+
+- *Configuration.* `VerticalReconstruction: 'ppm'` and `HorzOrder: 4` are already parsed and
+  rejected in the `PressureGrad` constructor (§4.1.1); Phase 2 accepts them, and
+  `PressureGradVertRecon` gains its `PPM` value.
+- *Reconstruction.* Parabolic counterparts of the stencil, coefficient and evaluation functions in
+  `PGradRecon.h`, exact for a quadratic profile on a non-uniform grid (§3.4), with per-cell
+  coefficient arrays formed by `computeReconSlopes` alongside or in place of `ReconSlopeCt` and
+  `ReconSlopeSa`. The column scan evaluates the reconstruction in three places — the integrand of
+  each edge layer, the anchor's two short integrals, and the carry-down of
+  [](#anchor-one-layer) — and all three must switch together, or the anchor will describe different
+  water from the scan.
+- *Quadrature.* With parabolic deviations and the first-order expansion, the integrand is quadratic
+  within a sub-interval and its first moment cubic, so the two-point default still integrates both
+  exactly there. A second-order expansion adds products of deviations, a quartic integrand and a
+  quintic moment, which need three points. Exactness on the exact set is unaffected either way
+  (§3.5, consequence 2).
+- *Horizontal stencil.* The cell lists and weights are cached on the functor (§4.1.3).
+- *Tests.* The reconstruction unit test gains a quadratic profile on non-uniform layers; the
+  quadratic-in-pressure profile of §5.2 moves from the convergence group into the exact group; and
+  the Polaris kernel that §5.1 compares against has to gain the same reconstruction, written from
+  this document rather than from the C++, so that the comparison stays independent.
+- *The sigma instability* (§5.3.1). Phase 2 should be run on the sigma seamount. A 700-fold smaller
+  starting error grew at the same rate there, so higher accuracy alone is not expected to cure it.
+
 #### 4.5.3 Suggested order of work
 
 1. **Write the discrete form out in full, in the Polaris two-column harness, before writing C++.**
@@ -1488,7 +1679,7 @@ Requirement 2.6, because exactness does not constrain it (§3.6.1).
    the confirmed result in the reduced form of §3.5, and to settle four things this design leaves to
    it:
 
-   - the closed-form quadrature of [](#dalpha) and of the second moment [](#ho-exact) needs, together
+   - the closed-form quadrature of [](#dalpha) and of the first moment [](#ho-exact) needs, together
      with the per-column pressure lookup that feeds them;
    - the anchor [](#anchor), including confirmation that it is zero for a resting ocean at the
      initialized sea-surface height;
@@ -1505,6 +1696,10 @@ Requirement 2.6, because exactness does not constrain it (§3.6.1).
 4. Take up Phase 2. Re-examine [](#z-increment-exact) before adopting the second-order
    equation-of-state expansion; that, and not the stencil, is the item that could reopen a settled
    question.
+
+Steps 1–3 are done: step 1 in the Polaris `horiz_press_grad` kernel (polaris#675, with the anchor
+rule in polaris#900), step 2 in the Polaris seamount tasks (polaris#681), and step 3 in Omega#493
+and #635. Step 4 is next.
 
 ## 5 Verification and Testing
 
