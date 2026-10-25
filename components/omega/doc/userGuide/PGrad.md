@@ -61,7 +61,14 @@ like a passing centered run.
   pressure**, rather than at a common layer index
 - Gives a pressure gradient that is zero to machine precision for any resting
   ocean whose temperature and salinity vary linearly with pressure, at any
-  coordinate tilt, layer thickness or bathymetry
+  coordinate tilt or layer thickness, provided the two columns' sea floors are
+  at the same pressure
+- Over a sloping sea floor a residual remains, from shifting the two columns'
+  sea-floor heights to a common pressure. It grows with the cube of the
+  pressure difference between the two floors, so it stays small where partial
+  bottom cells cut the floor beneath level interior layers, but with
+  terrain-following layers over slopes of order 100 m/km it approaches the
+  centered scheme's error
 - Intended for simulations with ice shelf cavities and steep bathymetry, where
   the centered scheme carries an error that is first order in the coordinate
   tilt and accumulates downward through the column
