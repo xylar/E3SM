@@ -297,11 +297,16 @@ void PressureGrad::computeReconSlopes(
 // which the layer mean needs. The second anchors the column and turns the
 // increments into the height difference at every interface.
 //
-// The anchor is at the sea floor. Design section 3.7.4 leaves the end open and
-// prefers this one on conditioning grounds: VertCoord builds geometric height
-// upward from a prescribed bathymetry, so at the bottom interface the height
-// difference is exact input and vanishes identically for a flat floor, where
-// at the surface it is the small residual of two column-length accumulations.
+// The anchor is at the sea floor, for exactness rather than conditioning
+// (design section 3.7.4). VertCoord builds geometric height upward from a
+// prescribed bathymetry with a midpoint rule over each column's own layers,
+// and two columns with different layer partitions accumulate different
+// amounts of its error, even on profiles the reconstruction resolves exactly.
+// Anchored at the surface, that difference would enter the height difference
+// directly; anchored at the sea floor over a flat floor, the height difference
+// is exact input and vanishes identically. Where the floor steps, the choice
+// of end is a trade-off rather than a settled preference.
+//
 // The anchor is computed, not assumed -- it is whatever the model's geometric
 // heights and interface pressures imply, evaluated at a common pressure, and
 // it is the deepest instance of the same comparison the recurrence makes at
