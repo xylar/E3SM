@@ -135,11 +135,10 @@ class PressureGradFiniteVolume {
    // mean and scale it.
    //
    // The inputs are therefore the scan's two arrays rather than the state the
-   // scan consumed: the design's illustrative signature in section 4.1.3 lists
-   // the temperature, salinity and specific volume derivative arrays, but with
-   // both integrals formed in the scan over one set of quadrature points --
-   // which section 3.5.1 requires -- the functor reads neither. Passing them
-   // here would mean evaluating the integrand a second time.
+   // scan consumed. Both integrals are formed in the scan from one set of
+   // quadrature points, as design section 3.5.1 requires, so passing the
+   // temperature, salinity and specific volume derivatives here would mean
+   // evaluating the integrand a second time.
    KOKKOS_FUNCTION void
    operator()(const Array2DReal &Tend, I4 IEdge, I4 KChunk,
               const Array2DReal &PressureInterface,
