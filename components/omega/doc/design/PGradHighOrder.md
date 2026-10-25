@@ -1824,9 +1824,11 @@ Extend the four existing variants — `temperature_gradient`, `salinity_gradient
   forward output must still match the Python-computed HPGA, confirming the implementation
   matches the intended discretization.
 
-  **Measured for the new scheme: $4\times10^{-19}$ to $5\times10^{-16}$ m s$^{-2}$**, against
-  $1\times10^{-16}$ to $2\times10^{-15}$ for `centered` on the same states — six orders inside the
-  threshold, and *better* than the legacy scheme's. This is the strongest single piece of evidence
+  **Measured for the new scheme: $4\times10^{-19}$ to $5\times10^{-16}$ m s$^{-2}$** on the four
+  gradient variants, against $1\times10^{-16}$ to $2\times10^{-15}$ for `centered` on the same
+  states — six orders inside the threshold, and *better* than the legacy scheme's. Across all eight
+  variants, including the resting-state ones of §6.6, it stays at or below $1.6\times10^{-13}$ on
+  chrysalis and $5.4\times10^{-15}$ on pm-gpu. This is the strongest single piece of evidence
   that the scheme is implemented as designed, because the Python counterpart was written from this
   document rather than from the C++, so the two are independent realizations of the same
   specification.
@@ -1840,6 +1842,13 @@ Extend the four existing variants — `temperature_gradient`, `salinity_gradient
   where this check operates. Had they not been reconciled first, the disagreement would have
   appeared as a single scalar per resolution with no indication which of nine discretization
   choices was responsible.
+
+  The check does catch a single rule that differs. When the anchor rule of [](#anchor-one-layer)
+  changed in Omega, the unchanged Python reference failed the comparison on both
+  `hydrostatic_consistency` variants, at the 50 m/km tilts on 128 m and 64 m layers where the floors
+  are more than a layer apart. With the rule mirrored in the reference it passes again, and that
+  reference agrees with a separate one-edge model of the anchor to $2\times10^{-17}$ m s$^{-2}$ on
+  terrain-following columns.
 - **Assumption A2 is measured directly, not by a contrast sweep.** An earlier version of this
   section called for running `temperature_gradient` and `salinity_gradient` at several amplitudes of
   the horizontal contrast and requiring the error to grow no faster than linearly. **That test
@@ -1886,12 +1895,15 @@ columns must share both a **floor depth** and a **bottom pressure**, so that $\D
 the two short integrals of [](#anchor) are zero-width. At a surface anchor it means a horizontally
 uniform surface pressure and equal sea-surface heights.
 
-**This is a condition on how the state was built, and it does not come for free.** A state
-constructed by pinning the end *opposite* the anchor carries `VertCoord`'s $O(\tilde h^2)$
-truncation difference (§3.7.4) into the anchor's input, and then no scheme however exact can return
-zero: measured on Polaris-initialized states, whose two columns sit at equal floor depth but reach
-*different bottom pressures* under tilt, the sea-floor anchor is $-7.1\times10^{-8}$ m where the
-surface anchor is zero to round-off. That residual is the anchor and nothing else — every increment
+**This is a condition on how the state was built, and it does not come for free.** A state that
+prescribes each column's floor depth and solves for the bottom pressure that reproduces it carries
+`VertCoord`'s $O(\tilde h^2)$ truncation difference (§3.7.4) into the anchor's input, and then no
+scheme however exact can return zero. Each column converges to the bottom pressure that makes *its
+own* midpoint sum reach the prescribed depth, and under tilt the two columns' layer partitions, and
+so their truncation errors, differ. Measured on Polaris-initialized states, which are built this
+way, the sea-floor anchor is $-7.1\times10^{-8}$ m, equal to the difference of the two columns'
+midpoint-rule truncations to four significant figures, where the surface anchor is zero to
+round-off. That residual is the anchor and nothing else — every increment
 of [](#d-recurrence) is still zero and $D_k$ is still flat down the column — so it does not
 contradict the pointwise cancellation of [](#dalpha); it says the gate must be run on a state that
 does not carry it.
@@ -1997,6 +2009,18 @@ Three groups of profiles are run:
   load-bearing; they do not independently verify the arithmetic, since they share the helper
   functions with the kernel. That verification comes from §5.5 and from the Omega-versus-Polaris
   comparison of §5.1.
+- **The anchor over a sloping floor.** The gate above deliberately gives both columns the same
+  floor, so it cannot see the within-one-layer rule of [](#anchor-one-layer). A separate test does.
+  It uses a resting state linear in pressure on 32 layers at 4 km spacing, whose floors are 8 MPa
+  (6.4 layers) apart in pressure, a floor sloping at 200 m/km. Machine precision is not the
+  expectation there, since the anchor carries the difference between the two columns' `VertCoord`
+  sums (§3.5.1), so the gate is a ratio to `PressureGradCentered` on the same state. Measured in
+  Omega, the rule gives 0.014 of `Centered`, against a gate of 0.05 (0.15 in single precision, where
+  floor heights near 4000 m carry round-off of order $10^{-4}$ m). Its guard turns the rule off in
+  the host assembly, shifting both floors to their mean pressure as [](#anchor) alone would. That
+  gives 0.45 of `Centered` and must fail the gate by a wide margin, which it does. The host
+  assembly's fidelity to the kernel is checked on the same state, to round-off of the height
+  difference the anchor forms and cancels.
 
 A separate and much smaller unit test covers the reconstruction estimator on its own (§3.4): given
 layer means sampled from a profile of the reconstruction's own degree on a **deliberately
@@ -2010,9 +2034,15 @@ The test is also run in a single-precision build. §3.7.5 predicts it should *pa
 makes the result interpretable.
 
 It is implemented as a fast C++ unit test and also run as a configuration of the Polaris
-two-column task.
+two-column task. In Omega it is `PGradTest.cpp`, registered as `PGRAD_TEST` and, built in single
+precision, `PGRAD_SINGLE_PRECISION_TEST`. Its parts are the reconstruction estimator
+(`testReconstruction`), the property tests that pin the pressure lookup (`testPressureLookup`), the
+pointwise integrand (`testMatchedPressIntegrand`), the gate, convergence and guards above
+(`testExactnessAndGuards`), the sloping-floor anchor (`testSlopingFloorAnchor`), the centered
+identity of §5.5 (`testCenteredIdentity`) and the option parsing of §4.1.1 (`testPGradConfig`).
 
-**Covers:** Requirement 2.3 in full; rows 1–5 of the §3.7.3 table; the round-off floor of §3.7.5.
+**Covers:** Requirement 2.3 in full; rows 1–5 of the §3.7.3 table; the round-off floor of §3.7.5;
+the anchor rule of §3.5.1.
 
 ### 5.3 Test: Seamount resting state (steep-layer robustness)
 
@@ -2048,40 +2078,68 @@ question; §5.3.2 is the measurement that does bear on A4 without needing the se
 
 #### 5.3.1 Measured: the scheme passes on near-level layers and is unstable on sigma
 
-Run on the Polaris seamount with TEOS-10 over six days, with tracer diffusion and hyperviscosity
-off so that the pressure gradient is what remains.
+Run on the Polaris seamount for six days, with all explicit mixing off so that the pressure
+gradient is what remains, under a linear equation of state and TEOS-10, each with an exponential
+stratification and one linear in pressure. Maximum spurious velocity at day 6, in m s$^{-1}$, with
+the day a run first overturned in parentheses:
 
-**On z-star, `FiniteVolume` passes §5.3's criterion by a wide margin.** Maximum $|u|$ at day 6 is
-$1.0\times10^{-3}$ m s$^{-1}$ against `PressureGradCentered`'s $4.6\times10^{-2}$ on the realistic
-profile — 44$\times$, and 3$\times10^{4}$ in mean kinetic energy; at one hour, before anything else
-develops, 134$\times$ and 1780$\times$. The centered scheme's error sits in the partial bottom cell,
-matching §5.1's `bathymetry_step`. This is Requirement 2.3 under dynamics.
+| equation of state, stratification, coordinate | `Centered` | `FiniteVolume` |
+| --- | --- | --- |
+| linear, exponential, z-star | $8.4\times10^{-3}$ | $5.0\times10^{-4}$ |
+| linear, linear in pressure, z-star | $1.3\times10^{-2}$ | $1.8\times10^{-10}$ |
+| TEOS-10, exponential, z-star | $0.22$ (day 0.5) | $3.2\times10^{-4}$ |
+| TEOS-10, linear in pressure, z-star | $0.14$ (day 1.9) | $1.3\times10^{-6}$ |
+| linear, exponential, sigma | $1.1\times10^{-2}$ | $0.54$ (day 1.6) |
+| linear, linear in pressure, sigma | $3.4\times10^{-5}$ | $0.67$ (day 4.0) |
+| TEOS-10, exponential, sigma | $1.4\times10^{-2}$ | $1.4$ (day 1.4) |
+| TEOS-10, linear in pressure, sigma | $4.1\times10^{-3}$ | $0.94$ (day 2.3) |
 
-**On sigma it does not.** `FiniteVolume` develops density inversions — day 1.5 on the realistic
-profile, day 3 on the linear-in-pressure one — and reaches $\sim5\times10^{-1}$ m s$^{-1}$ by day 6,
-where `Centered` on the identical configuration is clean and decaying at $\sim10^{-2}$.
+**On z-star, `FiniteVolume` passes §5.3's criterion by a wide margin**, and under TEOS-10 it stays
+stable where `Centered` overturns. Extended to 20 days on the TEOS-10 trees it stays clean, with
+kinetic energy near $10^{-10}$ m$^2$ s$^{-2}$ on the exponential profile and $3\times10^{-14}$ on
+the linear-in-pressure one, while `Centered` overturns within two days. This is Requirement 2.3
+under dynamics.
 
-It is **not an accuracy failure**. Before the growth takes hold the new scheme is five times *more*
-accurate than the centered one, and still comparable at day 2. Three things point at a grid-scale
-numerical instability rather than a resolved response: the disturbance sits at a fixed location on
-the flank, the same under both equations of state, so it follows the geometry rather than the
-profile; its grid-scale content rises before any inversion appears; and the temperature anomaly
-reaches a third of the profile's whole range.
+**On sigma it does not.** `FiniteVolume` overturns on all four sigma trees, between days 1.4 and 4,
+where `Centered` on the identical configuration stays stable.
+
+It is **not an accuracy failure**. At one hour the new scheme is still 1.6 to 10 times *more*
+accurate than the centered one, so the problem is growth over time. Three things point at a
+grid-scale numerical instability rather than a resolved response: the disturbance sits at a fixed
+location on the flank, the same under both equations of state, so it follows the geometry rather
+than the profile; its grid-scale content rises before any inversion appears; and the temperature
+anomaly reaches a third of the profile's whole range.
+
+**What has been ruled out.**
+
+- *The sea-floor anchor.* The within-one-layer rule of §3.5.1 starts the linear-in-pressure sigma
+  run about 260 times lower in kinetic energy, and an experimental anchor about 700 times lower.
+  In both, the same mode then grows at the same rate, about 2.6 per day, to the same state. Also
+  turning off extrapolation below a column's floor (§3.7.6, A5) makes it worse.
+- *Unlimited tracer advection.* The monotonic tracer limiter was already on in these runs, which
+  refutes the working hypothesis recorded here earlier, that an unlimited horizontal tracer
+  advection admits a mode the more accurate pressure gradient no longer damps.
+- *Vertical resolution.* At full seamount height 32, 64 and 128 layers grow at the same rate, and
+  the 64- and 128-layer runs go NaN once the flow saturates. At half height it is delayed, not
+  cured: the TEOS-10 linear-in-pressure tree overturns at day 18 with 32 layers and day 7 with 64.
+  The instability tracks the seamount's slope, on the steep flank, not the layer count.
+
+Because a 700-fold smaller starting error grows at the same rate, this looks like the scheme's
+response on steep sigma layers rather than its accuracy, so Phase 2's higher order is not expected
+to cure it by accuracy alone (§4.5.2).
 
 **What this does and does not mean.** Sigma layers follow the bathymetry, which is the steepest
 tilt against isobars in the whole suite and is not what Omega runs — p-star, like z-star, keeps
 layers near level. So this does not qualify the Phase 1 result on the configurations Omega uses. It
 does mean the scheme has a limit on steeply tilted layers that the centered scheme does not share,
-that the limit is not understood, and that anything relying on sigma-like layering is untested
-territory. The next diagnostic is a re-run with monotonic horizontal advection; the working
-hypothesis, untested, is that an unlimited horizontal tracer advection admits a mode the more
-accurate pressure gradient no longer damps.
+that the limit is not understood, and that anything relying on sigma-like layering, including the
+coordinate under an ice shelf, is untested territory.
 
 #### 5.3.2 What a global resting state already shows, and what it does not
 
 A measurement bearing on A4 exists and is recorded here so the assumption is argued from numbers
-rather than from plausibility. **It does not settle A4**; the end of this subsection says exactly
-what it leaves open.
+rather than from plausibility. **On its own it does not settle A4**; the end of this subsection says
+what it leaves open, and what has since been measured with Phase 1 in hand.
 
 **What was measured.** The centered scheme's PGF was evaluated **offline** on a realistic global
 initial condition — `EC30to60E2r2` with horizontally uniform $\Theta$ and $S$
@@ -2130,12 +2188,30 @@ dominates the mesh, and its tail should be read with that in mind.
 **What this does not settle, and it is the whole of A4.** Every number above is the *error*, not its
 dynamical consequence. That the PGF error exceeds the gradient the model carries is necessary for
 A4 but not sufficient: it does not show this error is what *produces* the observed bottom-layer KE
-rather than merely coexisting with it. The one forward-run observation available — the uniform-T/S
-state gives bottom KE $1.19\times$ that of the fully forced run — is suggestive and no more. A4
-still
-needs the two-run seamount comparison specified above, and **that comparison cannot be run with
-the centered scheme as this section currently specifies**, for reasons recorded in the Polaris-side
-`a4_diagnostic_issues.md` and still outstanding in this discussion.
+rather than merely coexisting with it. The one forward-run observation available before Phase 1 —
+the uniform-T/S state gives bottom KE $1.19\times$ that of the fully forced run — is suggestive and
+no more.
+
+**Measured since, with Phase 1 in hand.** Two forward-run results bear on A4 directly.
+
+- *The realistic global run itself.* Polaris `realistic_global/EC30to60E2r2` was run for 10 days
+  on chrysalis, with the task's defaults otherwise, once with each scheme. `FiniteVolume` removes
+  the grid-scale noise in bottom-layer kinetic energy that `Centered` shows across the open ocean.
+  What remains is mostly on shelves and in marginal seas. Bottom-layer KE, in m² s⁻²:
+
+  | scheme | area mean, day 1 | day 5 | day 10 | 99th percentile, day 10 |
+  | --- | --- | --- | --- | --- |
+  | `Centered` | $1.30\times10^{-2}$ | $8.01\times10^{-3}$ | $7.44\times10^{-3}$ | $9.10\times10^{-2}$ |
+  | `FiniteVolume` | $4.60\times10^{-4}$ | $4.86\times10^{-4}$ | $4.52\times10^{-4}$ | $7.88\times10^{-3}$ |
+
+- *The seamount diagnostic of §5.3*, run with `FiniteVolume` as it must be. On z-star the
+  linear-in-pressure run stays at kinetic energy near $3\times10^{-14}$ m² s⁻² for 20 days (§5.3.1),
+  so nothing else in the model generates spurious flow there.
+
+Together these support A4 over the open ocean: the PGF error was driving the bottom-layer kinetic
+energy there, and Phase 1 removes it. They do not establish A4 on shelves and in marginal seas,
+where some bottom-layer kinetic energy remains under `FiniteVolume`. The sigma seamount does not
+bear on A4 either way, since there the new scheme's own instability dominates (§5.3.1).
 
 **Covers:** Requirement 2.3 under dynamics; assumptions A3, A4.
 
@@ -2151,9 +2227,14 @@ centered scheme.
 
 This is also the most demanding test of assumption A2: the overflow front carries a large horizontal
 temperature contrast across edges with steeply sloping layers, which is exactly where the shared
-edge expansion point [](#edge-ref) is worked hardest. If the §5.1 contrast sweep indicates the
-second-order equation-of-state expansion is needed, this task is where that judgment is confirmed
-under dynamics.
+edge expansion point [](#edge-ref) is worked hardest. If the direct measurement of A2 in §5.1
+indicates the second-order equation-of-state expansion is needed, this task is where that judgment
+is confirmed under dynamics.
+
+**So far only a smoke test has been run.** The 12-minute p-star overflow smoke test runs with
+`FiniteVolume` and differs from `Centered` by $0.055$ m s$^{-1}$, against a maximum $|u|$ of about
+$1.4$ m s$^{-1}$, and the overflow tasks in Polaris' `omega_pr` suite run to completion with it. The
+comparison this section specifies is still outstanding.
 
 **Covers:** Requirements 2.1 and 2.3 under realistic, coupled conditions; the last two rows of the
 §3.7.3 table; assumptions A2, A3.
@@ -2165,7 +2246,7 @@ a sweep of tilts. This is a unit test of the *identity* of §3.9, not of a reduc
 new scheme: [](#dz-dp) differences the integrand and never forms [](#centered-shift), so there is no
 setting that recovers the centered scheme (§3.9, final paragraph).
 
-It guards Requirement 2.5 and protects the existing default during refactoring, and it is cheap —
+It guards Requirement 2.5 and protects the centered option during refactoring, and it is cheap —
 [](#centered-shift) is a few lines and needs none of the new machinery. Because the two functors read
 the mesh, `VertCoord` and EOS state through independently written code, their agreement tests the
 shared upstream state — edge masks, interface indexing, `VertCoord` conventions — and not just the PGF
@@ -2202,6 +2283,14 @@ Two things guard against that:
   a hexagonal mesh; a result far above that suggests the per-cell coefficients are being recomputed
   per edge rather than cached.
 
+  **Measured.** In the 10-day `EC30to60E2r2` runs of §5.3.2 on chrysalis (Intel, 6 nodes), the
+  pressure-gradient tendency took 9.0 s with `FiniteVolume` against 1.0 s with `Centered`, out of
+  under 3 minutes per run. That was before the column kernels became team loops over each edge's
+  active layers, with the two integrals fused into the scan kernel (§4.1.3). That change cut the
+  `FiniteVolume` time by about a third on chrysalis (seamount 12.8 s to 8.1 s), and by 9–30% on the
+  overflow and `QU240` cases on pm-gpu, Frontier and Aurora, CPU and GPU, with bit-for-bit answers
+  throughout.
+
 **Covers:** Requirement 2.2.
 
 ### 5.7 Coverage summary
@@ -2212,16 +2301,17 @@ Two things guard against that:
 | 2.2 Bounded TEOS-10 cost | §5.6 |
 | 2.3 Robustness for thin, sloped layers | §5.2 (machine precision); §5.3 (under dynamics) |
 | 2.4 Consistency with model state | §5.1 (layer-mean reference); §5.2 (reconstruction unit test) |
-| 2.5 Runtime-selectable, backward compatible | §5.1 (three configurations); §5.5 |
+| 2.5 Runtime-selectable, backward compatible | §5.1 (two configurations); §5.2 option parsing; §5.5 |
 | 2.6 Verified order of accuracy | §5.1 verification gate |
 | A1 Edge accuracy ≠ cell accuracy | §5.1 verification gate (Phase 2) |
 | A2 EOS expansion adequate across an edge | §5.1, by direct measurement of the second-order remainder across the edge; §5.4 under dynamics |
 | A3 Residual small enough in practice | §5.1 accuracy gate; §5.3; §5.4 |
-| A4 PGF error causes the instability | §5.3 diagnostic, run before Phase 1 completes |
+| A4 PGF error causes the instability | §5.3 diagnostic, run with `FiniteVolume`; the realistic global run of §5.3.2 |
 | A5 Top- and bottom-of-column treatment | §5.1 `bathymetry_step` and `surface_pressure_gradient` |
 | §3.7.2 condition 1, shared at matched pressure | §5.2 guard (b), and the per-quadrature-point assertion |
-| §3.7.2 condition 2, differenced before integration | §5.2 guard (c) |
+| §3.7.2 condition 2, differenced before integration | §5.2 guard (c), which cannot fire; the pressure lookup's property tests |
 | §3.7.2 condition 3, the anchor | §5.2 guard (d) |
+| §3.5.1 the anchor's shift within one layer | §5.2 sloping-floor anchor test and its guard |
 | §3.5 the scheme responds to tilt at all | §5.2 guard (a); §5.5 tilt sweep |
 | §3.9 the centered identity | §5.5, as a standalone unit test |
 | §3.7.5 Round-off floor | §5.2, run in both precisions, alongside `Centered` |
@@ -2257,15 +2347,15 @@ $\alpha(p)$, sharing no code with the scheme under test.
 | the edge-shared expansion point is load-bearing | §3.3.1 | replacing it with a cell-local one costs $2.2\times10^{-9}$ to $3.0\times10^{-5}$ across the tilt range — §5.2 guard (b) |
 | the fixed-pressure comparison is the whole scheme, not a correction | §3.5 | omitting it costs $2.8\times10^{-3}$ to $1.1$ m s$^{-2}$ — three to five orders larger than any other guard |
 
-Three limits on what this establishes, all of them live.
+Three limits on what this harness established. The first two have since been closed by the
+Polaris task runs of §6.5 and §6.6.
 
-- **Differing `maxLevelCell` is untested.** The harness gave both columns the same layer count, so the
-  `bathymetry_step` case — where a bottom partial cell carries the whole signal — is not covered. This
-  is assumption A5 of §3.7.6.
-- **The Polaris task machinery is untested against the new scheme.** The Omega implementation is now
-  measured (below), but the `horiz_press_grad` variants still select `Centered`, so the interaction
-  with p-star initialization and partial cells, and the `omega_vs_polaris` comparison for
-  `FiniteVolume`, are outstanding.
+- **Differing `maxLevelCell` was untested.** The harness gave both columns the same layer count, so
+  the `bathymetry_step` case — where a bottom partial cell carries the whole signal — was not covered.
+  This is assumption A5 of §3.7.6, since measured as benign.
+- **The Polaris task machinery was untested against the new scheme.** The `horiz_press_grad` variants
+  now run both schemes, so the interaction with p-star initialization and partial cells, and the
+  `omega_vs_polaris` comparison for `FiniteVolume`, are measured (§5.1, §6.6).
 - **The rows above were measured on an assembly of all four pressure terms**, not on the form §3.5
   specifies. Given that those terms cancel to $3\times10^{-15}$ relative, what the exactness and
   $O(\tilde h^2)$ rows measured *was* the geopotential term alone, so they carry over — but by that
@@ -2287,6 +2377,7 @@ layers and interfaces offset by up to three layer thicknesses.
 | the centered identity | §3.9, §5.5 | $0.49\,\epsilon$ of the hydrostatic scale over eight tilts, reproducing the harness' $0.5\,\epsilon$ through independently written code. The dropped-pressure-term guard is exactly linear in tilt, to six significant figures — §3.7.3's first-order-in-tilt statement falling out of a check written for another purpose |
 | bounded equation-of-state cost | §2.2, §5.6 | by construction: the pressure gradient holds a `const Eos *` and reads only the four cached fields |
 | single precision | §3.7.5 | the exactness gate passes; see §3.7.5 for the numbers |
+| the anchor's shift kept within one layer | §3.5.1, §5.2 | on a separate state with floors 6.4 layers apart, profile linear in pressure: 0.014 of `PressureGradCentered`, against 0.45 with both floors shifted to their mean pressure |
 
 ### 6.2 Corrections owed to `OmegaV1GoverningEqns.md`
 
@@ -2451,6 +2542,13 @@ ratio anywhere in each sweep:
 | `bathymetry_step` | the sea floor | curved | $1170\times$ |
 | `bathymetry_step_linear` | the sea floor | in the exact set | $58828\times$ |
 
+These are measured with the anchor of [](#anchor) alone. The within-one-layer rule of
+[](#anchor-one-layer) leaves 220 of the 224 forward steps bit for bit unchanged, including every
+`bathymetry_step` one. The four that change are the 50 m/km tilts of both `hydrostatic_consistency`
+variants on 128 m and 64 m layers, where the floors are more than a layer apart; on
+`hydrostatic_consistency_linear` the finite-volume error there falls 1.8 times (128 m) and 6.1 times
+(64 m).
+
 The ordering is the result, not an artefact of how the sweeps were chosen: the advantage is
 smallest where the profile is unresolved and only the coordinate tilts, and largest where the
 profile is resolved and the sea floor steps. **A single shared gate would be vacuous at one end and
@@ -2463,7 +2561,7 @@ which puts interior coordinate tilt some 6000× below the observed global interi
 `hydrostatic_consistency` is calibrating the scheme on a mechanism that is not the one the bar was set
 from, and its ratio should not be read as a prediction of global improvement. The variants that *are*
 quantitative proxies for the global bottom-layer error are the stepped-floor ones, and they clear the
-bar by two to four orders of magnitude. §5.3.2's closing paragraph gives the range over which
+bar by two to four orders of magnitude. §5.3.2's calibration paragraph gives the range over which
 `bathymetry_step` tracks the global figure, and where it over-predicts.
 
 **`bathymetry_step_linear` is new**, added because no existing variant is both inside the exact set
@@ -2471,7 +2569,7 @@ and stepped: `hydrostatic_consistency_linear` is inside the exact set but tilts 
 while `bathymetry_step` has the right geometry but a curved profile whose truncation cannot be told
 apart from the geometry's. Being both, it isolates what a bathymetry step costs the scheme.
 
-(Of the two, the stepped floor is the one that matters globally: §5.3.1 measures the interior
+(Of the two, the stepped floor is the one that matters globally: §5.3.2 measures the interior
 coordinate of a realistic global IC as 100–1000× less tilted than the smallest tilt in the Polaris
 sweep, putting its contribution some 6000× below the observed global interior error. That rules out
 one mechanism; it does not establish A4, which asks whether PGF error *drives* the bottom-layer
