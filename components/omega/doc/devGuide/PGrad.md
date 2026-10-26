@@ -205,6 +205,12 @@ interface is shifted to the common pressure by integrating its own reconstructio
 over half the cross-edge pressure difference, and both short integrals vanish
 where the two columns' interface pressures agree.
 
+The scheme has a known instability on terrain-following (sigma) layers over a
+steep seamount that the centered scheme does not share. It is described, with
+the tests that rule out the anchor, extrapolation below the floor and the tracer
+limiter as causes, in the
+[user guide](omega-user-pgrad-sigma-instability).
+
 ## Each column's state is looked up by pressure, not by layer index
 
 At each quadrature point of edge layer `K`, the integrand needs the
