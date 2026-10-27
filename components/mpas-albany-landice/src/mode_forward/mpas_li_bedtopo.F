@@ -25,6 +25,7 @@ module li_bedtopo
    use mpas_pool_routines
    use mpas_dmpar
    use mpas_log
+   use mpas_timer
    use li_mask
    use li_setup
    use netcdf
@@ -139,7 +140,9 @@ contains
       call mpas_pool_get_config(liConfigs, 'config_uplift_method', config_uplift_method)
       if (trim(config_uplift_method)=='sealevelmodel') then
          ! initialize the 1D sea-level model if fresh start
+         call mpas_timer_start("sea-level model init")
          call slmodel_init(domain, err_tmp)
+         call mpas_timer_stop("sea-level model init")
          err = ior(err, err_tmp)
 
          if (err /= 0) then
@@ -147,7 +150,9 @@ contains
          endif
       elseif (trim(config_uplift_method)=='fastisostasy') then
 #ifdef USE_FASTISOSTASY
+         call mpas_timer_start("FastIsostasy init")
          call fastisostasy_init(domain, err_tmp)
+         call mpas_timer_stop("FastIsostasy init")
          err = ior(err, err_tmp)
 
          if (err /= 0) then
@@ -293,7 +298,9 @@ contains
             slmTimeStep = slmTimeStep + 1
 
             call mpas_log_write("Calling the SLM. SLM timestep $i", intArgs=(/slmTimeStep/))
+            call mpas_timer_start("sea-level model solve")
             call slmodel_solve(slmTimeStep, domain)
+            call mpas_timer_stop("sea-level model solve")
 
             call mpas_reset_clock_alarm(domain % clock, 'slmCouplingInterval', ierr=err_tmp)
             err = ior(err, err_tmp)
@@ -314,7 +321,9 @@ contains
 
             call mpas_log_write("Calling FastIsostasy. FastIsostasy timestep $i", &
                                 intArgs=(/fastisostasyTimeStep/))
+            call mpas_timer_start("FastIsostasy solve")
             call fastisostasy_solve(fastisostasyTimeStep, domain)
+            call mpas_timer_stop("FastIsostasy solve")
 
             call mpas_reset_clock_alarm(domain % clock, 'fastisostasyCouplingInterval', ierr=err_tmp)
             err = ior(err, err_tmp)
