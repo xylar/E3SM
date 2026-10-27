@@ -1425,6 +1425,9 @@ contains
 
    subroutine interpolate_init(domain, err, mapToFileIn, mapFromFileIn)
 
+      use, intrinsic :: ieee_exceptions, only: ieee_all, ieee_get_halting_mode, &
+                                               ieee_set_halting_mode, ieee_set_flag
+
       !-----------------------------------------------------------------
       ! input variables
       !-----------------------------------------------------------------
@@ -1464,6 +1467,8 @@ contains
       ! MPI variables
       integer :: curProc
 
+      logical :: haltingMode(size(ieee_all))
+
       err = 0
       err_tmp = 0
 
@@ -1483,6 +1488,10 @@ contains
 
       !initialize interpolation
       if (curProc.eq.0) then
+
+         ! HDF5 (netCDF-4) raises FP exceptions internally, which trap in DEBUG builds
+         call ieee_get_halting_mode(ieee_all, haltingMode)
+         call ieee_set_halting_mode(ieee_all, .false.)
 
          ! Open netcdf weights files
          call check( nf90_open(path = mpasToGridFile, mode = nf90_nowrite, ncid = toNcId), err_tmp)
@@ -1545,6 +1554,14 @@ contains
          err = ior(err, err_tmp)
          call check( nf90_get_var(fromNcId, fromSId, fromSValues(:) ), err_tmp)
          err = ior(err, err_tmp)
+
+         call check( nf90_close(toNcId), err_tmp)
+         err = ior(err, err_tmp)
+         call check( nf90_close(fromNcId), err_tmp)
+         err = ior(err, err_tmp)
+
+         call ieee_set_flag(ieee_all, .false.)
+         call ieee_set_halting_mode(ieee_all, haltingMode)
 
       endif
 
