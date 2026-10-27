@@ -308,14 +308,8 @@ void VertMix::computeVertMix(const Array2DReal &NormalVelocity,
          parallelForOuter(
              "VertMix-RiSmooth", {Mesh->NCellsAll},
              KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
-                const int KMin   = MinLayerCell(ICell);
-                const int KMax   = MaxLayerCell(ICell);
-                const int KRange = vertRangeChunked(KMin, KMax);
-                parallelForInner(
-                    Team, KRange, INNER_LAMBDA(int KChunk) {
-                       LocOneTwoOneFilter(LocGradRichNumSmoothed, ICell, KChunk,
-                                          LocGradRichNumSmoothed);
-                    });
+                LocOneTwoOneFilter(Team, LocGradRichNumSmoothed, ICell,
+                                   LocGradRichNumSmoothed);
              });
       }
       /// Compute shear mixing using smoothed Richardson number

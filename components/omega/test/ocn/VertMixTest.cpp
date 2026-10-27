@@ -331,11 +331,10 @@ void testOneTwoOneFilter() {
 
    // Apply the 1-2-1 filter to each cell
    OMEGA_SCOPE(ComputeOneTwoOneFilter, TestVertMix->ComputeOneTwoOneFilter);
-   parallelFor(
-       "ApplyOneTwoOneFilter", {Mesh->NCellsAll, NChunks},
-       KOKKOS_LAMBDA(I4 ICell, I4 KChunk) {
-          ComputeOneTwoOneFilter(GradRichNumSmoothed, ICell, KChunk,
-                                 GradRichNum);
+   parallelForOuter(
+       "ApplyOneTwoOneFilter", {Mesh->NCellsAll},
+       KOKKOS_LAMBDA(I4 ICell, const TeamMember &Team) {
+          ComputeOneTwoOneFilter(Team, GradRichNumSmoothed, ICell, GradRichNum);
        });
 
    /// Check all array values against expected value

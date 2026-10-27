@@ -203,24 +203,28 @@ class OneTwoOneFilter {
    //   The functor takes the full arrays of Richardson number (inout),
    //   the index ICell, and normal and tangential velocities as inputs,
    //   and outputs the Richardson number.
-   KOKKOS_FUNCTION void operator()(Array2DReal VarOut, I4 ICell, I4 KChunk,
-                                   const Array2DReal &VarIn) const {
+   KOKKOS_FUNCTION void operator()(const TeamMember &Team, Array2DReal VarOut,
+                                   I4 ICell, const Array2DReal &VarIn) const {
 
-      const I4 KStart = chunkStart(KChunk, MinLayerCell(ICell));
-      const I4 KLen   = chunkLength(KChunk, KStart, MaxLayerCell(ICell) + 1);
+      const I4 MinLyrCell = MinLayerCell(ICell);
+      const I4 MaxLyrCell = MaxLayerCell(ICell);
 
-      for (int KVec = 0; KVec < KLen; ++KVec) {
-         const I4 K = KStart + KVec;
-         if (K > MinLayerCell(ICell) && K < MaxLayerCell(ICell)) {
-            // apply 1-2-1 filter
-            VarOut(ICell, K) =
-                (VarIn(ICell, K - 1) + 2.0_Real * VarIn(ICell, K) +
-                 VarIn(ICell, K + 1)) /
-                4.0_Real;
-         } else {
-            VarOut(ICell, K) = VarIn(ICell, K);
-         }
-      }
+      parallelForInner(
+          Team, Range{MinLyrCell + 1, MaxLyrCell - 1}, INNER_LAMBDA(int K) {
+             // apply 1-2-1 filter
+             VarOut(ICell, K) =
+                 (VarIn(ICell, K - 1) + 2.0_Real * VarIn(ICell, K) +
+                  VarIn(ICell, K + 1)) /
+                 4.0_Real;
+          });
+
+      Kokkos::single(
+          PerTeam(Team), INNER_LAMBDA() {
+             VarOut(ICell, MinLyrCell) = VarIn(ICell, MinLyrCell);
+
+             VarOut(ICell, MaxLyrCell)     = VarIn(ICell, MaxLyrCell);
+             VarOut(ICell, MaxLyrCell + 1) = VarIn(ICell, MaxLyrCell + 1);
+          });
    }
 
  private:
