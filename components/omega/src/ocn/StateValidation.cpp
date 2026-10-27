@@ -3,9 +3,11 @@
 // Validates ocean state fields by checking for NaN values and
 // out-of-bounds conditions. Abort behaviour is controlled at runtime via the
 // YAML options Omega::State::Validation::AbortOnNan (default true) and
-// Omega::State::Validation::AbortOnOOB (default false). When an abort flag is
-// set a critical error log with backtrace is emitted and MPI_Abort is called;
-// otherwise a CRITICAL log message is written and execution continues.
+// Omega::State::Validation::AbortOnOOB (default false). The decision is made
+// from the counts on all tasks. When an abort flag is set, every task writes
+// the stream named by Omega::State::Validation::WriteStreamOnAbort (default
+// History), a critical error log with backtrace is emitted and MPI_Abort is
+// called; otherwise a CRITICAL log message is written and execution continues.
 //
 //===----------------------------------------------------------------------===//
 
@@ -19,6 +21,7 @@
 #include "Error.h"
 #include "GlobalConstants.h"
 #include "HorzMesh.h"
+#include "IOStream.h"
 #include "Logging.h"
 #include "MachEnv.h"
 #include "OceanState.h"
@@ -39,8 +42,9 @@
 namespace OMEGA {
 
 struct ValidationAbortConfig {
-   bool AbortOnOOB = false;
-   bool AbortOnNan = true;
+   bool AbortOnOOB                = false;
+   bool AbortOnNan                = true;
+   std::string WriteStreamOnAbort = "History";
 };
 
 static ValidationAbortConfig getValidationAbortConfig() {
@@ -63,16 +67,50 @@ static ValidationAbortConfig getValidationAbortConfig() {
 
    ValidationConfig.get("AbortOnOOB", AbortConfig.AbortOnOOB);
    ValidationConfig.get("AbortOnNan", AbortConfig.AbortOnNan);
+   ValidationConfig.get("WriteStreamOnAbort", AbortConfig.WriteStreamOnAbort);
 
    return AbortConfig;
 }
 
 //------------------------------------------------------------------------------
-// Helper: abort on the local Omega communicator with a message and backtrace
-static void abortWithMessage(const std::string &Msg) {
-   LOG_CRITICAL("{}", Msg);
-   cpptrace::generate_trace().print();
-   MPI_Comm Comm = MachEnv::getDefault()->getComm();
+// Helper: abort the run, first writing the given stream if there is one and a
+// clock to stamp it with. It must be called on every task, since writing a
+// stream is collective. The tasks that found problems have already logged
+// them; the master task adds the totals and a backtrace.
+static void abortRun(I8 NaNs, I8 OOBs, const std::string &StreamName,
+                     const Clock *ModelClock) {
+
+   MachEnv *DefEnv = MachEnv::getDefault();
+   MPI_Comm Comm   = DefEnv->getComm();
+   bool IsMaster   = DefEnv->isMasterTask();
+
+   if (IsMaster) {
+      LOG_CRITICAL("StateValidation: Ocean state validation aborting with {} "
+                   "NaNs and {} OOBs on all tasks. The tasks that found them "
+                   "give the field and location in critical messages, on "
+                   "stderr for tasks that do not log.",
+                   NaNs, OOBs);
+   }
+
+   if (!StreamName.empty() && ModelClock) {
+      if (IOStream::isDefined(StreamName)) {
+         if (IsMaster) {
+            LOG_CRITICAL("StateValidation: Writing stream {} before aborting, "
+                         "with the time at the start of the failing step",
+                         StreamName);
+         }
+         IOStream::write(StreamName, ModelClock, /*ForceWrite=*/true);
+      } else if (IsMaster) {
+         LOG_CRITICAL("StateValidation: Not writing stream {} before "
+                      "aborting because it is not defined",
+                      StreamName);
+      }
+   }
+
+   if (IsMaster) {
+      cpptrace::generate_trace().print();
+   }
+   MPI_Barrier(Comm);
    MPI_Abort(Comm, static_cast<int>(ErrorCode::Critical));
 }
 
@@ -337,11 +375,27 @@ std::pair<I4, I4> checkOceanState(const OceanState *State,
 /// Only active cells (where CellMask > 0) are checked.
 /// Aborts via MPI_Abort on failure.
 void validateOceanState(const OceanState *State, const AuxiliaryState *AuxState,
-                        const VertCoord *VCoord, I4 TimeLevel) {
+                        const VertCoord *VCoord, I4 TimeLevel,
+                        const Clock *ModelClock) {
 
-   auto [NaNs, OOBs] = checkOceanState(State, AuxState, VCoord, TimeLevel);
+   auto [LocalNaNs, LocalOOBs] =
+       checkOceanState(State, AuxState, VCoord, TimeLevel);
    static const auto AbortConfig = getValidationAbortConfig();
-   bool abort                    = false;
+
+   MachEnv *DefEnv  = MachEnv::getDefault();
+   Eos *EosInstance = Eos::getInstance();
+
+   // One reduction gathers everything validation needs from all tasks, so
+   // that every task makes the same decision about aborting
+   I8 LocalNNegSalinity = EosInstance ? EosInstance->NNegSalinity : 0;
+   std::vector<I8> Totals =
+       globalSum(std::vector<I8>{LocalNaNs, LocalOOBs, LocalNNegSalinity},
+                 DefEnv->getComm());
+   const I8 NaNs         = Totals[0];
+   const I8 OOBs         = Totals[1];
+   const I8 NNegSalinity = Totals[2];
+
+   bool abort = false;
 
    if (NaNs > 0 && AbortConfig.AbortOnNan) {
       abort = true;
@@ -350,11 +404,8 @@ void validateOceanState(const OceanState *State, const AuxiliaryState *AuxState,
       abort = true;
    }
    if (abort) {
-      abortWithMessage(
-          "StateValidation: Ocean state validation aborting with " +
-          std::to_string(NaNs) + " NaNs and " + std::to_string(OOBs) +
-          " OOBs." + "See critical messages above for details.");
-   } else if ((NaNs + OOBs) > 0) {
+      abortRun(NaNs, OOBs, AbortConfig.WriteStreamOnAbort, ModelClock);
+   } else if ((NaNs + OOBs) > 0 && DefEnv->isMasterTask()) {
       // Only report the flags that are actually suppressing an abort, i.e.
       // those corresponding to the issues that were detected
       std::string Flags;
@@ -367,14 +418,12 @@ void validateOceanState(const OceanState *State, const AuxiliaryState *AuxState,
          Flags += "AbortOnOOB is false";
       }
       LOG_CRITICAL("StateValidation: Ocean state validation failed with {} "
-                   "NaNs and {} OOBs. {}; continuing after logging.",
+                   "NaNs and {} OOBs on all tasks. {}; continuing after "
+                   "logging.",
                    NaNs, OOBs, Flags);
    }
 
-   Eos *EosInstance = Eos::getInstance();
    if (EosInstance) {
-      const I8 NNegSalinity = globalSum(EosInstance->NNegSalinity,
-                                        MachEnv::getDefault()->getComm());
       if (NNegSalinity > 0) {
          LOG_WARN("StateValidation: {} negative salinity value(s) seen by "
                   "the EOS during this time step (summed over all stages "

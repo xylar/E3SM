@@ -11,13 +11,15 @@
 ///     aborting. Suitable for testing.
 ///   - validateOceanState: calls checkOceanState and conditionally aborts
 ///     via MPI_Abort based on runtime YAML options AbortOnNan and AbortOnOOB
-///     (under Omega::State::Validation). When both flags are false a
-///     CRITICAL log message is emitted and the run continues.
+///     (under Omega::State::Validation), first writing the stream named by
+///     WriteStreamOnAbort. When both flags are false a CRITICAL log message
+///     is emitted and the run continues.
 //
 //===----------------------------------------------------------------------===//
 
 #include "AuxiliaryState.h"
 #include "OceanState.h"
+#include "TimeMgr.h"
 #include "Tracers.h"
 #include "VertCoord.h"
 
@@ -67,8 +69,9 @@ checkOceanState(const OceanState *State, const AuxiliaryState *AuxState,
 ///
 /// Calls checkOceanState and conditionally aborts via MPI_Abort based on the
 /// runtime YAML options AbortOnNan and AbortOnOOB (under
-/// Omega::State::Validation). Only active ocean cells (where CellMask > 0)
-/// are checked.
+/// Omega::State::Validation) and the counts summed over all tasks. It must
+/// therefore be called on every task. Only active ocean cells (where
+/// CellMask > 0) are checked.
 ///
 /// The following fields are validated:
 ///   - PseudoThickness     : [1e-10, 1000]  (from OceanState)
@@ -78,17 +81,23 @@ checkOceanState(const OceanState *State, const AuxiliaryState *AuxState,
 ///   - Salinity tracer     : [-2, 60]       (from Tracers)
 ///
 /// If AbortOnNan is true and NaN values are detected, or AbortOnOOB is true
-/// and out-of-bounds values are detected, a critical error is logged with a
-/// stack backtrace and the run is aborted via MPI_Abort. When both flags are
-/// false but errors are found, a CRITICAL log message is emitted and execution
+/// and out-of-bounds values are detected, the stream named by the YAML option
+/// WriteStreamOnAbort (default History) is written on every task if it is
+/// defined and ModelClock is given, a critical error is logged with a stack
+/// backtrace and the run is aborted via MPI_Abort. When both flags are false
+/// but errors are found, a CRITICAL log message is emitted and execution
 /// continues.
 ///
 /// \param[in] State       Ocean state to validate
 /// \param[in] AuxState    Auxiliary state containing KineticEnergyCell
 /// \param[in] VCoord      Vertical coordinate containing the CellMask
 /// \param[in] TimeLevel   Time level index to validate (typically 0 = current)
+/// \param[in] ModelClock  Optional clock for the time stamp of the stream
+///                        written before an abort; without it, no stream is
+///                        written
 void validateOceanState(const OceanState *State, const AuxiliaryState *AuxState,
-                        const VertCoord *VCoord, I4 TimeLevel);
+                        const VertCoord *VCoord, I4 TimeLevel,
+                        const Clock *ModelClock = nullptr);
 
 } // namespace OMEGA
 
