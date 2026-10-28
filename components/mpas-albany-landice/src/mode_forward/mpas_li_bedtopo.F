@@ -1289,6 +1289,9 @@ contains
 
    subroutine li_bedtopo_write_restart(domain, err)
 
+      use, intrinsic :: ieee_exceptions, only: ieee_all, ieee_get_halting_mode, &
+                                               ieee_set_halting_mode, ieee_set_flag
+
       type (domain_type), intent(in) :: domain
       integer, intent(out) :: err
 
@@ -1299,6 +1302,7 @@ contains
       integer, pointer :: config_fastisostasy_coupling_interval
       real (kind=wp) :: fastisostasyTime
       integer :: err_tmp
+      logical :: haltingMode(size(ieee_all))
 #endif
 
       err = 0
@@ -1327,8 +1331,20 @@ contains
 
             call mpas_log_write("Writing FastIsostasy restart files at FastIsostasy time level $i", &
                                 intArgs=(/fastisostasyTimeStep/))
+
+            ! Under optimization, fesm-utils' ncio (nc_put_att) evaluates
+            ! int(actual_range) for every variable type, not just NF90_INT.
+            ! Volume scalars such as V_af exceed the 32-bit integer range, so
+            ! this raises FE_INVALID and traps in DEBUG builds. The result is
+            ! discarded for float variables, so disable halting for these writes.
+            call ieee_get_halting_mode(ieee_all, haltingMode)
+            call ieee_set_halting_mode(ieee_all, .false.)
+
             call isos_restart_write(isosFastIsostasy, trim(config_fastisostasy_restart_file), fastisostasyTime)
             call bsl_restart_write(bslFastIsostasy, trim(config_fastisostasy_bsl_restart_file), fastisostasyTime)
+
+            call ieee_set_flag(ieee_all, .false.)
+            call ieee_set_halting_mode(ieee_all, haltingMode)
          endif
       endif
 #endif
@@ -1425,6 +1441,9 @@ contains
 
    subroutine interpolate_init(domain, err, mapToFileIn, mapFromFileIn)
 
+      use, intrinsic :: ieee_exceptions, only: ieee_all, ieee_get_halting_mode, &
+                                               ieee_set_halting_mode, ieee_set_flag
+
       !-----------------------------------------------------------------
       ! input variables
       !-----------------------------------------------------------------
@@ -1464,6 +1483,8 @@ contains
       ! MPI variables
       integer :: curProc
 
+      logical :: haltingMode(size(ieee_all))
+
       err = 0
       err_tmp = 0
 
@@ -1483,6 +1504,10 @@ contains
 
       !initialize interpolation
       if (curProc.eq.0) then
+
+         ! HDF5 (netCDF-4) raises FP exceptions internally, which trap in DEBUG builds
+         call ieee_get_halting_mode(ieee_all, haltingMode)
+         call ieee_set_halting_mode(ieee_all, .false.)
 
          ! Open netcdf weights files
          call check( nf90_open(path = mpasToGridFile, mode = nf90_nowrite, ncid = toNcId), err_tmp)
@@ -1545,6 +1570,14 @@ contains
          err = ior(err, err_tmp)
          call check( nf90_get_var(fromNcId, fromSId, fromSValues(:) ), err_tmp)
          err = ior(err, err_tmp)
+
+         call check( nf90_close(toNcId), err_tmp)
+         err = ior(err, err_tmp)
+         call check( nf90_close(fromNcId), err_tmp)
+         err = ior(err, err_tmp)
+
+         call ieee_set_flag(ieee_all, .false.)
+         call ieee_set_halting_mode(ieee_all, haltingMode)
 
       endif
 
