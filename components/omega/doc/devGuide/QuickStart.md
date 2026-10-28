@@ -88,9 +88,10 @@ Omega. Instead, rely on Polaris auto-build during `polaris setup` or
     <https://docs.e3sm.org/polaris/main/developers_guide/quick_start.html#building-e3sm-components>
 
 For Omega development, testing comprises two equally important pillars:
-standalone testing and coupled testing. Developers are expected to validate
-changes with both the Polaris `omega_pr` regression suite and targeted coupled
-CIME tests (especially `ERS` and `PEM` tests; see {ref}`omega-dev-testing`):
+standalone testing and coupled testing. Testing must be performed on at least
+one CPU and one GPU machine/compiler combination, covering both standalone
+testing (the Polaris `omega_pr` regression suite and CTests) and coupled testing
+(targeted CIME tests such as `ERS` and `PEM`; see {ref}`omega-dev-testing`):
 
 - `omega_pr` suite:
     <https://docs.e3sm.org/polaris/main/users_guide/ocean/suites.html#omega-pr-suite>

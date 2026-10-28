@@ -11,8 +11,8 @@ Omega development requires both **standalone testing** and **coupled testing**:
 **Coupled testing is just as important as standalone testing.** Omega is the ocean
 component of E3SM, and changes that pass standalone testing can still break
 coupled simulations (e.g., causing restart `ERS` or `PEM` tests to fail).
-Developers are expected to validate both standalone and coupled behavior before
-submitting pull requests.
+Developers are expected to validate both standalone and coupled behavior on at
+least one CPU and one GPU machine before submitting pull requests.
 ```
 
 For instructions on how to build Omega and run CTest unit tests, see
@@ -573,11 +573,10 @@ outcomes. Both standalone and coupled testing must be reported for non-trivial
 PRs:
 
 ```{important}
-At a minimum, you need to run:
+At a minimum, testing must be performed on at least **one CPU and one GPU machine/compiler combination**, covering:
 1. CTest unit tests
 2. Polaris `omega_pr` regression suite (standalone)
-3. Targeted coupled CIME tests (such as `ERS` or `PEM` tests, especially on GPU platforms)
-on at least one supported machine and compiler.
+3. Targeted coupled CIME tests (such as `ERS` or `PEM` tests)
 ```
 
 - **CTest unit tests:**

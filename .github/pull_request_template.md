@@ -16,7 +16,12 @@ Checklist
   * [ ] [Pre-commit](https://docs.e3sm.org/Omega/Omega/devGuide/Linting.html) run locally
 * Building
   * [ ] CMake build does not produce any new warnings from changes in this PR
-* [ ] Testing
+* [ ] Testing[^1]
+  <!--
+  Remove rows for any machine/compiler combinations you do not plan to run (or ask someone else to run).
+  PRs are expected to pass tests on at least one CPU and at least one GPU platform for both standalone
+  tests (CTests and omega_pr) and coupled CIME tests.
+  -->
 
   **aurora, intel, mpich**
   - [ ] CTests Pass
@@ -52,6 +57,9 @@ Checklist
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
   - [ ] Coupled CIME tests Pass
+
+[^1]: Remove rows for any configurations you do not run (or ask someone else to run).
+    At a minimum, PRs are expected to pass tests on at least one CPU and at least one GPU platform for both standalone tests (CTests and `omega_pr`) and coupled CIME tests.
 
 * [ ] Provide relevant details in a comment to the PR titled `Testing` with the following:
   * Which machines [CTest unit tests](https://docs.e3sm.org/Omega/Omega/devGuide/QuickStart.html#running-ctests)
