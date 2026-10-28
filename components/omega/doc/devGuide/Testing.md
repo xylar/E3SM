@@ -326,12 +326,16 @@ environment before running CIME commands; legacy components relied exclusively o
 the host system's base Python interpreter.
 
 However, Omega uses YAML configuration files instead of traditional Fortran namelists.
-When `case.setup`, `case.submit`, or `create_test` runs, CIME invokes Omega's
-`components/omega/cime_config/buildnml` in-process within Python to generate `omega.yml`,
-which requires the `pyyaml` package, which is not included in the python standard library.
+To generate `omega.yml`, CIME invokes Omega's `components/omega/cime_config/buildnml`
+in-process using Python. This requires the `pyyaml` package, which is not part of the
+Python standard library.
+
+This generation step occurs during case setup and inside batch jobs during `case.run`
+(including between segments of `ERS` and `PEM` tests). Sourcing the machine's environment
+script beforehand ensures `pyyaml` remains available at all stages of execution.
 
 A proposed standard developer environment ([E3SM Discussion #8906](https://github.com/E3SM-Project/E3SM/discussions/8906))
-aims to make sourcing a environment a standard, required step for running
+aims to make sourcing an environment a standard, required step for running
 all E3SM v4 components. Until that is fully adopted in E3SM, developers
 **must explicitly source the CIME environment script for their machine before invoking
 any CIME command**:
