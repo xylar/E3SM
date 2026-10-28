@@ -1162,24 +1162,21 @@ _TESTS = {
         "time"  : "0:45:00",
         "tests" : (
             # --- C Cases (Data atm/ice forcing) ---
-            "ERS_Vmct.T62_oQU240.COMEGA-IAF",
-            "PEM_Vmct.T62_oQU240.COMEGA-IAF",
-            "SMS_Vmct_Ld3.TL319_EC30to60E2r2.COMEGA-JRA1p5.omega-jra_1958",
+            "ERS.T62_oQU240.COMEGA-IAF",
+            "PEM.T62_oQU240.COMEGA-IAF",
+            "SMS_D_Ld1.T62_oQU240.COMEGA-IAF",
+            "SMS_Ld3.TL319_EC30to60E2r2.COMEGA-JRA1p5.omega-jra_1958",
 
             # --- G Cases (Active sea-ice MPASSI coupling) ---
-            "SMS_Vmct.T62_oQU240.GOMEGA-IAF",
-            "PEM_Vmct.T62_oQU240.GOMEGA-IAF",
-            "ERS_Vmct_Ln9.TL319_EC30to60E2r2.GOMEGA-JRA1p5.omega-jra_1958",
-            "PEM_Vmct_Ln9.TL319_EC30to60E2r2.GOMEGA-JRA1p5.omega-jra_1958",
+            "SMS_D_Ld1.T62_oQU240.GOMEGA-IAF",
+            "PEM.T62_oQU240.GOMEGA-IAF",
+            "ERS_Ln9.TL319_EC30to60E2r2.GOMEGA-JRA1p5.omega-jra_1958",
+            "PEM_Ln9.TL319_EC30to60E2r2.GOMEGA-JRA1p5.omega-jra_1958",
 
             # --- B Cases (Fully coupled EAM/ELM/MOSART/MPASSI/OMEGA) ---
-            "SMS_Vmct.ne4_oQU240.WCYCL1850NS-OMEGA",
-            "ERS_Vmct_Ld3.ne4_oQU240.WCYCL1850NS-OMEGA",
-
-            # --- Debug builds (TODO: enable once confirmed working) ---
-            #"SMS_D_Vmct_Ln3.T62_oQU240.COMEGA-IAF",
-            #"SMS_D_Vmct_Ln3.T62_oQU240.GOMEGA-IAF",
-            #"SMS_D_Vmct_Ln3.ne4_oQU240.WCYCL1850NS-OMEGA",
+            "SMS_D_Ld1.ne4pg2_oQU240.WCYCL1850NS-OMEGA",
+            "ERS_Ld3.ne4pg2_oQU240.WCYCL1850NS-OMEGA",
+            "PEM_D_Ld3.ne4pg2_oQU240.WCYCL1850NS-OMEGA",
         )
     },
 
@@ -1189,8 +1186,8 @@ _TESTS = {
         "inherit" : ("e3sm_omega_developer"),
         "tests" : (
             # --- B Cases (Fully coupled EAM/ELM/MOSART/MPASSI/OMEGA) ---
-            "ERS_Vmct_Ln9.ne30pg2_r05_EC30to60E2r2.WCYCL1850NS-OMEGA",
-            "PEM_Vmct_Ln9.ne30pg2_r05_EC30to60E2r2.WCYCL1850NS-OMEGA",
+            "ERS_Ln9.ne30pg2_r05_EC30to60E2r2.WCYCL1850NS-OMEGA",
+            "PEM_Ln9.ne30pg2_r05_EC30to60E2r2.WCYCL1850NS-OMEGA",
         )
     },
 

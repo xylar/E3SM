@@ -21,30 +21,37 @@ Checklist
   **aurora, intel, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
   **aurora, intelgpu, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
   **chrysalis, intel, openmpi**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
   **frontier, craygnu, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
   **frontier, craygnu-mphipcc, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
   **pm-cpu, gnu, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
   **pm-gpu, gnugpu, mpich**
   - [ ] CTests Pass
   - [ ] Polaris omega_pr Pass
+  - [ ] Coupled CIME tests Pass
 
 * [ ] Provide relevant details in a comment to the PR titled `Testing` with the following:
   * Which machines [CTest unit tests](https://docs.e3sm.org/Omega/Omega/devGuide/QuickStart.html#running-ctests)
@@ -52,6 +59,8 @@ Checklist
   * The [Polaris omega_pr test suite](https://docs.e3sm.org/Omega/Omega/devGuide/Testing.html)
      has passed, using the Polaris `e3sm_submodules/Omega` baseline
   * Document machine(s), compiler(s), and the build path(s) used for `-p` for both the baseline (Polaris `e3sm_submodules/Omega`) and the PR build
+  * Which [coupled CIME tests](https://docs.e3sm.org/Omega/Omega/devGuide/Testing.html#coupled-testing-with-cime)
+     (such as `ERS_D` or `PEM_D` tests) have been run and indicate that they are all passing
   * Indicate "All tests passed" or document failing tests
   * Document testing used to verify the changes including any tests that are added/modified/impacted.
 * [ ] Performance related PRs: Please include a relevant PACE experiment link documenting performance before and after.
