@@ -1347,43 +1347,38 @@ contains
       call mpas_pool_get_config(liConfigs, 'config_uplift_method', config_uplift_method)
       if (trim(config_uplift_method) == 'fastisostasy') then
 
-         call MPI_COMM_RANK(domain % dminfo % comm, curProc, err_tmp)
+         ! This routine is called only on rank 0 (see li_core_run), which owns
+         ! isosFastIsostasy and bslFastIsostasy. It must not contain collective MPI
+         ! calls (e.g., no MPI_BCAST) or rank 0 would hang waiting on other ranks.
+         call mpas_pool_get_config(liConfigs, 'config_fastisostasy_restart_file', config_fastisostasy_restart_file)
+         call mpas_pool_get_config(liConfigs, 'config_fastisostasy_bsl_restart_file', &
+                                   config_fastisostasy_bsl_restart_file)
+         call mpas_pool_get_config(liConfigs, 'config_fastisostasy_coupling_interval', &
+                                   config_fastisostasy_coupling_interval)
+
+         ! Construct timestamped filenames using MPAS clock (same source as MALI restart stream)
+         call construct_fastisostasy_restart_filename(domain, config_fastisostasy_restart_file, &
+                                                      restart_filename, err_tmp)
+         err = ior(err, err_tmp)
+         call construct_fastisostasy_restart_filename(domain, config_fastisostasy_bsl_restart_file, &
+                                                      bsl_restart_filename, err_tmp)
          err = ior(err, err_tmp)
 
-         if (curProc.eq.0) then
-            call mpas_pool_get_config(liConfigs, 'config_fastisostasy_restart_file', config_fastisostasy_restart_file)
-            call mpas_pool_get_config(liConfigs, 'config_fastisostasy_bsl_restart_file', &
-                                      config_fastisostasy_bsl_restart_file)
-            call mpas_pool_get_config(liConfigs, 'config_fastisostasy_coupling_interval', &
-                                      config_fastisostasy_coupling_interval)
+         if (err == 0) then
+            ! Must match how fastisostasy_solve computes the time associated with the
+            ! most recent isos_update call, so that a subsequent restart resumes at
+            ! exactly the time value stamped in this file (see fastisostasy_init and
+            ! find_fastisostasy_restart_timestep).
+            fastisostasyTime = real(fastisostasyTimeStep, wp) * real(config_fastisostasy_coupling_interval, wp)
 
-            ! Construct timestamped filenames using MPAS clock (same source as MALI restart stream)
-            call construct_fastisostasy_restart_filename(domain, config_fastisostasy_restart_file, &
-                                                         restart_filename, err_tmp)
-            err = ior(err, err_tmp)
-            call construct_fastisostasy_restart_filename(domain, config_fastisostasy_bsl_restart_file, &
-                                                         bsl_restart_filename, err_tmp)
-            err = ior(err, err_tmp)
+            call mpas_log_write("Writing FastIsostasy restart files at FastIsostasy time level $i:", &
+                                intArgs=(/fastisostasyTimeStep/))
+            call mpas_log_write("  " // trim(restart_filename))
+            call mpas_log_write("  " // trim(bsl_restart_filename))
 
-            if (err == 0) then
-               ! Must match how fastisostasy_solve computes the time associated with the
-               ! most recent isos_update call, so that a subsequent restart resumes at
-               ! exactly the time value stamped in this file (see fastisostasy_init and
-               ! find_fastisostasy_restart_timestep).
-               fastisostasyTime = real(fastisostasyTimeStep, wp) * real(config_fastisostasy_coupling_interval, wp)
-
-               call mpas_log_write("Writing FastIsostasy restart files at FastIsostasy time level $i:", &
-                                   intArgs=(/fastisostasyTimeStep/))
-               call mpas_log_write("  " // trim(restart_filename))
-               call mpas_log_write("  " // trim(bsl_restart_filename))
-
-               call isos_restart_write(isosFastIsostasy, trim(restart_filename), fastisostasyTime)
-               call bsl_restart_write(bslFastIsostasy, trim(bsl_restart_filename), fastisostasyTime)
-            endif
+            call isos_restart_write(isosFastIsostasy, trim(restart_filename), fastisostasyTime)
+            call bsl_restart_write(bslFastIsostasy, trim(bsl_restart_filename), fastisostasyTime)
          endif
-
-         ! Broadcast error status to all ranks
-         call MPI_BCAST(err, 1, MPI_INTEGER, 0, domain % dminfo % comm, err_tmp)
       endif
 #endif
 
