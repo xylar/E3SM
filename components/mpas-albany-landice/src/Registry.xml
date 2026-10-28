@@ -671,10 +671,6 @@
 		            description="Interval at which time-averaging accumulators are reset.  If set to a zero interval, then time-averaging accumulators are never reset.  When running in E3SM, the zero interval should be used, because the GLC driver resets the accumulators every coupling interval."
 		            possible_values="Any time interval of the format 'YYYY-MM-DD_HH:MM:SS'"
 		/>
-		<nml_option name="config_enable_timeAvgRestarts" type="logical" default_value=".false." units="unitless"
-		            description="Determines if restart files include time-averaging accumulator state. This should be enabled when the restart stream output_interval is longer than config_timeaveraging_interval."
-		            possible_values=".true. or .false."
-		/>
 	</nml_record>
 
 
@@ -824,8 +820,6 @@
                 <package name="thermal" description="This package includes variables required for the thermal solver."/>
 
                 <package name="extrapOceanData" description="This package includes variables required for extrapolating ocean data into MALI ice shelf cavities." />
-
-		<package name="timeAvgRestarts" description="Variables needed to be included in restart files for time averaging to work correctly"/>
 
                 <package name="smbSatLapseRate" description="This package includes variables needed when config_apply_smb_sat_lapse_rate is true."/>
 
