@@ -1165,13 +1165,12 @@ _TESTS = {
             "ERS.T62_oQU240.COMEGA-IAF",
             "PEM.T62_oQU240.COMEGA-IAF",
             "SMS_D_Ld1.T62_oQU240.COMEGA-IAF",
-            "SMS_Ld3.TL319_EC30to60E2r2.COMEGA-JRA1p5.omega-jra_1958",
+            "PEM_Ln9.TL319_EC30to60E2r2.COMEGA-JRA1p5.omega-jra_1958",
 
             # --- G Cases (Active sea-ice MPASSI coupling) ---
             "SMS_D_Ld1.T62_oQU240.GOMEGA-IAF",
             "PEM.T62_oQU240.GOMEGA-IAF",
             "ERS_Ln9.TL319_EC30to60E2r2.GOMEGA-JRA1p5.omega-jra_1958",
-            "PEM_Ln9.TL319_EC30to60E2r2.GOMEGA-JRA1p5.omega-jra_1958",
 
             # --- B Cases (Fully coupled EAM/ELM/MOSART/MPASSI/OMEGA) ---
             "SMS_D_Ld1.ne4pg2_oQU240.WCYCL1850NS-OMEGA",
