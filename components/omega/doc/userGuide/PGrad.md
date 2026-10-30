@@ -120,13 +120,16 @@ Bottom-layer maximum speed, mean kinetic energy and number of statically
 unstable layer pairs over six days of the Polaris seamount test, for sigma
 layers with exponential and linear-in-pressure stratification and for z-star
 layers as a control. The two experimental curves change only the
-finite-volume treatment at the sea floor.
+finite-volume treatment at the sea floor, and all the finite-volume runs
+predate the current sea-floor anchor.
 ```
 
-The cause is not yet known. It is not the sea-floor anchor described under
-"Over a sloping sea floor" above: an experimental anchor that removes that
-error starts the linear-in-pressure sigma run about 700 times lower in kinetic
-energy, but the same mode then grows at the same rate to the same state.
+The cause is not yet known. It is not the sea-floor anchor. The runs in the
+figure were made before the anchor was corrected for sea floors more than a
+layer apart, as they are on these sigma layers. An experimental anchor that
+removes the same error in a different way starts the linear-in-pressure sigma
+run about 700 times lower in kinetic energy, but the same mode then grows at
+the same rate to the same state.
 Turning off extrapolation below a column's floor as well makes the instability
 worse, and the runs already use the monotonic tracer limiter.
 
