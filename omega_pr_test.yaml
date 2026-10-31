@@ -1,0 +1,48 @@
+schema_version: 1
+requester: xylar
+pull_request: 636
+pr_head: ae76f3830dbff921a3d18004e91b562752d05eb6
+base_branch: develop
+base_head: 11e7cbc8176ba35bb2c660df931955e504124d17
+test_commit: a4f1650e91ad1623aa3dd4ce2a83dcca0d7613a6
+baseline:
+  commit: 11e7cbc8176ba35bb2c660df931955e504124d17
+  source: polaris-submodule
+  reason:
+  polaris_commit: d8d9ed7ca3edcd1ac222015772c24e3f4761bb68
+polaris_commit: 37bc1c47b0dd4a621746795de774144fce36483b
+extra_merges:
+- pull_request: 669
+  commit: c329de826a2e64a618b2bdfc173bf05d45b32868
+  sides:
+  - test
+- pull_request: 670
+  commit: 5e7c80513cf84d33d663edcbb22c0fa96f360689
+  sides:
+  - test
+- pull_request: 671
+  commit: 48fecaab7b58997a0ba1fb969244c94670c94786
+  sides:
+  - test
+rows:
+- machine: aurora
+  compiler: intel
+  mpi: mpich
+  template: aurora, intel, mpich
+- machine: aurora
+  compiler: intelgpu
+  mpi: mpich
+  template: aurora, intelgpu, mpich
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, intel, openmpi
+- machine: pm-cpu
+  compiler: gnu
+  mpi: mpich
+  template: pm-cpu, gnu, mpich
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
