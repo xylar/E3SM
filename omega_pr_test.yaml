@@ -1,0 +1,24 @@
+schema_version: 1
+requester: xylar
+pull_request: 670
+pr_head: 5e7c80513cf84d33d663edcbb22c0fa96f360689
+base_branch: develop
+base_head: 11e7cbc8176ba35bb2c660df931955e504124d17
+test_commit: 999a67b54189f8209d64d71f4035a769e7692f48
+baseline:
+  commit: 27765dd1f5e0e4556386de689cbba9df6a19ff7e
+  source: polaris-submodule
+  reason:
+  polaris_commit: 87fa5f06c44d513dbfe6aefc9e5872e8c8c39aee
+polaris_commit: 87fa5f06c44d513dbfe6aefc9e5872e8c8c39aee
+extra_merges: []
+rows:
+- machine: aurora
+  compiler: intel
+  mpi: mpich
+  template: aurora, intel, mpich
+- machine: aurora
+  compiler: intelgpu
+  mpi: mpich
+  template: aurora, intelgpu, mpich
+notes:
