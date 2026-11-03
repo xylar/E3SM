@@ -65,6 +65,10 @@ module ocn_wetting_drying
    !
    !--------------------------------------------------------------------
    real(kind=RKIND), parameter :: eps = 1.0e-12_RKIND
+   ! the speed (m s^-1) below which the drying ramp closes an edge
+   ! instead of damping its outflow, so the ramp can't leave a velocity
+   ! that decays geometrically without reaching zero
+   real(kind=RKIND), parameter :: rampMinVelocity = 1.0e-10_RKIND
 
 
 !***********************************************************************
@@ -616,6 +620,11 @@ contains
             if ( btrVelocity(iEdge) * edgeSignOnCell(i, iCell) <= 0.0_RKIND ) then
               wettingVelocityBarotropic(iEdge) = &
                 tanh(hRampFactor * (wct - hRampMin)/(hRampMax - hRampMin))
+              if ( btrVelocity(iEdge) * edgeSignOnCell(i, iCell) < 0.0_RKIND .and. &
+                   abs(btrVelocity(iEdge)) * wettingVelocityBarotropic(iEdge) < &
+                   rampMinVelocity ) then
+                wettingVelocityBarotropic(iEdge) = 0.0_RKIND
+              end if
             end if
           end do
 
@@ -960,6 +969,11 @@ contains
                 if ( normalVelocity(k, iEdge) * edgeSignOnCell(i, iCell) <= 0.0_RKIND ) then
                   wettingVelocityFactor(k, iEdge) = 1.0_RKIND - &
                       tanh(50.0_RKIND * (layerThicknessCell(k, iCell) - hRampMin)/hRampMin)
+                  if ( normalVelocity(k, iEdge) * edgeSignOnCell(i, iCell) < 0.0_RKIND .and. &
+                       abs(normalVelocity(k, iEdge)) * &
+                       (1.0_RKIND - wettingVelocityFactor(k, iEdge)) < rampMinVelocity ) then
+                    wettingVelocityFactor(k, iEdge) = 1.0_RKIND
+                  end if
                 endif
 
                 ! If edge velocity has been zeroed, check neighbor and current cell ssh.
@@ -1070,6 +1084,11 @@ contains
                if ( normalVelocity(k, iEdge) * edgeSignOnCell(i, iCell) <= 0.0_RKIND ) then
                   wettingVelocityFactor(k, iEdge) = 1.0_RKIND - &
                   tanh(50.0_RKIND * (layerThicknessTmp - hRampMin)/hRampMin)
+                  if ( normalVelocity(k, iEdge) * edgeSignOnCell(i, iCell) < 0.0_RKIND .and. &
+                       abs(normalVelocity(k, iEdge)) * &
+                       (1.0_RKIND - wettingVelocityFactor(k, iEdge)) < rampMinVelocity ) then
+                     wettingVelocityFactor(k, iEdge) = 1.0_RKIND
+                  end if
                end if
             end if
          end do
@@ -1119,15 +1138,28 @@ contains
       !-----------------------------------------------------------------
 
       integer :: iCell
+      logical :: grounded
 
       err = 0
 
       !$omp parallel
-      !$omp do schedule(runtime)
+      !$omp do schedule(runtime) private(grounded)
       do iCell = 1, nCellsAll
          ! ice can only float where there is land ice
-         if ((landIceMask(iCell) == 0) .or. &
+         grounded = (landIceMask(iCell) == 0)
+         if (.not. grounded .and. &
              (landIceDraftForSsh(iCell) < -bottomDepth(iCell))) then
+            ! the ice draft lies below the sea floor, so the ocean holds a thin
+            ! film under the ice.  When coupled to glc, the ice floats wherever
+            ! glc's does, so the film can melt, though it does not freeze (see
+            ! ocn_land_ice_in_thin_film).  Otherwise, the ice is grounded.
+            if (config_glc_ice_shelf_coupling) then
+               grounded = (landIceFloatingFraction(iCell) <= 0.0_RKIND)
+            else
+               grounded = .true.
+            end if
+         end if
+         if (grounded) then
             landIceFloatingMask(iCell) = 0
             landIceFloatingFraction(iCell) = 0.0_RKIND
          else
