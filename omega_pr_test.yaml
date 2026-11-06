@@ -1,0 +1,24 @@
+schema_version: 1
+requester: xylar
+pull_request: 682
+pr_head: 6fc4482a6a0f7619ef186de13a5c806b97a56272
+base_branch: develop
+base_head: 541534f409e1765b7367d39a51dfd55c8196ed35
+test_commit: cb4c0db686ceb2626edd3d3d653f8ca5b34fd00d
+baseline:
+  commit: 11e7cbc8176ba35bb2c660df931955e504124d17
+  source: polaris-submodule
+  reason:
+  polaris_commit: 807028c264e1f7d464f6930ffe69e202813d3ba5
+polaris_commit: eb94dd09983427df5cb494ddfc658175fbca23c7
+extra_merges:
+- pull_request: 643
+  commit: 2f6d2101240286326740a9bfcbbc31c17f331441
+  sides:
+  - test
+rows:
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, intel, openmpi
+notes:
