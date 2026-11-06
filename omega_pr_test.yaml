@@ -1,0 +1,26 @@
+schema_version: 1
+requester: xylar
+pull_request: 684
+pr_head: d7e1f153e0d585b05597418eaec2668f29cc2e16
+base_branch: develop
+base_head: 920ea215f62da10aa25abd4c7f6af25e6ad58376
+test_commit: 6a62c7286ed68766f09c8eff2470fb24a97f7962
+baseline:
+  commit: 11e7cbc8176ba35bb2c660df931955e504124d17
+  source: polaris-submodule
+  reason:
+  polaris_commit: 807028c264e1f7d464f6930ffe69e202813d3ba5
+polaris_commit: eb94dd09983427df5cb494ddfc658175fbca23c7
+extra_merges: []
+rows:
+- machine: chrysalis
+  compiler: intel
+  mpi: openmpi
+  template: chrysalis, intel, openmpi
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes: Tests this PR together with E3SM-Project/Omega#683 and Andrew's 
+  Fioo_frazilm fix (2ed140203a), which coupled tests need to initialize. The PR 
+  runs with E3SM-Project/polaris#897 because Omega develop has PCD 0.3.0.
