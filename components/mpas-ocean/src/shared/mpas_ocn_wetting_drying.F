@@ -38,6 +38,10 @@ module ocn_wetting_drying
 
    implicit none
    private
+
+   ! The share of inflow a film layer under land ice admits at the bottom of
+   ! the drying-velocity ramp
+   real (kind=RKIND), parameter :: filmInflowFloor = 0.1_RKIND
    save
 
    !--------------------------------------------------------------------
@@ -491,6 +495,7 @@ contains
       real (kind=RKIND) :: divOutFlux
       real (kind=RKIND) :: columnThickness
       real (kind=RKIND) :: hCrit, hRampMin, hRampMax, hEdgeTotal
+      real (kind=RKIND) :: inflowOpen
 
       character (len=100) :: log_string
 
@@ -550,7 +555,7 @@ contains
       call ocn_compute_land_ice_ssh_adjustment(landIcePressure, landIceMask, sshLandIceAdjustment, err)
 
       !$omp parallel
-      !$omp do schedule(runtime) private(k, nVertLevelsCell)
+      !$omp do schedule(runtime) private(k, nVertLevelsCell, i, iEdge, inflowOpen)
       do iCell = 1, nCellsAll
         nVertLevelsCell = maxLevelCell(iCell) - minLevelCell(iCell) + 1
         do k = minLevelCell(iCell), maxLevelCell(iCell)
@@ -559,6 +564,28 @@ contains
           if ( .not. config_use_ssh_gradient_wetting_drying ) then
              call ocn_wetting_velocity_factor_on_cell_edges( &
                       wettingVelocityFactor, layerThicknessCell(k, iCell), normalVelocity, iCell, k)
+             ! Under land ice, a film layer admits inflow in proportion to
+             ! its predicted thickness across the ramp, from filmInflowFloor
+             ! at the bottom of the ramp to fully open at its top.  A film
+             ! whose ice comes afloat then fills gradually, instead of
+             ! opening at once to the flow its deep neighbors have built up.
+             if ( config_zero_drying_velocity_ramp .and. &
+                  landIceMask(iCell) == 1 .and. &
+                  layerThicknessCell(k, iCell) <= hRampMax ) then
+                inflowOpen = filmInflowFloor + (1.0_RKIND - filmInflowFloor)* &
+                   min(1.0_RKIND, max(0.0_RKIND, &
+                       (layerThicknessCell(k, iCell) - hRampMin)/ &
+                       max(hRampMax - hRampMin, 1.0e-12_RKIND)))
+                do i = 1, nEdgesOnCell(iCell)
+                   iEdge = edgesOnCell(i, iCell)
+                   if (k > maxLevelEdgeTop(iEdge) .or. k < minLevelEdgeBot(iEdge)) cycle
+                   ! only flow into the cell
+                   if ( normalVelocity(k, iEdge) * edgeSignOnCell(i, iCell) > 0.0_RKIND ) then
+                      wettingVelocityFactor(k, iEdge) = &
+                         max(wettingVelocityFactor(k, iEdge), 1.0_RKIND - inflowOpen)
+                   end if
+                end do
+             end if
           end if
         end do
       end do
