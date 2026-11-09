@@ -665,10 +665,14 @@ class Teos10Eos {
       return (pot_enthalpy / Cp0Sw);
    }
 
-   /// Calculates freezing Conservative Temperature using TEOS-10 polynomial
-   /// (polynomial error in [-5e-4, 6e-4] K, from GSW package).
-   /// P is relative pressure (gauge pressure in Pa, i.e., absolute pressure
-   /// minus the standard atmosphere).
+   /// Calculates freezing Conservative Temperature [degC] using the TEOS-10
+   /// polynomial from GSW (gsw_ct_freezing_poly; polynomial error in
+   /// [-5e-4, 6e-4] K).
+   /// \param Sa Absolute Salinity [g/kg]
+   /// \param P Sea pressure [Pa] (absolute pressure minus the standard
+   ///        atmosphere), as in Omega's pressure fields
+   ///        (gsw_ct_freezing_poly takes dbar instead)
+   /// \param SaturationFract Saturation fraction of dissolved air [0-1]
    static KOKKOS_FUNCTION Real calcCtFreezingTeos10(
        const Real Sa, const Real P, const Real SaturationFract) {
       constexpr Real Sso = 35.16504;
@@ -705,7 +709,8 @@ class Teos10Eos {
 
       Real Sar = SaPos * 1.0e-2;
       Real X   = Kokkos::sqrt(Sar);
-      Real Pr  = P * 1.0e-4;
+      // Reduced pressure: sea pressure in dbar scaled by 1e-4, as in GSW
+      Real Pr = P * Pa2Db * 1.0e-4;
 
       Real CtFreez =
           C0 + Sar * (C1 + X * (C2 + X * (C3 + X * (C4 + X * (C5 + C6 * X))))) +
@@ -1098,10 +1103,15 @@ class Eos {
       return 0.0_Real;
    }
 
-   /// Calculate freezing temperature of seawater.
-   /// For TEOS-10, uses the Roquet et al. 75-term polynomial.
+   /// Calculate freezing Conservative Temperature [degC] of seawater.
+   /// For TEOS-10, uses the GSW gsw_ct_freezing_poly polynomial.
    /// For LinearEos, uses a simple linear salinity-dependent approximation.
    /// For ConstantEos, returns a constant approximate ocean freezing point.
+   /// \param Choice EOS type
+   /// \param Sa Absolute Salinity [g/kg]
+   /// \param P Sea pressure [Pa] (absolute pressure minus the standard
+   ///        atmosphere), as in Omega's pressure fields
+   /// \param SaturationFract Saturation fraction of dissolved air [0-1]
    static KOKKOS_FUNCTION Real calcCtFreezing(EosType Choice, const Real Sa,
                                               const Real P,
                                               const Real SaturationFract) {
