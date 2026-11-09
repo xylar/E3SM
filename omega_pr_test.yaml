@@ -1,0 +1,20 @@
+schema_version: 1
+requester: xylar
+pull_request: 688
+pr_head: 507d543d1ce3888486c75b28ee03db7c28a2b12d
+base_branch: develop
+base_head: a67f43530cf5afe414cd1219f18e81383dec4fc0
+test_commit: 1c55cd4297dcfd4852a4eb1b4f0f1def4ea9370f
+baseline:
+  commit: a67f43530cf5afe414cd1219f18e81383dec4fc0
+  source: polaris-submodule
+  reason:
+  polaris_commit: 32f51592bac4a520071413e5b8ae563158261aa6
+polaris_commit: 32f51592bac4a520071413e5b8ae563158261aa6
+extra_merges: []
+rows:
+- machine: pm-gpu
+  compiler: gnugpu
+  mpi: mpich
+  template: pm-gpu, gnugpu, mpich
+notes:
