@@ -1,0 +1,136 @@
+name: omega-cpu-check
+
+# Temporary check for E3SM-Project/E3SM#9212 / #9222: is the Intel OMEGA test in e3sm-gh
+# bit-for-bit across hosted-runner CPUs? Runs the same test several times from the PR head
+# and from its master base, records each runner's CPU, and compares the outputs.
+
+on:
+  push:
+    branches: [omega/cpu-check-pr9222]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - {name: pr, sha: 96aef29bd7f4c789189159e95fa924a0e8d84a71}
+          - {name: base, sha: 1d698e81245fc02ecf41d4929414a9e6c02a1ef3}
+        rep: [1, 2, 3, 4, 5, 6]
+    name: ${{ matrix.variant.name }} ${{ matrix.rep }}
+    env:
+      IMAGE: ghcr.io/e3sm-project/e3sm-image:intel2024-openmpi4
+      TESTS: SMS_Ld1.ne4pg2_oQU240.WCYCLXX1850NS-OMEGA.e3sm-container_intel
+    steps:
+      - name: Record the CPU
+        run: |
+          lscpu | sed -n 's/^Model name: *//p' | tee cpu.txt
+          lscpu | grep -E "Vendor|Flags" | cut -c1-200
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost /usr/local/.ghcup /usr/share/swift
+          sudo docker image prune --all --force > /dev/null
+          df -h /
+      - name: Check out E3SM
+        uses: actions/checkout@v4
+        with:
+          repository: E3SM-Project/E3SM
+          ref: ${{ matrix.variant.sha }}
+          path: E3SM
+          persist-credentials: false
+          show-progress: false
+          submodules: recursive
+      - name: Pull the image
+        run: docker pull "$IMAGE"
+      # Same as e3sm-gh-testing.yml for intel, but with no baseline compare
+      - name: Run the test
+        run: |
+          mkdir -p inputdata scratch
+          sudo chown -R 1000:1000 E3SM inputdata scratch
+          rc=0
+          docker run --rm -e TESTS -e MKL_CBWR=COMPATIBLE -e LD_PRELOAD=/lib64/libm.so.6 \
+            -v "$PWD/E3SM:/projects/e3sm/work/E3SM" \
+            -v "$PWD/inputdata:/projects/e3sm/data/inputdata" \
+            -v "$PWD/scratch:/home/e3sm/e3sm_scratch" \
+            "$IMAGE" bash -lc '. /projects/e3sm/cime/enable.sh &&
+              printf "%s\n" \
+                "# CI only: results independent of the CPU, so baselines can be compared" \
+                "foreach(lang C CXX Fortran)" \
+                "  string(APPEND CMAKE_\${lang}_FLAGS \" -fp-model=consistent -fimf-arch-consistency=true\")" \
+                "endforeach()" >> ~/.cime/e3sm-container_intel.cmake &&
+              cd /projects/e3sm/work/E3SM/cime/scripts &&
+              ./create_test $TESTS --wait --test-id gh --parallel-jobs "$(nproc)"' || rc=$?
+          sudo chown -R "$(id -u):$(id -g)" E3SM inputdata scratch
+          cat scratch/*.gh/TestStatus || true
+          mkdir -p out
+          cp cpu.txt out/
+          cp scratch/*.gh/TestStatus out/ || true
+          cp scratch/*.gh/run/*.cpl.hi.*.nc scratch/*.gh/run/*.omega.*.nc out/ || true
+          zgrep -h "omega/src/.*\.cpp" scratch/*.gh/bld/e3sm.bldlog.*.gz | grep -c "fp-model=consistent" > out/omega_fp_model_lines.txt || true
+          ls -l out
+          exit "$rc"
+      - name: Upload outputs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: out-${{ matrix.variant.name }}-${{ matrix.rep }}
+          path: out
+          retention-days: 7
+
+  compare:
+    needs: run
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: arts
+      - name: Compare outputs within each variant
+        run: |
+          pip install --quiet netCDF4 numpy
+          cat > compare.py <<'EOF'
+          import glob, os, sys
+          import numpy as np
+          from netCDF4 import Dataset
+
+          def load(path):
+              out = {}
+              with Dataset(path) as ds:
+                  for name, var in ds.variables.items():
+                      var.set_auto_mask(False)
+                      out[name] = np.asarray(var[...]).tobytes()
+              return out
+
+          for variant in ("pr", "base"):
+              runs = sorted(glob.glob(f"arts/out-{variant}-*"))
+              print(f"\n===== {variant}")
+              ref = None
+              for run in runs:
+                  cpu = open(os.path.join(run, "cpu.txt")).read().strip()
+                  files = sorted(glob.glob(os.path.join(run, "*.nc")))
+                  if not files:
+                      print(f"{os.path.basename(run)}  [{cpu}]  no output")
+                      continue
+                  data = {os.path.basename(f).split(".gh.", 1)[1]: load(f) for f in files}
+                  if ref is None:
+                      ref, ref_name = data, os.path.basename(run)
+                      print(f"{os.path.basename(run)}  [{cpu}]  reference ({len(files)} files)")
+                      continue
+                  ndiff = 0
+                  nvar = 0
+                  for fname, vars_ in data.items():
+                      for vname, buf in vars_.items():
+                          nvar += 1
+                          if ref.get(fname, {}).get(vname) != buf:
+                              ndiff += 1
+                  status = "BFB" if ndiff == 0 else f"DIFF in {ndiff}/{nvar} variables"
+                  print(f"{os.path.basename(run)}  [{cpu}]  vs {ref_name}: {status}")
+          EOF
+          python3 compare.py | tee -a "$GITHUB_STEP_SUMMARY"
