@@ -295,7 +295,7 @@ void KPPMix::update(const Array3DReal &TracerArray, I4 TempTracerIndex,
              parallelForInner(
                  Team, KRange, INNER_LAMBDA(int KChunk) {
                     TanReconEdge(LocTangentialVelocity, IEdge, KChunk,
-                                 NormalVelocity);
+                                 NormalVelocity, KMin, KMax);
                  });
           });
    }
