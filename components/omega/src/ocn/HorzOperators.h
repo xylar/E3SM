@@ -129,6 +129,31 @@ class TangentialReconOnEdge {
       }
    }
 
+   /// The same reconstruction over the layers KMin to KMax only, with KChunk
+   /// counting chunks from KMin as vertRangeChunked(KMin, KMax) does, so that
+   /// a column whose top layers are inactive starts at its top active layer
+   KOKKOS_FUNCTION void operator()(const Array2DReal &ReconEdge, int IEdge,
+                                   int KChunk, const Array2DReal &VecEdge,
+                                   int KMin, int KMax) const {
+      const int KStart = chunkStart(KChunk, KMin);
+      const int KLen   = chunkLength(KChunk, KStart, KMax);
+
+      Real ReconEdgeTmp[VecLength] = {0};
+
+      for (int J = 0; J < NEdgesOnEdge(IEdge); ++J) {
+         const int JEdge = EdgesOnEdge(IEdge, J);
+         for (int KVec = 0; KVec < KLen; ++KVec) {
+            const int K = KStart + KVec;
+            ReconEdgeTmp[KVec] += WeightsOnEdge(IEdge, J) * VecEdge(JEdge, K);
+         }
+      }
+
+      for (int KVec = 0; KVec < KLen; ++KVec) {
+         const int K         = KStart + KVec;
+         ReconEdge(IEdge, K) = ReconEdgeTmp[KVec];
+      }
+   }
+
  private:
    Array1DI4 NEdgesOnEdge;
    Array2DI4 EdgesOnEdge;

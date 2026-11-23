@@ -762,7 +762,7 @@ void VertMix::VertMixImplicit(OceanState *State, AuxiliaryState *AuxState,
           parallelForInner(
               Team, KRange, INNER_LAMBDA(int KChunk) {
                  TanReconEdge(LocTangentialVelocity, IEdge, KChunk,
-                              NormalVelEdge);
+                              NormalVelEdge, KMin, KMax);
               });
        });
 
