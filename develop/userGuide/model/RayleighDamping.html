@@ -1,0 +1,164 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rayleigh Damping &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Equation of State" href="EOS.html" />
+    <link rel="prev" title="Submesoscale Eddy Parameterization" href="SubmesoEddies.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model Options</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendency Terms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Advection.html">Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalMixing.html">Horizontal Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PressureGradient.html">Pressure Gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VerticalCoordinate.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VerticalMixing.html">Vertical Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPP.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Rayleigh Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model Options</a></li>
+      <li class="breadcrumb-item active">Rayleigh Damping</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/model/RayleighDamping.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="rayleigh-damping">
+<span id="omega-user-model-rayleigh-damping"></span><h1>Rayleigh Damping<a class="headerlink" href="#rayleigh-damping" title="Permalink to this heading"></a></h1>
+<p>Rayleigh damping adds a linear drag on the normal velocity to the momentum
+equation, with damping coefficient <span class="math notranslate nohighlight">\(c_R\)</span> (s<span class="math notranslate nohighlight">\(^{-1}\)</span>, <code class="docutils literal notranslate"><span class="pre">DampingCoeff</span></code>); <span class="math notranslate nohighlight">\(1/c_R\)</span>
+is the e-folding time scale of the damping. The damping acts on every active
+layer of every edge, but not on pseudo-thickness or tracers. The formulation is
+given in <a class="reference internal" href="../../techGuide/physics/RayleighDamping.html#omega-tech-rayleigh-damping"><span class="std std-ref">Rayleigh Damping</span></a>.</p>
+<p>Rayleigh damping is a spin-up tool, not part of the physics of a production simulation. It is used for <em>dynamic adjustment</em>: a short run, starting from an initial condition that is not in dynamical balance (e.g. one built from observational climatologies), in which strong damping removes the large barotropic and inertia-gravity waves generated as the model adjusts. A dynamic adjustment is typically run as a sequence of jobs (restarting from the previous one) in which the damping coefficient is reduced and the time step increased from one job to the next until damping can be turned off and the time step has reached its production value. Coefficients of order <span class="math notranslate nohighlight">\(10^{-4}\)</span> s<span class="math notranslate nohighlight">\(^{-1}\)</span> (a time scale of about 2.8 hours) are typical for the first, most aggressive job.</p>
+<p>Rayleigh damping is configured with the <code class="docutils literal notranslate"><span class="pre">RayleighDamping</span></code> group in the yaml configuration file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">RayleighDamping</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">        </span><span class="c1"># Enables Rayleigh damping</span>
+<span class="w">  </span><span class="nt">DampingCoeff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-4</span><span class="w"> </span><span class="c1"># Damping coefficient (s^-1)</span>
+</pre></div>
+</div>
+<p>Rayleigh damping is disabled by default, in which case <code class="docutils literal notranslate"><span class="pre">DampingCoeff</span></code> has no effect and results are bit-for-bit identical to results without the feature. <code class="docutils literal notranslate"><span class="pre">DampingCoeff</span></code> must be non-negative and is read only at initialization, so changing it requires a new job.</p>
+<p>The damping term is treated implicitly in time as part of the implicit vertical mixing of velocity, so it is stable for any value of <span class="math notranslate nohighlight">\(c_R \Delta t\)</span>. Rayleigh damping therefore requires implicit velocity vertical mixing to be enabled:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Tendencies</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">VelVertMixTendencyEnable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>which is the default. Omega aborts during initialization if Rayleigh damping is enabled and <code class="docutils literal notranslate"><span class="pre">VelVertMixTendencyEnable</span></code> is <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SubmesoEddies.html" class="btn btn-neutral float-left" title="Submesoscale Eddy Parameterization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="EOS.html" class="btn btn-neutral float-right" title="Equation of State" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vertical Mixing &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="KPP Boundary Layer Mixing" href="KPP.html" />
+    <link rel="prev" title="Equation of State" href="EOS.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Technical Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../equations/index.html">Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../discretization/index.html">Discretization</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Physics and Parameterizations</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Vertical Mixing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#background-mixing">Background mixing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#convective-mixing">Convective mixing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#shear-instability-driven-mixing">Shear-instability-driven mixing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="KPP.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalMixing.html">Horizontal Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceForcing.html">Surface Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../Diagnostics.html">Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Bibliography.html">Bibliography</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Technical Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Physics and Parameterizations</a></li>
+      <li class="breadcrumb-item active">Vertical Mixing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/techGuide/physics/VerticalMixing.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="vertical-mixing">
+<span id="omega-tech-vertical-mixing"></span><h1>Vertical Mixing<a class="headerlink" href="#vertical-mixing" title="Permalink to this heading"></a></h1>
+<p>Omega computes vertical viscosity and diffusivity as the sum of three
+contributions: a constant background value, convective mixing in statically
+unstable water, and mixing driven by shear instability. The vertical mixing
+module also calculates the gradient Richardson number and smooths it with a
+1-2-1 filter before using it in the shear-instability-driven mixing. The
+coefficients are computed in <code class="docutils literal notranslate"><span class="pre">src/ocn/VertMix.cpp</span></code>, and the options are
+described in <a class="reference internal" href="../../userGuide/model/VerticalMixing.html#omega-user-model-vertical-mixing"><span class="std std-ref">Vertical Mixing</span></a>. Boundary-layer mixing
+is described in <a class="reference internal" href="KPP.html#omega-tech-kpp"><span class="std std-ref">KPP Boundary Layer Mixing</span></a>.</p>
+<section id="background-mixing">
+<h2>Background mixing<a class="headerlink" href="#background-mixing" title="Permalink to this heading"></a></h2>
+<p>A constant background mixing value that represents small-scale mixing processes not explicitly resolved or modeled. Typically, this is chosen to represent low values of vertical mixing happening in the ocean’s stratified interior and is assumed roughly equivalent to the globally averaged interior mixing from all sources (e.g., from internal wave breaking).</p>
+</section>
+<section id="convective-mixing">
+<h2>Convective mixing<a class="headerlink" href="#convective-mixing" title="Permalink to this heading"></a></h2>
+<p>Enhanced convective adjustment mixing that occurs in statically unstable regions of the water column to parameterize convection and homogenize properties. In Omega this mixing is defaulted to occur when the squared Brunt Vaisala Frequency is less than 0.0 (unstable), and is off when equal to (neutral) or greater than (stable) 0.0. The convective diffusivity is thus added to the background diffusivity (<span class="math notranslate nohighlight">\(\kappa_b\)</span>) to form the total diffusivity coefficient <span class="math notranslate nohighlight">\(\kappa\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\kappa =
+\begin{cases}
+\kappa_b + \kappa_{conv} \quad \text{ if } N^2 &lt; N^2_{crit}\\
+\kappa_b \quad \text{ if } N^2 \geq N^2_{crit}
+\end{cases}
+\end{split}\]</div>
+<p>This is different than some current implementations (i.e. in MPAS-Ocean and the CVMix package), where convective adjustment occurs both with unstable and neutral conditions (<span class="math notranslate nohighlight">\(N^2 \leq N^2_{crit}\)</span>). <span class="math notranslate nohighlight">\(\kappa_{conv}\)</span> and <span class="math notranslate nohighlight">\(N^2_{crit}\)</span> are constant parameters set in the <code class="docutils literal notranslate"><span class="pre">VertMix</span></code> section of the yaml file (<code class="docutils literal notranslate"><span class="pre">Diffusivity</span></code> and <code class="docutils literal notranslate"><span class="pre">TriggerBVF</span></code> under the <code class="docutils literal notranslate"><span class="pre">Convective</span></code> header).</p>
+</section>
+<section id="shear-instability-driven-mixing">
+<h2>Shear-instability-driven mixing<a class="headerlink" href="#shear-instability-driven-mixing" title="Permalink to this heading"></a></h2>
+<p>Mixing induced by vertical pseudo-velocity shear, implemented using the scheme of <span id="id1">Large <em>et al.</em> (<a class="reference internal" href="../Bibliography.html#id2" title="W. G. Large, J. C. McWilliams, and S. C. Doney. Oceanic vertical mixing: a review and a model with a nonlocal boundary layer parameterization. Reviews of Geophysics, 32(4):363–403, 1994. doi:10.1029/94RG01872.">1994</a>)</span> (LMD94), through the gradient Richardson number (ratio of buoyancy to shear).</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\nu_{shear} = \kappa_{shear} =
+\begin{cases}
+\nu_o \quad \text{ if } Ri_g &lt; 0\\
+\nu_o \left[1 - \left( \frac{Ri_g}{Ri_{crit}} \right)^2 \right]^p \text{ if } 0 \leq Ri_g &lt; Ri_{crit}\\
+0.0 \quad \text{ if } Ri_{crit} \leq Ri_g
+\end{cases}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\nu_o\)</span>, <span class="math notranslate nohighlight">\(Ri_{crit}\)</span>, and <span class="math notranslate nohighlight">\(p\)</span> are constant parameters set in the <code class="docutils literal notranslate"><span class="pre">VertMix</span></code> section of the yaml file (<code class="docutils literal notranslate"><span class="pre">BaseShearValue</span></code>, <code class="docutils literal notranslate"><span class="pre">RiCrit</span></code>, and <code class="docutils literal notranslate"><span class="pre">Exponent</span></code> under the <code class="docutils literal notranslate"><span class="pre">Shear</span></code> header). <span class="math notranslate nohighlight">\(Ri_g\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[
+Ri_g = \frac{N^2}{\left|\frac{\partial \mathbf{U}}{\partial z}\right|^2}\,,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(N^2\)</span> is calculated by the EOS based on the ocean state and <span class="math notranslate nohighlight">\(\mathbf{U}\)</span> is the magnitude of the horizontal velocity. <span class="math notranslate nohighlight">\(Ri_g\)</span> is calculated by the vertical mixing module and then smoothed with a 1-2-1 (vertical) filter before being used to calculate the shear-instability-driven mixing. <span class="math notranslate nohighlight">\(N^2\)</span>, <span class="math notranslate nohighlight">\(\left| \frac{\partial \mathbf{U}}{\partial z}\right|^2\)</span> and <span class="math notranslate nohighlight">\(Ri_g\)</span> of <code class="docutils literal notranslate"><span class="pre">k</span></code> are all defined at the cell center, top interface of layer <code class="docutils literal notranslate"><span class="pre">k</span></code>. <span class="math notranslate nohighlight">\(N^2\)</span>, <span class="math notranslate nohighlight">\(\nu\)</span> and <span class="math notranslate nohighlight">\(\kappa\)</span> are set to zero at the surface.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="EOS.html" class="btn btn-neutral float-left" title="Equation of State" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="KPP.html" class="btn btn-neutral float-right" title="KPP Boundary Layer Mixing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

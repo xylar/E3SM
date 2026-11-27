@@ -1,0 +1,254 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Running in E3SM &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Logging" href="Logging.html" />
+    <link rel="prev" title="Running Standalone" href="Standalone.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Running Omega</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Standalone.html">Running Standalone</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Running in E3SM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-user-nl-omega">Configuration (<code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code>)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#time">Time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parallel-i-o">Parallel I/O</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log-files">Log files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Logging.html">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Timing.html">Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Errors.html">Error Messages</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Running Omega</a></li>
+      <li class="breadcrumb-item active">Running in E3SM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/run/E3SM.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="running-in-e3sm">
+<span id="omega-user-run-e3sm"></span><h1>Running in E3SM<a class="headerlink" href="#running-in-e3sm" title="Permalink to this heading"></a></h1>
+<div class="warning admonition">
+<p class="admonition-title">Partly written</p>
+<p>This page does not yet cover choosing a compset, creating and running a case,
+or where a run’s output lands. Progress is tracked in
+<a class="reference external" href="https://github.com/E3SM-Project/Omega/issues/724">E3SM-Project/Omega#724</a>.</p>
+</div>
+<p>When Omega runs as the <code class="docutils literal notranslate"><span class="pre">ocn</span></code> component of a coupled E3SM case, the case
+writes Omega’s configuration, the coupler controls time, and Omega exchanges
+surface fields with the other components through the coupler (MCT or MOAB).
+To build such a case, see <a class="reference internal" href="../build/E3SM.html#omega-user-build-e3sm"><span class="std std-ref">Building in E3SM</span></a>.</p>
+<section id="configuration-user-nl-omega">
+<span id="omega-user-run-e3sm-user-nl-omega"></span><h2>Configuration (<code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code>)<a class="headerlink" href="#configuration-user-nl-omega" title="Permalink to this heading"></a></h2>
+<p>In a coupled case, <code class="docutils literal notranslate"><span class="pre">omega.yml</span></code> is generated by <code class="docutils literal notranslate"><span class="pre">case.setup</span></code>/<code class="docutils literal notranslate"><span class="pre">case.submit</span></code>
+rather than written by hand, by layering configuration from lowest to
+highest precedence:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-center"><p>Precedence</p></th>
+<th class="head"><p>Layer</p></th>
+<th class="head"><p>Source</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-center"><p>1 (lowest)</p></td>
+<td><p>Omega’s defaults</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Default.yml</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-center"><p>2</p></td>
+<td><p>coupled overrides</p></td>
+<td><p>applied to every coupled run</p></td>
+</tr>
+<tr class="row-even"><td class="text-center"><p>3</p></td>
+<td><p>mesh overrides</p></td>
+<td><p>specific to the case’s ocean mesh (<code class="docutils literal notranslate"><span class="pre">OCN_GRID</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-center"><p>4</p></td>
+<td><p>runtime overrides</p></td>
+<td><p>derived from the case</p></td>
+</tr>
+<tr class="row-even"><td class="text-center"><p>5 (highest)</p></td>
+<td><p>user overrides</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>The coupled and mesh overrides are in
+<code class="docutils literal notranslate"><span class="pre">cime_config/omega_buildnml/data/config_overrides.yaml</span></code>. Runtime overrides
+(4) are derived from the case configuration: start/stop time, calendar,
+restart behavior, and the resolved input file names for the case’s mesh.</p>
+<p>Each layer is merged on top of the ones below it, so <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> is the
+way to customize an individual case without editing Omega’s packaged
+configuration.</p>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> in the case directory before <code class="docutils literal notranslate"><span class="pre">case.setup</span></code>, wrapping
+your overrides in a top-level <code class="docutils literal notranslate"><span class="pre">Omega:</span></code> key that matches <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code>, e.g.:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Omega</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Tendencies</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">SurfaceTracerRestoringEnable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="w">  </span><span class="nt">IOStreams</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">History</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">      </span><span class="nt">FreqUnits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Days</span>
+</pre></div>
+</div>
+<p>Unknown sections/options are rejected, as are typos. A small set of options
+are set from the case configuration or by the coupler at runtime, and
+cannot be overridden in <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Omega</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">TimeIntegration</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">StartType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">       </span><span class="c1"># blocked: must be Coupled</span>
+<span class="w">    </span><span class="nt">StartTime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">       </span><span class="c1"># blocked: provided by the coupler at runtime</span>
+<span class="w">    </span><span class="nt">StopType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">        </span><span class="c1"># blocked: must be Coupled</span>
+<span class="w">    </span><span class="nt">StopCriterion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">   </span><span class="c1"># blocked: ignored in coupled runs</span>
+<span class="w">    </span><span class="nt">CalendarType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">    </span><span class="c1"># blocked: must match the case's CALENDAR</span>
+
+<span class="w">  </span><span class="nt">IO</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">IOTasks</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">         </span><span class="c1"># blocked: set with the PIO_*_OCN case variables</span>
+<span class="w">    </span><span class="nt">IOStride</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="nt">IOBaseTask</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="nt">IORearranger</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="nt">IODefaultFormat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+
+<span class="w">  </span><span class="nt">IOStreams</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">HorzMeshIn</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">       </span><span class="c1"># blocked: mesh file, resolved from OCN_GRID</span>
+<span class="w">    </span><span class="nt">InitialVertCoord</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w"> </span><span class="c1"># blocked: mesh file, resolved from OCN_GRID</span>
+<span class="w">    </span><span class="nt">InitialState</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">     </span><span class="c1"># blocked: initial condition, resolved from OCN_GRID</span>
+<span class="w">    </span><span class="nt">RestartRead</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">      </span><span class="c1"># blocked: managed by the coupler</span>
+<span class="w">    </span><span class="nt">RestartWrite</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">     </span><span class="c1"># blocked: managed by the coupler</span>
+<span class="w">    </span><span class="nt">Forcing</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">          </span><span class="c1"># blocked: provided by the coupler</span>
+</pre></div>
+</div>
+<p>Attempting to set one of these is a <code class="docutils literal notranslate"><span class="pre">case.setup</span></code> error.</p>
+</section>
+<section id="time">
+<h2>Time<a class="headerlink" href="#time" title="Permalink to this heading"></a></h2>
+<p>The case’s start time and the coupler’s clock control the simulation.
+<code class="docutils literal notranslate"><span class="pre">StartType</span></code> and <code class="docutils literal notranslate"><span class="pre">StopType</span></code> are <code class="docutils literal notranslate"><span class="pre">Coupled</span></code>, and the configuration holds
+placeholder values for <code class="docutils literal notranslate"><span class="pre">StartTime</span></code> and <code class="docutils literal notranslate"><span class="pre">StopCriterion</span></code>. <code class="docutils literal notranslate"><span class="pre">CalendarType</span></code> is
+still set, from the case’s <code class="docutils literal notranslate"><span class="pre">CALENDAR</span></code> XML variable. These options are
+described in <a class="reference internal" href="../config/TimeManagement.html#omega-user-config-time-management"><span class="std std-ref">Time Management</span></a>.</p>
+</section>
+<section id="parallel-i-o">
+<h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this heading"></a></h2>
+<p>The I/O layout belongs to the case, so that it stays consistent with the rest
+of E3SM. See <a class="reference internal" href="../config/Parallel.html#omega-user-config-parallel-io"><span class="std std-ref">Parallel I/O</span></a> for the <code class="docutils literal notranslate"><span class="pre">PIO_*_OCN</span></code> case
+variables that set it.</p>
+</section>
+<section id="log-files">
+<h2>Log files<a class="headerlink" href="#log-files" title="Permalink to this heading"></a></h2>
+<p>Omega’s messages go to <code class="docutils literal notranslate"><span class="pre">ocn.log.*</span></code> in the run directory, while other output,
+including crash backtraces, stays in <code class="docutils literal notranslate"><span class="pre">e3sm.log.*</span></code>; see
+<a class="reference internal" href="Logging.html#omega-user-run-logging-e3sm"><span class="std std-ref">In E3SM</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Standalone.html" class="btn btn-neutral float-left" title="Running Standalone" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Logging.html" class="btn btn-neutral float-right" title="Logging" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

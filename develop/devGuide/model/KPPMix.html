@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KPP Boundary Layer Mixing &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Submesoscale Eddy Parameterization" href="SubmesoEddies.html" />
+    <link rel="prev" title="Vertical Mixing Coefficients" href="VertMix.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Driver.html">Driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="OceanState.html">Ocean State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzMesh.html">Horizontal Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryState.html">Auxiliary State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PGrad.html">Pressure Gradient (PGrad)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertMix.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">KPP Boundary Layer Mixing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#implementation-overview">Implementation Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kpp-notation-and-formulation">KPP notation and formulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#runtime-call-flow">Runtime Call Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-mapping">Configuration Mapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#output-and-diagnostic-fields">Output and Diagnostic Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#developer-notes">Developer Notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#testing-strategy">Testing Strategy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SfcCoupling.html">Surface Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model</a></li>
+      <li class="breadcrumb-item active">KPP Boundary Layer Mixing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/model/KPPMix.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="kpp-boundary-layer-mixing">
+<span id="omega-dev-kppmix"></span><h1>KPP Boundary Layer Mixing<a class="headerlink" href="#kpp-boundary-layer-mixing" title="Permalink to this heading"></a></h1>
+<p>This guide maps Omega KPP implementation details to runtime behavior and code
+locations. It complements the design page by focusing on concrete APIs,
+call flow, and developer test strategy.</p>
+<section id="implementation-overview">
+<h2>Implementation Overview<a class="headerlink" href="#implementation-overview" title="Permalink to this heading"></a></h2>
+<p>The Omega implementation of KPP mostly follows directly from the MPAS-Ocean implementation.
+Notably, by default it does not match diffusivity and viscosity from interior mixing
+(below the ocean surface boundary layer) sources at the base of the boundary
+layer. Instead these separate sources are added directly to the KPP diagnosed
+diffusivity and viscosity.  Matching can be enabled via the <code class="docutils literal notranslate"><span class="pre">MatchTechnique</span></code> parameter to
+<code class="docutils literal notranslate"><span class="pre">MatchBoth</span></code> in the Omega yaml file.  Boundary layer depth is computed as the depth
+where the bulk Richardson number exceeds a critical value.  It is then smoothed horizontally.
+KPP diffusivity, viscosity, and non local fluxes are computed based on this boundary layer.  Unlike MPAS-Ocean, the boundary layer depth, vertical vicosity and vertical diffusivity are calculated at the beginning of a time step to ensure consistency of the nonlocal and local parts of the KPP scheme.</p>
+<p>Omega KPP is implemented in <code class="docutils literal notranslate"><span class="pre">KPPMix</span></code> as a singleton with two major compute
+phases:</p>
+<ol class="arabic simple">
+<li><p>OSBL depth diagnosis (<code class="docutils literal notranslate"><span class="pre">computeOSBLDepth</span></code>)</p></li>
+<li><p>Coefficient/profile construction (<code class="docutils literal notranslate"><span class="pre">computeMixingCoefficients</span></code>)</p></li>
+</ol>
+<p>Main class/API surface is in <code class="docutils literal notranslate"><span class="pre">src/ocn/KPPMix.h</span></code> and implementation is in
+<code class="docutils literal notranslate"><span class="pre">src/ocn/KPPMix.cpp</span></code>.</p>
+<section id="depth-convention">
+<h3>Depth convention<a class="headerlink" href="#depth-convention" title="Permalink to this heading"></a></h3>
+<p>All KPP depths are measured downward from the free surface, not from the geoid.
+<code class="docutils literal notranslate"><span class="pre">VertCoord::GeomZInterface</span></code> and <code class="docutils literal notranslate"><span class="pre">GeomZMid</span></code> are geometric heights relative to
+<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">0</span></code>, with <code class="docutils literal notranslate"><span class="pre">GeomZInterface(ICell,</span> <span class="pre">MinLayerCell)</span></code> equal to
+<code class="docutils literal notranslate"><span class="pre">VertCoord::SshCell</span></code>. KPP therefore forms depths as
+<code class="docutils literal notranslate"><span class="pre">SshCell(ICell)</span> <span class="pre">-</span> <span class="pre">GeomZ...(ICell,</span> <span class="pre">K)</span></code>. Layer thicknesses are differences of
+geometric heights and are unaffected by the sea surface height. After the
+Richardson-number search and any horizontal smoothing, the OSBL depth is clamped
+to be no shallower than the bottom of the first active layer.</p>
+</section>
+</section>
+<section id="kpp-notation-and-formulation">
+<h2>KPP notation and formulation<a class="headerlink" href="#kpp-notation-and-formulation" title="Permalink to this heading"></a></h2>
+<p>The symbols KPP uses, their code names, the boundary-layer depth search and
+the shape and stability functions are described in <a class="reference internal" href="../../techGuide/physics/KPP.html#omega-tech-kpp"><span class="std std-ref">KPP Boundary Layer Mixing</span></a>. The
+shape and stability functions are in <code class="docutils literal notranslate"><span class="pre">src/ocn/KPPConstants.h</span></code>; note that
+<code class="docutils literal notranslate"><span class="pre">kppPhiInvMomentum</span></code> and <code class="docutils literal notranslate"><span class="pre">kppPhiInvScalar</span></code> already return the reciprocal of the
+stability function, so do not invert them again at the call site.</p>
+<section id="boundary-layer-depth-search">
+<h3>Boundary-layer depth search<a class="headerlink" href="#boundary-layer-depth-search" title="Permalink to this heading"></a></h3>
+<p>The search for the OSBL depth in <code class="docutils literal notranslate"><span class="pre">computeOSBLDepth</span></code> has two properties worth
+knowing before editing it. The
+surface-layer reference averages span the top <code class="docutils literal notranslate"><span class="pre">epsilon*d</span></code>, which grows
+monotonically with the trial depth, so the running sums are carried across trial
+depths in a two-pointer scan rather than rebuilt from the surface at each one;
+resetting them inside the loop would make the search <code class="docutils literal notranslate"><span class="pre">O(K^2)</span></code>. The loop also
+stops at the crossing, since only the crossing level and the two above it feed
+the refinement. <code class="docutils literal notranslate"><span class="pre">DebugDiagnostics</span></code> suppresses that early exit so the <code class="docutils literal notranslate"><span class="pre">Ri_b</span></code>
+diagnostic profiles are filled over the whole column; it has no effect on
+<code class="docutils literal notranslate"><span class="pre">OSBLDepth</span></code> or on any mixing coefficient.</p>
+</section>
+<section id="constants-and-defaults">
+<h3>Constants and defaults<a class="headerlink" href="#constants-and-defaults" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">src/ocn/KPPConstants.h</span></code> is the single authoritative source for KPP default
+values. The runtime-configurable members of <code class="docutils literal notranslate"><span class="pre">KPPMix</span></code> (<code class="docutils literal notranslate"><span class="pre">SurfaceLayerExtent</span></code>, the
+two ice-fraction thresholds and <code class="docutils literal notranslate"><span class="pre">MinimumOSBLUnderSeaIce</span></code>) are initialized from
+those constants rather than from inline literals, so a default is changed in
+exactly one place.</p>
+<p>Per-thread edge scratch arrays in <code class="docutils literal notranslate"><span class="pre">computeOSBLDepth</span></code> are sized from
+<code class="docutils literal notranslate"><span class="pre">HorzMesh::MaxEdgesBound</span></code>, the shared compile-time bound on edges per cell;
+KPP does not define its own maximum.</p>
+</section>
+</section>
+<section id="runtime-call-flow">
+<h2>Runtime Call Flow<a class="headerlink" href="#runtime-call-flow" title="Permalink to this heading"></a></h2>
+<section id="tendency-coupling">
+<h3>Tendency coupling<a class="headerlink" href="#tendency-coupling" title="Permalink to this heading"></a></h3>
+<p>KPP coupling into tendencies occurs through:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">KPPMix::computeKPPFields(...)</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">computeKPPFields(...)</span></code> assembles required inputs:</p>
+<ul class="simple">
+<li><p>the current tracer and normal-velocity state views</p></li>
+<li><p>temperature and salinity tracer indices</p></li>
+<li><p>the current EOS and surface forcing instances</p></li>
+<li><p>the configured non-local tracer-flux policy</p></li>
+</ul>
+<p>It then calls <code class="docutils literal notranslate"><span class="pre">KPPMix::update(...)</span></code>. KPPMix owns preparation of its derived
+state: EOS fields, surface-referenced potential density, edge tangential
+velocity, surface friction velocity, surface buoyancy flux, and temporary ice
+fraction. Temperature and salinity are zero-copy subviews of the canonical
+tracer array, while surface tracer fluxes remain owned by the forcing state.
+<code class="docutils literal notranslate"><span class="pre">KPPMix::update(...)</span></code> validates required non-local tracer fluxes and performs
+the OSBL-depth and mixing-coefficient calculation.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">KPPInstance</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">(...)</span>
+</pre></div>
+</div>
+</section>
+<section id="time-stepper-interaction">
+<h3>Time stepper interaction<a class="headerlink" href="#time-stepper-interaction" title="Permalink to this heading"></a></h3>
+<p>KPP is evaluated exactly once per time step by every Omega time stepper
+(<code class="docutils literal notranslate"><span class="pre">src/timeStepping/RungeKutta4Stepper.cpp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">src/timeStepping/RungeKutta2Stepper.cpp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">src/timeStepping/ForwardBackwardStepper.cpp</span></code>) through two hooks in
+<code class="docutils literal notranslate"><span class="pre">src/timeStepping/TimeStepper.cpp</span></code>:</p>
+<ol class="arabic simple">
+<li><p><strong>Start-of-step compute</strong>: <code class="docutils literal notranslate"><span class="pre">TimeStepper::updateKPPFields(...)</span></code> fetches the
+current tracer array and calls <code class="docutils literal notranslate"><span class="pre">KPPMix::computeKPPFields(...)</span></code>. Each
+stepper calls it once at the top of <code class="docutils literal notranslate"><span class="pre">doStep()</span></code>, after <code class="docutils literal notranslate"><span class="pre">prescribeState</span></code> /
+<code class="docutils literal notranslate"><span class="pre">prescribeVelocity</span></code> and before the first tendency evaluation:</p>
+<ul class="simple">
+<li><p><strong>RungeKutta4Stepper</strong>: in the <code class="docutils literal notranslate"><span class="pre">Stage</span> <span class="pre">==</span> <span class="pre">0</span></code> branch, before the first
+<code class="docutils literal notranslate"><span class="pre">computeAllTendencies(...)</span></code>.</p></li>
+<li><p><strong>RungeKutta2Stepper</strong>: after the initial <code class="docutils literal notranslate"><span class="pre">prescribeState(...)</span></code>.</p></li>
+<li><p><strong>ForwardBackwardStepper</strong>: after <code class="docutils literal notranslate"><span class="pre">prescribeVelocity(...)</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong>End-of-step application</strong>:
+<code class="docutils literal notranslate"><span class="pre">TimeStepper::applyImplicitVerticalMixing(...)</span></code> is called by every
+stepper’s <code class="docutils literal notranslate"><span class="pre">doStep()</span></code> immediately after <code class="docutils literal notranslate"><span class="pre">State-&gt;updateTimeLevels()</span></code>. It
+recomputes auxiliary state and calls <code class="docutils literal notranslate"><span class="pre">VertMix::VertMixImplicit(...)</span></code> if
+enabled. It does <strong>not</strong> recompute KPP; the fields from the start of the
+step are reused.</p></li>
+</ol>
+<p>The KPP fields are consumed in two places within the step:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Tendencies::computeTracerTendenciesOnly(...)</span></code> adds the non-local tracer
+tendency from <code class="docutils literal notranslate"><span class="pre">KPPMix::VertNonLocalFlux</span></code> at every stage.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VertMix::computeVertMix(...)</span></code>, called from <code class="docutils literal notranslate"><span class="pre">VertMixImplicit(...)</span></code>, merges
+<code class="docutils literal notranslate"><span class="pre">KPPMix::VertDiff</span></code> / <code class="docutils literal notranslate"><span class="pre">VertVisc</span></code> into the final coefficients using
+<code class="docutils literal notranslate"><span class="pre">KPPMix::OSBLDepthIndex</span></code>.</p></li>
+</ul>
+<p>Both therefore see the same boundary-layer depth and the same shape function,
+so the non-local flux and the diffusivity it is paired with cannot become
+inconsistent. KPP diagnostics written for a step describe the state at the
+beginning of that step.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">VertMix::VertMixImplicit(...)</span></code> recomputes Brunt-Vaisala frequency
+itself before calling <code class="docutils literal notranslate"><span class="pre">computeVertMix(...)</span></code>, so shear and convective mixing
+still use end-of-step stratification; only the KPP contribution is lagged.</p>
+</section>
+</section>
+<section id="configuration-mapping">
+<h2>Configuration Mapping<a class="headerlink" href="#configuration-mapping" title="Permalink to this heading"></a></h2>
+<p>KPP reads configuration from the <code class="docutils literal notranslate"><span class="pre">VertMix:</span> <span class="pre">KPP</span></code> subgroup during <code class="docutils literal notranslate"><span class="pre">KPPMix::init</span></code>.
+Important keys and class members:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Enable</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Enabled</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CriticalBulkRichardsonNumber</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">CriticalRichardson</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SurfaceLayerExtent</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">SurfaceLayerExtent</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MatchTechnique</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">MatchTechnique</span></code> (a <code class="docutils literal notranslate"><span class="pre">KPPMatchType</span></code> enum, not a string)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InterpType2</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">InterpType2Str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UseEnhancedDiffusion</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">UseEnhancedDiffusion</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UseLangmuirTurbulence</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">UseLangmuirTurbulence</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IceFractionThresholdForLangmuir</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">IceFractionThresholdForLangmuir</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IceFractionThresholdForMinimumOSBL</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">IceFractionThresholdForMinimumOSBL</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MinimumOSBLUnderSeaIce</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">MinimumOSBLUnderSeaIce</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DebugDiagnostics</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">DebugDiagnostics</span></code></p></li>
+</ul>
+<p>See <a class="reference internal" href="../../userGuide/model/KPP.html#omega-user-model-kpp"><span class="std std-ref">User KPP guide</span></a> for defaults and runnable examples.</p>
+</section>
+<section id="output-and-diagnostic-fields">
+<h2>Output and Diagnostic Fields<a class="headerlink" href="#output-and-diagnostic-fields" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">KPPMix::defineFields()</span></code> registers KPP outputs for I/O. Frequently used outputs:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">OSBLDepth</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VertNonLocalFlux</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BulkRichardsonNumber</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BulkRichardsonShear</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UnresolvedShear</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BuoyancyJump</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TurbulentVelocityScale</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PotentialDensity</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SurfaceFrictionVelocity</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SurfaceBuoyancyFlux</span></code></p></li>
+</ul>
+<p>These can be enabled in output stream contents to diagnose OSBL and profile
+behavior in experiments.</p>
+</section>
+<section id="developer-notes">
+<h2>Developer Notes<a class="headerlink" href="#developer-notes" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MatchTechnique</span></code> accepts only <code class="docutils literal notranslate"><span class="pre">SimpleShapes</span></code> and <code class="docutils literal notranslate"><span class="pre">MatchBoth</span></code>. Any other value
+aborts at init rather than falling back, so a typo cannot silently change the
+scheme being run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MatchBoth</span></code> matches the interior coefficient <em>value</em> at the OBL base. The
+shape derivative there is zero, so the gradient is not yet matched despite the
+name.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MatchBoth</span></code> needs interior coefficients to be passed in; without them
+<code class="docutils literal notranslate"><span class="pre">ShapeAtBase</span></code> is zero and it degenerates exactly to <code class="docutils literal notranslate"><span class="pre">SimpleShapes</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Interptype2</span></code> accepts <code class="docutils literal notranslate"><span class="pre">LMD94</span></code>, <code class="docutils literal notranslate"><span class="pre">Linear</span></code>, <code class="docutils literal notranslate"><span class="pre">Quadratic</span></code>, and <code class="docutils literal notranslate"><span class="pre">Cubic</span></code>, but <code class="docutils literal notranslate"><span class="pre">LMD94</span></code> is strongly recommended.  For <code class="docutils literal notranslate"><span class="pre">MatchBoth</span></code> other options can result in negative diffusivities and viscosities.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">DebugDiagnostics</span></code> is enabled in debug builds, targeted diagnostic
+logging is available; behavior is compile/build-mode aware.</p></li>
+</ul>
+</section>
+<section id="testing-strategy">
+<h2>Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permalink to this heading"></a></h2>
+<section id="code-level-checks">
+<h3>Code-level checks<a class="headerlink" href="#code-level-checks" title="Permalink to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Verify KPP initialization with explicit and default YAML keys.</p></li>
+<li><p>Verify the <code class="docutils literal notranslate"><span class="pre">computeKPPFields</span></code> path executes with KPP enabled and
+early-returns when disabled.</p></li>
+<li><p>Verify per-stepper sequencing: exactly one KPP evaluation per step for all
+three steppers, occurring before the first tendency evaluation and reused
+by the end-of-step implicit vertical mixing. The <code class="docutils literal notranslate"><span class="pre">KPP:computeKPPFields</span></code>
+Pacer region can be used to confirm the call count.</p></li>
+<li><p>Run the KPP single column tests, comparing to prior baselines, MPAS-Ocean,
+and analytic solutions where available</p></li>
+</ol>
+</section>
+<section id="diagnostics-based-checks">
+<h3>Diagnostics-based checks<a class="headerlink" href="#diagnostics-based-checks" title="Permalink to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Output <code class="docutils literal notranslate"><span class="pre">OSBLDepth</span></code>, <code class="docutils literal notranslate"><span class="pre">BulkRichardsonNumber</span></code>, and <code class="docutils literal notranslate"><span class="pre">VertDiff</span></code>.</p></li>
+<li><p>Confirm OSBL depth and coefficient evolution under changing forcing.</p></li>
+<li><p>Validate optional outputs (<code class="docutils literal notranslate"><span class="pre">VertNonLocalFlux</span></code>) only when enabled.</p></li>
+</ol>
+</section>
+<section id="regression-checks">
+<h3>Regression checks<a class="headerlink" href="#regression-checks" title="Permalink to this heading"></a></h3>
+<p>Run CTests and appropriate OMEGA regression workflows documented in:
+<a class="reference internal" href="../contributing/Testing.html#omega-dev-testing"><span class="std std-ref">Testing Code</span></a>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="VertMix.html" class="btn btn-neutral float-left" title="Vertical Mixing Coefficients" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SubmesoEddies.html" class="btn btn-neutral float-right" title="Submesoscale Eddy Parameterization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

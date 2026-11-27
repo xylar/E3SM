@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tridiagonal Systems &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Physics and Parameterizations" href="../physics/index.html" />
+    <link rel="prev" title="Time Stepping" href="TimeStepping.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Technical Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../equations/index.html">Equations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Discretization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="MpasMesh.html">MPAS Mesh Specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryVariables.html">Auxiliary Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TracerAdvection.html">Tracer Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PressureGradient.html">Pressure Gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time Stepping</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Tridiagonal Systems</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#general-tridiagonal-system">General tridiagonal system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diffusion-type-tridiagonal-system">Diffusion-type tridiagonal system</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../physics/index.html">Physics and Parameterizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Diagnostics.html">Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Bibliography.html">Bibliography</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Technical Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Discretization</a></li>
+      <li class="breadcrumb-item active">Tridiagonal Systems</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/techGuide/discretization/TridiagonalSystems.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="tridiagonal-systems">
+<span id="omega-tech-tridiagonal-systems"></span><h1>Tridiagonal Systems<a class="headerlink" href="#tridiagonal-systems" title="Permalink to this heading"></a></h1>
+<p>Implicit vertical mixing gives one tridiagonal system of equations per ocean
+column. Omega solves them in batches with the solvers in
+<code class="docutils literal notranslate"><span class="pre">src/base/TriDiagSolvers.h</span></code>, whose use is described in
+<a class="reference internal" href="../../devGuide/framework/TridiagonalSolvers.html#omega-dev-tridiagonal"><span class="std std-ref">Tridiagonal Solvers</span></a>. Systems of the diffusion-type form have their
+own solver, with better stability properties than the general one.</p>
+<section id="general-tridiagonal-system">
+<h2>General tridiagonal system<a class="headerlink" href="#general-tridiagonal-system" title="Permalink to this heading"></a></h2>
+<p>A general tridiagonal system is represented by three vectors
+<code class="docutils literal notranslate"><span class="pre">DL</span></code>, <code class="docutils literal notranslate"><span class="pre">D</span></code>, <code class="docutils literal notranslate"><span class="pre">DU</span></code>, representing the lower, main, and upper diagonal, respectively, and a right-hand-side vector <code class="docutils literal notranslate"><span class="pre">X</span></code>
+<div class="math notranslate nohighlight">
+\[
+(DL)_i Y_{i - 1} + D_i Y_i + (DU)_i Y_{i + 1} = X_i.
+\]</div>
+</p>
+</section>
+<section id="diffusion-type-tridiagonal-system">
+<span id="omega-tech-tridiagonal-systems-diffusion"></span><h2>Diffusion-type tridiagonal system<a class="headerlink" href="#diffusion-type-tridiagonal-system" title="Permalink to this heading"></a></h2>
+<p>A diffusion-type system is represented by two vectors <code class="docutils literal notranslate"><span class="pre">G</span></code> and <code class="docutils literal notranslate"><span class="pre">H</span></code>, and a right-hand-side vector <code class="docutils literal notranslate"><span class="pre">X</span></code>. It has the form
+<div class="math notranslate nohighlight">
+\[
+-G_{i - 1} Y_{i - 1} + (G_{i - 1} + G_i + H_i) Y_i - G_{i} Y_{i + 1} = X_i.
+\]</div>
+</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="TimeStepping.html" class="btn btn-neutral float-left" title="Time Stepping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../physics/index.html" class="btn btn-neutral float-right" title="Physics and Parameterizations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

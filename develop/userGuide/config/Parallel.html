@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parallel Layout &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Configuration Reference" href="Reference.html" />
+    <link rel="prev" title="Split Time Stepping" href="SplitTimeStepping.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="TimeManagement.html">Time Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Parallel Layout</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#domain-decomposition">Domain decomposition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parallel-i-o">Parallel I/O</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Reference.html">Configuration Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Configuration</a></li>
+      <li class="breadcrumb-item active">Parallel Layout</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/config/Parallel.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="parallel-layout">
+<span id="omega-user-config-parallel"></span><h1>Parallel Layout<a class="headerlink" href="#parallel-layout" title="Permalink to this heading"></a></h1>
+<p>How Omega divides the mesh among MPI tasks, and which tasks read and write
+files.</p>
+<section id="domain-decomposition">
+<h2>Domain decomposition<a class="headerlink" href="#domain-decomposition" title="Permalink to this heading"></a></h2>
+<p>Omega is designed to be run in parallel across multiple nodes and cores
+in a clustered architecture. As in many Earth System Models, we decompose
+the horizontal domain into subdomains that are distributed across the
+system. Communication between the domains is accomplished using the
+Message Passing Interface standard. To reduce the communication between
+subdomains, a halo of points is filled with information from remote neighbor
+cells, edges and vertices so that a time step can largely be completed
+without the need to communicate.</p>
+<p>The partitioning itself is performed using the
+<a class="reference external" href="http://glaros.dtc.umn.edu/gkhome/metis/metis/overview">METIS/ParMETIS</a>
+libraries that can partition unstructured domains in a way that also optimizes
+communication. More details on the mesh, connectivity and partitioning can be
+found in the <a class="reference internal" href="../../devGuide/framework/Decomp.html#omega-dev-decomp"><span class="std std-ref">Developer’s Guide</span></a>.</p>
+<p>There are two parameters that are set by the user in the input configuration
+file. These are:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Decomp</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">HaloWidth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">   </span><span class="nt">DecompMethod</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MetisKWay</span>
+</pre></div>
+</div>
+<p>The HaloWidth is set to be able to compute all of the baroclinic terms in a
+timestep without communication and for higher-order tracer advection terms,
+this currently must be at least 3.</p>
+<p>METIS and ParMETIS support a number of partitioning schemes, but the MetisKWay
+and its parallel equivalent ParMetisKWay are the only currently supported
+decomposition methods for Omega. The serial form (MetisKWay) is typically
+faster for small meshes and decompositions. The ParMetisKWay option is a
+parallel form that is faster and requires less memory than the serial option.
+Note that the two methods will not result in the same partition.</p>
+</section>
+<section id="parallel-i-o">
+<span id="omega-user-config-parallel-io"></span><h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this heading"></a></h2>
+<p>For input and output of data needed for Omega, we use the Software for
+Caching Output and Reads for Parallel I/O
+(<a class="reference external" href="https://github.com/E3SM-Project/scorpio">SCORPIO</a>) library. This
+library supports parallel reading and writing of distributed arrays in various
+self-describing
+formats like <a class="reference external" href="https://docs.unidata.ucar.edu/netcdf/">NetCDF</a>,
+<a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5</a>,
+and <a class="reference external" href="https://csmd.ornl.gov/adios">ADIOS</a>.
+SCORPIO is responsible for rearranging data from data decomposition used
+for computation to a different rearrangement for parallel IO. In particular,
+for optimal IO, the user would specify a different number of IO tasks than
+for computation. For example, the user could specify the number of IO tasks to
+match underlying hardware like the network interfaces (NICs) on a node.
+Users will generally access IO via the <a class="reference internal" href="../io/Streams.html#omega-user-io-streams"><span class="std std-ref">IOStreams</span></a>
+and other interfaces and the base IO layer described here only provides
+an Omega-aware wrapper around SCORPIO calls.</p>
+<p>There are some general parameters that must be set for IO performance and
+formatting via the input configuration file. These are:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">IO</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">IOTasks</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">IOStride</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">IOBaseTask</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">IORearranger</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">box</span>
+<span class="w">    </span><span class="nt">IODefaultFormat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pnetcdf</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">IOTasks</span></code> is the total number of IOTasks to assign to reading
+and writing. The default is 1 (serial IO) for safety but this number
+should be set appropriately for the underlying hardware. A simple
+starting point might be one IOTask per node or socket. The <code class="docutils literal notranslate"><span class="pre">IOStride</span></code>
+is set to spread the IOTasks across the total number of MPI tasks so
+that every IOStride task (starting with the root task IOBaseTask) is an
+IOTask. The product of IOTasks and IOStride should equal the total number
+of MPI Tasks.</p>
+<p>These options apply to standalone Omega runs, where Omega creates its own
+SCORPIO IO system. In coupled E3SM runs the IO system is created by the
+coupled driver, so Omega reuses the driver’s instance rather than
+creating its own. The above IO options cannot be overridden in
+<code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> and are set to <code class="docutils literal notranslate"><span class="pre">-9999</span></code> in the generated <code class="docutils literal notranslate"><span class="pre">omega.yml</span></code>
+to show they are not used.</p>
+<p>Instead, the IO task layout, rearranger and file format are set by case
+variables in <code class="docutils literal notranslate"><span class="pre">env_run.xml</span></code> in the case directory:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Omega option</p></th>
+<th class="head"><p>Case variable</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IOTasks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PIO_NUMTASKS_OCN</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IOStride</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PIO_STRIDE_OCN</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IOBaseTask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PIO_ROOT_OCN</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IORearranger</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PIO_REARRANGER_OCN</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IODefaultFormat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PIO_TYPENAME_OCN</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>(netCDF file version)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PIO_NETCDF_FORMAT_OCN</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>Each variable has a separate value for each model component, and Omega uses
+the ocean (<code class="docutils literal notranslate"><span class="pre">OCN</span></code>) value. These can be changed with <code class="docutils literal notranslate"><span class="pre">./xmlchange</span></code>, for
+example <code class="docutils literal notranslate"><span class="pre">./xmlchange</span> <span class="pre">PIO_STRIDE_OCN=56</span></code>. Searching <code class="docutils literal notranslate"><span class="pre">env_run.xml</span></code> for a
+variable name requires omitting the component suffix (e.g. <code class="docutils literal notranslate"><span class="pre">PIO_STRIDE</span></code>),
+since the component is given as an attribute of each value.</p>
+<p>In coupled runs, <code class="docutils literal notranslate"><span class="pre">PIO_NETCDF_FORMAT_OCN</span></code> sets the netCDF file version
+(for example classic, <code class="docutils literal notranslate"><span class="pre">64bit_offset</span></code> or <code class="docutils literal notranslate"><span class="pre">64bit_data</span></code>) for files written
+with the <code class="docutils literal notranslate"><span class="pre">netcdf</span></code> and <code class="docutils literal notranslate"><span class="pre">pnetcdf</span></code> formats. It has no equivalent in the Omega
+configuration, where <code class="docutils literal notranslate"><span class="pre">pnetcdf</span></code> files are always written with the
+<code class="docutils literal notranslate"><span class="pre">64bit_data</span></code> version.</p>
+<p>When using parallel IO, the data must be rearranged to match the IO task
+decomposition. There are two algorithms for rearranging data available
+in SCORPIO: box and subset. Box is the default and preferred for most
+configurations. It ensures each IO task has a contiguous chunk of data to
+read/write but may draw from the full range of MPI tasks. In the subset
+rearranger, each IO task is assigned a subset of the MPI tasks and only
+communicates with those tasks. It no longer is guaranteed to have a
+contiguous chunk of data to read/write. This option can sometimes result
+in more optimal communication patterns but at the cost of less efficient
+I/O as the underlying library must handle the non-contiguous data. The
+subset option is available for exploring the most efficient approach.
+See SCORPIO documentation for details.</p>
+<p>Finally, the user can specify the file format. The SCORPIO library
+supports all the various NetCDF formats, though the use of older
+NetCDF formats is strongly discouraged. PNetCDF is currently the
+default for Omega. In addition, SCORPIO supports
+native HDF5 files (note that the latest NetCDF formats are all implemented
+with HDF5 and are mostly compatible with HDF5) The ADIOS format is different
+since ADIOS writes each chunk of data to a separate file and these files must
+be combined later. E3SM provides the necessary tools to combine/convert
+ADIOS files to netcdf as part of pre/post-processing. For standalone Omega,
+users would need to become familiar with these tools if they wish to use
+ADIOS.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SplitTimeStepping.html" class="btn btn-neutral float-left" title="Split Time Stepping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Reference.html" class="btn btn-neutral float-right" title="Configuration Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

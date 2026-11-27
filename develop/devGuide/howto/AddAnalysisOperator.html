@@ -1,0 +1,174 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add an Analysis Operator &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Add an Analysis Group" href="AddAnalysisGroup.html" />
+    <link rel="prev" title="Add a Supported Mesh" href="AddMesh.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">How-to Recipes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="AddConfigOption.html">Add a Configuration Option</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddTracer.html">Add a Tracer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddMesh.html">Add a Supported Mesh</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Add an Analysis Operator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddAnalysisGroup.html">Add an Analysis Group</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddOutputField.html">Add a Field to Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddTendencyTerm.html">Add a Tendency Term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddTimeStepper.html">Add a Time Stepper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddUnitTest.html">Add a Unit Test</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">How-to Recipes</a></li>
+      <li class="breadcrumb-item active">Add an Analysis Operator</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/howto/AddAnalysisOperator.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="add-an-analysis-operator">
+<span id="omega-dev-howto-add-analysis-operator"></span><h1>Add an Analysis Operator<a class="headerlink" href="#add-an-analysis-operator" title="Permalink to this heading"></a></h1>
+<p>Analysis operators are the building blocks that analysis groups chain
+together; see <a class="reference internal" href="../model/Analysis.html#omega-dev-analysis"><span class="std std-ref">Analysis</span></a> for how they fit into the module.
+The code is in <code class="docutils literal notranslate"><span class="pre">src/analysis/</span></code>.</p>
+<p>To add a new operator:</p>
+<ol class="arabic simple">
+<li><p><strong>Create the operator class</strong> in <code class="docutils literal notranslate"><span class="pre">operators/</span></code> as a template on the input
+array type, deriving from <code class="docutils literal notranslate"><span class="pre">AnalysisOperator</span></code>. In the constructor, pass the
+operator type name to the base constructor, set <code class="docutils literal notranslate"><span class="pre">InputNames</span></code>, build the
+output name as <code class="docutils literal notranslate"><span class="pre">&lt;input&gt;_&lt;Suffix&gt;</span></code>, set <code class="docutils literal notranslate"><span class="pre">OutputNames</span></code> and <code class="docutils literal notranslate"><span class="pre">InstanceName</span></code>,
+allocate the output data array, and register the output Field with
+<code class="docutils literal notranslate"><span class="pre">createOutputField()</span></code> plus <code class="docutils literal notranslate"><span class="pre">attachData()</span></code>, deriving its units, standard
+name and cell methods from the input as described under
+<a class="reference internal" href="../model/Analysis.html#omega-dev-analysis-output-metadata"><span class="std std-ref">Output metadata</span></a>. If the operator
+depends on another operator’s output (as <code class="docutils literal notranslate"><span class="pre">SpatialStdDev</span></code> depends on
+<code class="docutils literal notranslate"><span class="pre">SpatialMean</span></code>), append that dependency to <code class="docutils literal notranslate"><span class="pre">InputNames</span></code>.</p></li>
+<li><p><strong>Implement <code class="docutils literal notranslate"><span class="pre">compute()</span></code></strong> to retrieve the input array(s) from the Field
+registry, perform the transformation, write the output array(s), and update
+<code class="docutils literal notranslate"><span class="pre">LastComputed</span></code>/<code class="docutils literal notranslate"><span class="pre">FieldComputed</span></code>.</p></li>
+<li><p><strong>Implement <code class="docutils literal notranslate"><span class="pre">setPeriodAlarm()</span></code></strong> only if the operator is a temporal
+reduction that finalizes on a period boundary.</p></li>
+<li><p><strong>Include the header</strong> in <code class="docutils literal notranslate"><span class="pre">operators/Ops.h</span></code>.</p></li>
+<li><p><strong>Register the operator</strong> by adding a
+<code class="docutils literal notranslate"><span class="pre">AnalysisOpFactory::registerAllArrayVariants&lt;NewOp&gt;(&quot;NewName&quot;)</span></code> call to
+<code class="docutils literal notranslate"><span class="pre">Analysis::registerAllBaseAnalysisOperators()</span></code> in <code class="docutils literal notranslate"><span class="pre">operators/Ops.cpp</span></code>.</p></li>
+<li><p><strong>Update the chain parser</strong> if your operator introduces a new naming
+convention. The current parser in <code class="docutils literal notranslate"><span class="pre">Analysis::parseChainAndBuildOps()</span></code>
+identifies operators by prefix (<code class="docutils literal notranslate"><span class="pre">Spatial</span></code> for spatial reductions, <code class="docutils literal notranslate"><span class="pre">Time</span></code>
+for temporal reductions). If your operator uses a different naming
+pattern, add logic to recognize and dispatch the new token. The parser is
+preliminary and expected to evolve as new operator categories are added.</p></li>
+<li><p><strong>Add unit tests</strong> in <code class="docutils literal notranslate"><span class="pre">test/analysis/AnalysisOperatorTest.cpp</span></code> to verify the
+new operator implementation. Tests should validate correct computation on
+representative input data.</p></li>
+</ol>
+<p>If your operator follows an existing naming convention, no parser changes are
+needed. No changes to the dependency resolution, alarm propagation, or compute
+logic are required.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="AddMesh.html" class="btn btn-neutral float-left" title="Add a Supported Mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="AddAnalysisGroup.html" class="btn btn-neutral float-right" title="Add an Analysis Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

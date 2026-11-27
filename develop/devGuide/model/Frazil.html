@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frazil &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Forcing" href="Forcing.html" />
+    <link rel="prev" title="Rayleigh Damping" href="RayleighDamping.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Driver.html">Driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="OceanState.html">Ocean State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzMesh.html">Horizontal Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryState.html">Auxiliary State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PGrad.html">Pressure Gradient (PGrad)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertMix.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPPMix.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Frazil</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#purpose-and-coupling-points">Purpose and coupling points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-flow-and-call-sequence">Data flow and call sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-coupling">Configuration coupling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#physics-algorithm-summary">Physics/algorithm summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#existing-ctest-coverage">Existing ctest coverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#related-pages">Related pages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SfcCoupling.html">Surface Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model</a></li>
+      <li class="breadcrumb-item active">Frazil</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/model/Frazil.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="frazil">
+<span id="omega-dev-frazil"></span><h1>Frazil<a class="headerlink" href="#frazil" title="Permalink to this heading"></a></h1>
+<p>This page describes frazil design and implementation details in Omega,
+including both the <code class="docutils literal notranslate"><span class="pre">FixedProperty</span></code> and <code class="docutils literal notranslate"><span class="pre">Teos10</span></code> pathways.</p>
+<section id="purpose-and-coupling-points">
+<h2>Purpose and coupling points<a class="headerlink" href="#purpose-and-coupling-points" title="Permalink to this heading"></a></h2>
+<p>Frazil computes frazil-related tendencies that modify:</p>
+<ul class="simple">
+<li><p>pseudo-thickness tendency</p></li>
+<li><p>temperature tracer tendency</p></li>
+<li><p>salinity tracer tendency</p></li>
+</ul>
+<p>The tendency hook-up is implemented through <code class="docutils literal notranslate"><span class="pre">FrazilOnCell</span></code> in the tracer
+tendency phase, where frazil contributions are added to the accumulated
+<code class="docutils literal notranslate"><span class="pre">PseudoThicknessTend</span></code> and <code class="docutils literal notranslate"><span class="pre">TracerTend</span></code> arrays.</p>
+<p>It also accumulates the column-integrated frazil terms over an ocean (outer) timestep to store the fluxes to be passed through the coupler.</p>
+</section>
+<section id="data-flow-and-call-sequence">
+<h2>Data flow and call sequence<a class="headerlink" href="#data-flow-and-call-sequence" title="Permalink to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Tendencies::computeTracerTendenciesOnly</span></code> checks
+<code class="docutils literal notranslate"><span class="pre">Tendencies.FrazilTendencyEnable</span></code>.</p></li>
+<li><p>If enabled, <code class="docutils literal notranslate"><span class="pre">FrazilOnCell::operator()</span></code> retrieves the default <code class="docutils literal notranslate"><span class="pre">Frazil</span></code>
+object and zeros frazil tendency/accumulator arrays.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FrazilOnCell</span></code> extracts <code class="docutils literal notranslate"><span class="pre">Temperature</span></code> and <code class="docutils literal notranslate"><span class="pre">Salinity</span></code> tracer subviews,
+then calls <code class="docutils literal notranslate"><span class="pre">Frazil::computeFrazil(CT,</span> <span class="pre">SA,</span> <span class="pre">PressureMid,</span> <span class="pre">PseudoThickness)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Frazil::computeFrazil</span></code> dispatches to <code class="docutils literal notranslate"><span class="pre">computeFrazilFixedPropertyImpl</span></code> or
+<code class="docutils literal notranslate"><span class="pre">computeFrazilTeosImpl</span></code> based on <code class="docutils literal notranslate"><span class="pre">FrazilType</span></code>.</p></li>
+<li><p>Returned frazil tendencies are added into <code class="docutils literal notranslate"><span class="pre">PseudoThicknessTend</span></code> and
+<code class="docutils literal notranslate"><span class="pre">TracerTend</span></code> for all active cell layers.</p></li>
+</ol>
+</section>
+<section id="configuration-coupling">
+<h2>Configuration coupling<a class="headerlink" href="#configuration-coupling" title="Permalink to this heading"></a></h2>
+<p>Frazil behavior is configured with:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Tendencies.FrazilTendencyEnable</span></code></p>
+<ul>
+<li><p>global switch for applying frazil tendency terms</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Frazil.FrazilType</span></code></p>
+<ul>
+<li><p>implementation choice (<code class="docutils literal notranslate"><span class="pre">FixedProperty</span></code> or <code class="docutils literal notranslate"><span class="pre">Teos10</span></code>)</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Frazil.LayerMassFracMax</span></code></p>
+<ul>
+<li><p>per-layer mass/thickness limiter used by frazil formation/melt pathways</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Frazil.Phi</span></code></p>
+<ul>
+<li><p>teos pathway liquid-fraction parameter for new frazil partitioning</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Frazil.DepthLimit</span></code></p>
+<ul>
+<li><p>optional depth cutoff for frazil activity; negative means no cutoff</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Frazil.ConservationCheck</span></code></p>
+<ul>
+<li><p>optional post-compute column conservation diagnostic/logging</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="physics-algorithm-summary">
+<h2>Physics/algorithm summary<a class="headerlink" href="#physics-algorithm-summary" title="Permalink to this heading"></a></h2>
+<p>The physics and the two pathways (<code class="docutils literal notranslate"><span class="pre">FixedProperty</span></code> and <code class="docutils literal notranslate"><span class="pre">Teos10</span></code>) are described
+in <a class="reference internal" href="../../techGuide/physics/Frazil.html#omega-tech-frazil"><span class="std std-ref">Frazil</span></a>.</p>
+</section>
+<section id="existing-ctest-coverage">
+<h2>Existing ctest coverage<a class="headerlink" href="#existing-ctest-coverage" title="Permalink to this heading"></a></h2>
+<p>The existing frazil test driver is in
+<code class="docutils literal notranslate"><span class="pre">components/omega/test/ocn/FrazilTest.cpp</span></code> and covers:</p>
+<ul class="simple">
+<li><p>teos frazil formation in cold and warm single-layer states</p></li>
+<li><p>fixed-property frazil formation in cold and warm single-layer states</p></li>
+<li><p>mixed warm/cold column behavior with sign checks for branch switching</p></li>
+<li><p>depth-limit behavior ensuring excluded deep layers have zero frazil tendency</p></li>
+</ul>
+</section>
+<section id="related-pages">
+<h2>Related pages<a class="headerlink" href="#related-pages" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>User-facing options: <a class="reference internal" href="../../userGuide/model/Frazil.html#omega-user-model-frazil"><span class="std std-ref">User Frazil Guide</span></a></p></li>
+<li><p>Tendency container/hook-up: <a class="reference internal" href="Tendencies.html#omega-dev-tendencies"><span class="std std-ref">Tendencies</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="RayleighDamping.html" class="btn btn-neutral float-left" title="Rayleigh Damping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Forcing.html" class="btn btn-neutral float-right" title="Forcing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

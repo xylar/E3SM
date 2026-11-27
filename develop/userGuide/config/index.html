@@ -1,0 +1,228 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Time Management" href="TimeManagement.html" />
+    <link rel="prev" title="Error Messages" href="../run/Errors.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TimeManagement.html">Time Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Parallel.html">Parallel Layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Reference.html">Configuration Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/config/index.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="configuration">
+<span id="omega-user-config"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h1>
+<p>Model configuration refers to all of the necessary variables to configure
+and run the model. It contains all the input parameters, choices of methods,
+physical coefficients for parameterizations and various options for I/O.
+Typically, this is read as a single input file that can serve as
+a description of the configuration for provenance as well.</p>
+<p>In Omega, the input configuration file is in <a class="reference external" href="https://yaml.org">YAML</a> format
+and must be a file named <code class="docutils literal notranslate"><span class="pre">omega.yml</span></code> in the same directory as the executable.
+However, Unix soft links can be used to point a link with that name to a
+specific configuration file stored elsewhere.
+In YAML format, most of the configuration variables are typically represented
+as key-value pairs called maps, where the name and the value are separated
+by a colon. However, lists of variables (eg contents of an IO stream) can
+be used and are called sequences. Sequences can be in the form of a list
+with an entry on each line starting with a dash and space. They can also
+be formatted as a vector with a comma-delimited list within square brackets.
+Each of these can be nested to build up the full configuration with indentation
+used to separate the nests.
+Each map or sequence is called a node in YAML.  A typical omega configration
+file will start with the main omega map node with sub-maps associated with
+various modules in omega. For example, a file might look like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">omega</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">TimeManagement</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">RestartOn</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">RestartTimestampName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">restartTimestamp</span>
+<span class="w">      </span><span class="nt">StartTime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0001-01-01_00:00:00</span>
+<span class="w">      </span><span class="nt">StopTime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">none</span>
+<span class="w">      </span><span class="nt">RunDuration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0010_00:00:00</span>
+<span class="w">      </span><span class="nt">CalendarType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">noleap</span>
+
+<span class="w">   </span><span class="p p-Indicator">[</span><span class="nv">Other config options in a similar way</span><span class="p p-Indicator">]</span>
+
+<span class="w">   </span><span class="nt">Hmix</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">HmixScaleWithMesh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">MaxMeshDensity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.0</span>
+<span class="w">      </span><span class="nt">HmixUseRefWidth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">HmixRefWidth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0e3</span>
+
+<span class="w">   </span><span class="p p-Indicator">[</span><span class="nv">more config options</span><span class="p p-Indicator">]</span>
+
+<span class="w">   </span><span class="nt">MyVector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">]</span>
+
+<span class="w">   </span><span class="nt">Streams</span><span class="p">:</span>
+
+<span class="w">      </span><span class="nt">Mesh</span><span class="p">:</span>
+<span class="w">         </span><span class="nt">Type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input</span>
+<span class="w">         </span><span class="nt">FilenameTemplate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mesh.nc</span>
+<span class="w">         </span><span class="nt">InputInterval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">initial_only</span>
+
+<span class="w">      </span><span class="nt">Output</span><span class="p">:</span>
+<span class="w">         </span><span class="nt">Type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output</span>
+<span class="w">         </span><span class="nt">FilenameTemplate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output/output.$Y-$M-$D_$h.$m.$s.nc</span>
+<span class="w">         </span><span class="nt">FilenameInterval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">01-00-00_00:00:00</span>
+<span class="w">         </span><span class="nt">ReferenceTime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0001-01-01_00:00:00</span>
+<span class="w">         </span><span class="nt">Precision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">single</span>
+<span class="w">         </span><span class="nt">OutputInterval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0001_00:00:00</span>
+<span class="w">         </span><span class="nt">Contents</span><span class="p">:</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tracers</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PseudoThickness</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ssh</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kineticEnergyCell</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">relativeVorticityCell</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">other fields</span><span class="p p-Indicator">]</span>
+
+<span class="w">      </span><span class="p p-Indicator">[</span><span class="nv">other streams in similar form</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>The variable names in the example above may not be actual omega variables and
+are shown only as an example.
+We intend to create a script that will generate a default input file that
+users can modify for standalone ocean experiments but this capability is not
+currently available. Similarly, standard configurations for E3SM compsets will
+be provided as part of E3SM releases. The configuration supports all Omega
+data types (bool, string, I4, I8, R4, R8). Because YAML internally represents
+all data as strings, configuration variables are converted by omega into the
+correct type and this conversion may slightly change floating point results
+in the last digits, but in a consistent manner based on C++ coercion rules.
+This can be minimized by supplying all digits for the precision desired.</p>
+<p>Users will configure the model primarily by editing or modifying this
+input YAML-formatted file.  Details of the implementation within omega
+can be found in the <a class="reference internal" href="../../devGuide/framework/Config.html#omega-dev-config"><span class="std std-ref">Developer’s Guide</span></a> and the actual
+interfaces for extracting configuration variables into the modules that
+own them are described there as well.</p>
+<p>In a coupled E3SM case, <code class="docutils literal notranslate"><span class="pre">omega.yml</span></code> is generated from <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> and
+several layers of overrides, and you customize it with <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code>; see
+<a class="reference internal" href="../run/E3SM.html#omega-user-run-e3sm-user-nl-omega"><span class="std std-ref">Configuration (user_nl_omega)</span></a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="TimeManagement.html">Time Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TimeStepping.html">Time Stepping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Parallel.html">Parallel Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Reference.html">Configuration Reference</a></li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../run/Errors.html" class="btn btn-neutral float-left" title="Error Messages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="TimeManagement.html" class="btn btn-neutral float-right" title="Time Management" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

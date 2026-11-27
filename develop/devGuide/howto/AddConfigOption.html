@@ -1,0 +1,174 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add a Configuration Option &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Add a Tracer" href="AddTracer.html" />
+    <link rel="prev" title="How-to Recipes" href="index.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">How-to Recipes</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Add a Configuration Option</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddTracer.html">Add a Tracer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddMesh.html">Add a Supported Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddAnalysisOperator.html">Add an Analysis Operator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddAnalysisGroup.html">Add an Analysis Group</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddOutputField.html">Add a Field to Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddTendencyTerm.html">Add a Tendency Term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddTimeStepper.html">Add a Time Stepper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AddUnitTest.html">Add a Unit Test</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">How-to Recipes</a></li>
+      <li class="breadcrumb-item active">Add a Configuration Option</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/howto/AddConfigOption.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="add-a-configuration-option">
+<span id="omega-dev-howto-add-config-option"></span><h1>Add a Configuration Option<a class="headerlink" href="#add-a-configuration-option" title="Permalink to this heading"></a></h1>
+<ol class="arabic">
+<li><p><strong>Add the option and its default</strong> to <code class="docutils literal notranslate"><span class="pre">configs/Default.yml</span></code>, in the section
+of the module that reads it. For example, the horizontal mesh’s mesh
+scaling switch:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">HorzMesh</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">MeshScalingEnable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Read it</strong> where the module initializes, with the <code class="docutils literal notranslate"><span class="pre">Config</span></code> class
+(<a class="reference internal" href="../framework/Config.html#omega-dev-config"><span class="std std-ref">Model Configuration (Config)</span></a>). Get the section from the Omega configuration,
+then the option from the section, and abort with a clear message if either
+is missing:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Config</span><span class="w"> </span><span class="o">*</span><span class="n">OmegaConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Config</span><span class="o">::</span><span class="n">getOmegaConfig</span><span class="p">();</span>
+<span class="n">Config</span><span class="w"> </span><span class="n">HorzMeshConfig</span><span class="p">(</span><span class="s">"HorzMesh"</span><span class="p">);</span>
+<span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OmegaConfig</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">HorzMeshConfig</span><span class="p">);</span>
+<span class="n">CHECK_ERROR_ABORT</span><span class="p">(</span><span class="n">Err</span><span class="p">,</span><span class="w"> </span><span class="s">"HorzMesh: HorzMesh group not found in configuration"</span><span class="p">);</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">MeshScalingEnable</span><span class="p">;</span>
+<span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HorzMeshConfig</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"MeshScalingEnable"</span><span class="p">,</span><span class="w"> </span><span class="n">MeshScalingEnable</span><span class="p">);</span>
+<span class="n">CHECK_ERROR_ABORT</span><span class="p">(</span><span class="n">Err</span><span class="p">,</span><span class="w"> </span><span class="s">"HorzMesh: MeshScalingEnable not found in HorzMesh "</span>
+<span class="w">                       </span><span class="s">"configuration"</span><span class="p">);</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Decide what coupled cases get.</strong> A coupled case uses the <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code>
+value unless the <code class="docutils literal notranslate"><span class="pre">coupled</span></code> section of
+<code class="docutils literal notranslate"><span class="pre">cime_config/omega_buildnml/data/config_overrides.yaml</span></code> overrides it. If the
+case itself must control the option, add it to <code class="docutils literal notranslate"><span class="pre">BLOCKED_OPTIONS</span></code> in
+<code class="docutils literal notranslate"><span class="pre">cime_config/omega_buildnml/validate.py</span></code> so that <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> cannot set
+it. See <a class="reference internal" href="../contributing/CimeIntegration.html#omega-dev-buildnml"><span class="std std-ref">CIME buildnml and Configuration Validation</span></a>, and run the validation it describes.</p></li>
+<li><p><strong>Document it</strong> on the User Guide page for the feature: add it to the YAML
+example and say what it does and what values it takes. If the meaning
+involves equations, put them on the Technical Guide page and link to it
+(<a class="reference internal" href="../contributing/Docs.html#omega-dev-docs"><span class="std std-ref">Documentation</span></a>).</p></li>
+<li><p><strong>Tag the pull request</strong> <code class="docutils literal notranslate"><span class="pre">[NML]</span></code>, since it adds a configuration option.</p></li>
+</ol>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="How-to Recipes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="AddTracer.html" class="btn btn-neutral float-right" title="Add a Tracer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

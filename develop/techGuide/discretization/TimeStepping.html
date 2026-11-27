@@ -1,0 +1,168 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Stepping &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Tridiagonal Systems" href="TridiagonalSystems.html" />
+    <link rel="prev" title="Pressure Gradient" href="PressureGradient.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Technical Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../equations/index.html">Equations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Discretization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="MpasMesh.html">MPAS Mesh Specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryVariables.html">Auxiliary Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TracerAdvection.html">Tracer Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PressureGradient.html">Pressure Gradient</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Time Stepping</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#split-explicit-rk2">Split-explicit RK2</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="TridiagonalSystems.html">Tridiagonal Systems</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../physics/index.html">Physics and Parameterizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Diagnostics.html">Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Bibliography.html">Bibliography</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Technical Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Discretization</a></li>
+      <li class="breadcrumb-item active">Time Stepping</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/techGuide/discretization/TimeStepping.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="time-stepping">
+<span id="omega-tech-time-stepping"></span><h1>Time Stepping<a class="headerlink" href="#time-stepping" title="Permalink to this heading"></a></h1>
+<div class="warning admonition">
+<p class="admonition-title">Partly written</p>
+<p>This page does not yet describe the forward-backward, RK2, RK4 and
+split-explicit time steppers. They are to be written here from the
+<a class="reference internal" href="../../design/TimeStepping.html"><span class="doc">time stepping</span></a> and
+<a class="reference internal" href="../../design/SplitTimeStepping.html"><span class="doc">split time stepping</span></a> design documents. Progress is tracked in
+<a class="reference external" href="https://github.com/E3SM-Project/Omega/issues/726">E3SM-Project/Omega#726</a>.</p>
+</div>
+<p>The time steppers are chosen with the options in
+<a class="reference internal" href="../../userGuide/config/TimeStepping.html#omega-user-config-time-stepping"><span class="std std-ref">Time Stepping</span></a>, and implemented as described in
+<a class="reference internal" href="../../devGuide/model/TimeStepping.html#omega-dev-time-stepping"><span class="std std-ref">Time stepping</span></a> and <a class="reference internal" href="../../devGuide/model/SplitTimeStepping.html#omega-dev-split-time-stepping"><span class="std std-ref">Split Time Stepping</span></a>.</p>
+<section id="split-explicit-rk2">
+<h2>Split-explicit RK2<a class="headerlink" href="#split-explicit-rk2" title="Permalink to this heading"></a></h2>
+<section id="barotropic-forcing">
+<span id="omega-tech-time-stepping-split-forcing"></span><h3>Barotropic forcing<a class="headerlink" href="#barotropic-forcing" title="Permalink to this heading"></a></h3>
+<p>The barotropic forcing is the thickness-weighted column mean of the
+provisional full-step baroclinic velocity divided by the time step. For each
+wet edge column, with <span class="math notranslate nohighlight">\(h_k\)</span> from <code class="docutils literal notranslate"><span class="pre">MeanPseudoThickEdge</span></code>, <span class="math notranslate nohighlight">\(u^n_{bcl,k}\)</span> from <code class="docutils literal notranslate"><span class="pre">NormalBclVelCur</span></code>,
+<span class="math notranslate nohighlight">\(R_k\)</span> from <code class="docutils literal notranslate"><span class="pre">IterVelocityTend</span></code>, and split factor <span class="math notranslate nohighlight">\(s\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+F = \frac{s}{\Delta t}
+\frac{\sum_k h_k (u^n_{bcl,k} + \Delta t R_k)}{\sum_k h_k}.
+\]</div>
+<p>This includes any column mean remaining in the old baroclinic velocity under
+the current thickness weights.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="PressureGradient.html" class="btn btn-neutral float-left" title="Pressure Gradient" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="TridiagonalSystems.html" class="btn btn-neutral float-right" title="Tridiagonal Systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

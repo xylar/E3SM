@@ -1,0 +1,148 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auxiliary Variables &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Tracer Advection" href="TracerAdvection.html" />
+    <link rel="prev" title="Horizontal Operators" href="HorizontalOperators.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Technical Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../equations/index.html">Equations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Discretization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="MpasMesh.html">MPAS Mesh Specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Auxiliary Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#kinetic-energy-on-cells">Kinetic energy on cells</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="TracerAdvection.html">Tracer Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PressureGradient.html">Pressure Gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TridiagonalSystems.html">Tridiagonal Systems</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../physics/index.html">Physics and Parameterizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Diagnostics.html">Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Bibliography.html">Bibliography</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Technical Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Discretization</a></li>
+      <li class="breadcrumb-item active">Auxiliary Variables</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/techGuide/discretization/AuxiliaryVariables.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="auxiliary-variables">
+<span id="omega-tech-auxiliary-variables"></span><h1>Auxiliary Variables<a class="headerlink" href="#auxiliary-variables" title="Permalink to this heading"></a></h1>
+<p>Quantities computed from the prognostic state at each time step and used by
+the tendency terms. The variables available for output are listed in
+<a class="reference internal" href="../../userGuide/io/Fields.html#omega-user-io-fields-auxiliary"><span class="std std-ref">Auxiliary variables</span></a>.</p>
+<section id="kinetic-energy-on-cells">
+<h2>Kinetic energy on cells<a class="headerlink" href="#kinetic-energy-on-cells" title="Permalink to this heading"></a></h2>
+<p>In <span id="id1">Ringler <em>et al.</em> (<a class="reference internal" href="../Bibliography.html#id4" title="T. D. Ringler, J. Thuburn, J. B. Klemp, and W. C. Skamarock. A unified approach to energy conservation and potential vorticity dynamics for arbitrarily-structured C-grids. Journal of Computational Physics, 229(9):3065–3090, 2010. doi:10.1016/j.jcp.2009.12.007.">2010</a>)</span>, the cell-centered kinetic energy (<span class="math notranslate nohighlight">\(K_i\)</span>) is a geometry-weighted combination of the squared edge-normal velocities surrounding cell (<span class="math notranslate nohighlight">\(i\)</span>), constructed so that its discrete gradient enters the vector-invariant momentum equation as part of the Bernoulli-gradient term, (<span class="math notranslate nohighlight">\(-\nabla(K_i+\Phi_i)\)</span>). Although only one velocity component is stored at each C-grid edge, the differently oriented edges collectively represent the two-dimensional velocity magnitude; for uniform flow on an isotropic cell, the construction recovers (<span class="math notranslate nohighlight">\(K_i=\tfrac12|\mathbf{u}|^2\)</span>). Importantly, this definition is chosen for algebraic compatibility with the edge-based kinetic-energy norm and the discrete continuity equation, enabling the nondissipative momentum terms to conserve total energy to within time-discretization error rather than providing an arbitrary pointwise reconstruction of the velocity magnitude.</p>
+<p>It should be noted that this is the irrotational kinetic energy and is not the total kinetic energy. In principle, this implies that that <span class="math notranslate nohighlight">\(K_i\)</span> could be an underestimate of the total kinetic energy. Even for a regular hexagon in an irrotational constant flow, this formulation underestimates the total kinetic energy by 13-16% depeneding on the flow orientation. However, it has been shown with MPAS-Ocean at standard resolution (Icos30) that <span class="math notranslate nohighlight">\(K_i\)</span> <em>exceeds</em> <span class="math notranslate nohighlight">\(K = 0.5 (u_{cell}^2 + v_{cell}^2)\)</span>, likely due to velocity noise at the grid scale that is filtered in the course of reconstructing velocities at cell-centers. This offers a justification for employing <span class="math notranslate nohighlight">\(K_i\)</span> in other terms of the momentum equation such as bottom drag.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="HorizontalOperators.html" class="btn btn-neutral float-left" title="Horizontal Operators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="TracerAdvection.html" class="btn btn-neutral float-right" title="Tracer Advection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

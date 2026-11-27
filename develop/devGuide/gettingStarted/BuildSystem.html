@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The CMake Build System &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Code Organization" href="CodeOrganization.html" />
+    <link rel="prev" title="Development Environment" href="DevEnv.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Getting Started</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="QuickStart.html">Quick Start for Developers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DevEnv.html">Development Environment</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">The CMake Build System</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-setup">Step 1: Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-update">Step 2: Update</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-build">Step 3: Build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-output">Step 4: Output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#standalone-build-commands">Standalone Build Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="CodeOrganization.html">Code Organization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Getting Started</a></li>
+      <li class="breadcrumb-item active">The CMake Build System</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/gettingStarted/BuildSystem.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="the-cmake-build-system">
+<span id="omega-dev-cmake-build"></span><h1>The CMake Build System<a class="headerlink" href="#the-cmake-build-system" title="Permalink to this heading"></a></h1>
+<p>The Omega build system utilizes CMake, a widely-used build tool,
+to facilitate the build process.</p>
+<p>The build process is defined in the CMakeLists.txt file located
+in the top-level directory of Omega. It consists of four consecutive
+steps: Setup, Update, Build, and Output.</p>
+<p><img alt="CMake-based Omega build process" src="../../_images/cmakebuild.png" /></p>
+<p>The build step consists of adding three subdirectories that drive builds
+for external libraries, the Omega model, and optional tests.</p>
+<p>Python is required to use this build system.
+The version of CMake should be 3.21 or later for supporting HIP.</p>
+<section id="step-1-setup">
+<h2>Step 1: Setup<a class="headerlink" href="#step-1-setup" title="Permalink to this heading"></a></h2>
+<p>During this step, the build-controlling variables are configured.
+The Omega build system supports two modes: standalone and E3SM
+component. The build mode is automatically detected, and any
+mode-specific differences are resolved to ensure a consistent
+build process.</p>
+<p>By default, Omega assumes it is part of the E3SM code distribution.
+In both build modes, the build system collects build-controlling
+parameters, such as compiler paths and flags, from the E3SM build system.</p>
+<p>There are three types of Omega build-controlling variables: Omega,
+E3SM, and CMake. The names of these variables start with “OMEGA_”,
+“E3SM_”, and “CMAKE”, respectively. Temporary variables are prefixed
+with an underscore (“_”).</p>
+<p>The following is a list of Omega-specific variables available in
+this version:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">OMEGA_PROJECT_NAME</span><span class="p">:</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">project</span> <span class="p">(</span><span class="s2">"OmegaOceanModel"</span><span class="p">)</span>
+<span class="n">OMEGA_EXE_NAME</span><span class="p">:</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">executable</span> <span class="p">(</span><span class="s2">"omega.exe"</span><span class="p">)</span>
+<span class="n">OMEGA_LIB_NAME</span><span class="p">:</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">library</span> <span class="p">(</span><span class="s2">"OmegaLib"</span><span class="p">)</span>
+<span class="n">OMEGA_BUILD_MODES</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="n">build</span> <span class="n">modes</span> <span class="p">(</span><span class="s2">"E3SM"</span><span class="p">,</span> <span class="s2">"STANDALONE"</span><span class="p">,</span> <span class="s2">"NOT_DEFINED"</span><span class="p">)</span>
+<span class="n">OMEGA_BUILD_MODE</span><span class="p">:</span> <span class="n">Selected</span> <span class="n">build</span> <span class="n">mode</span>
+<span class="n">OMEGA_BUILD_DIR</span><span class="p">:</span> <span class="n">Omega</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">build</span> <span class="n">directory</span>
+<span class="n">OMEGA_SOURCE_DIR</span><span class="p">:</span> <span class="n">Directory</span> <span class="n">where</span> <span class="n">the</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">Omega</span> <span class="n">CMakeLists</span><span class="o">.</span><span class="n">txt</span> <span class="ow">is</span> <span class="n">located</span>
+<span class="n">OMEGA_DEFAULT_BUILD_TYPE</span><span class="p">:</span> <span class="n">Default</span> <span class="n">build</span> <span class="nb">type</span> <span class="p">(</span><span class="s2">"Release"</span><span class="p">)</span>
+<span class="n">OMEGA_INSTALL_PREFIX</span><span class="p">:</span> <span class="n">User</span><span class="o">-</span><span class="n">defined</span> <span class="n">output</span> <span class="n">directory</span> <span class="k">for</span> <span class="n">the</span> <span class="n">library</span> <span class="ow">and</span> <span class="n">executable</span>
+<span class="n">OMEGA_ARCH</span><span class="p">:</span> <span class="n">User</span><span class="o">-</span><span class="n">defined</span> <span class="n">programming</span> <span class="n">framework</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="p">,</span> <span class="s2">"CUDA"</span><span class="p">,</span> <span class="s2">"HIP"</span><span class="p">,</span> <span class="s2">"OPENMP"</span><span class="p">,</span> <span class="s2">"SYCL"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+<span class="n">OMEGA_CXX_COMPILER</span><span class="p">:</span> <span class="n">C</span><span class="o">++</span> <span class="n">compiler</span>
+<span class="n">OMEGA_C_COMPILER</span><span class="p">:</span> <span class="n">C</span> <span class="n">compiler</span>
+<span class="n">OMEGA_Fortran_COMPILER</span><span class="p">:</span> <span class="n">Fortran</span> <span class="n">compiler</span>
+<span class="n">OMEGA_CIME_COMPILER</span><span class="p">:</span> <span class="n">E3SM</span> <span class="n">compiler</span> <span class="n">name</span> <span class="n">defined</span> <span class="ow">in</span> <span class="n">config_machines</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">OMEGA_CIME_MACHINE</span><span class="p">:</span> <span class="n">E3SM</span> <span class="n">machine</span> <span class="n">name</span> <span class="n">defined</span> <span class="ow">in</span> <span class="n">config_machines</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">OMEGA_CIME_PROJECT</span><span class="p">:</span> <span class="n">Slurm</span> <span class="n">account</span> <span class="n">passed</span> <span class="n">to</span> <span class="n">CIME</span> <span class="n">during</span> <span class="n">Omega</span> <span class="n">build</span>
+<span class="n">OMEGA_CXX_FLAGS</span><span class="p">:</span> <span class="n">a</span> <span class="nb">list</span> <span class="k">for</span> <span class="n">C</span><span class="o">++</span> <span class="n">compiler</span> <span class="n">flags</span>
+<span class="n">OMEGA_LINK_OPTIONS</span><span class="p">:</span> <span class="n">a</span> <span class="nb">list</span> <span class="k">for</span> <span class="n">linker</span> <span class="n">flags</span>
+<span class="n">OMEGA_BUILD_EXECUTABLE</span><span class="p">:</span> <span class="n">Enable</span> <span class="n">building</span> <span class="n">the</span> <span class="n">Omega</span> <span class="n">executable</span>
+<span class="n">OMEGA_BUILD_TEST</span><span class="p">:</span> <span class="n">Enable</span> <span class="n">building</span> <span class="n">Omega</span> <span class="n">tests</span>
+<span class="n">OMEGA_PARMETIS_ROOT</span><span class="p">:</span> <span class="n">Parmetis</span> <span class="n">installtion</span> <span class="n">directory</span>
+<span class="n">OMEGA_METIS_ROOT</span><span class="p">:</span> <span class="n">Metis</span> <span class="n">installtion</span> <span class="n">directory</span>
+<span class="n">OMEGA_GKLIB_ROOT</span><span class="p">:</span> <span class="n">GKlib</span> <span class="n">installtion</span> <span class="n">directory</span>
+<span class="n">OMEGA_HIP_COMPILER</span><span class="p">:</span> <span class="n">HIP</span> <span class="n">compiler</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="p">,</span> <span class="n">hipcc</span><span class="p">)</span>
+<span class="n">OMEGA_HIP_FLAGS</span><span class="p">:</span> <span class="n">HIP</span> <span class="n">compiler</span> <span class="n">flags</span>
+<span class="n">OMEGA_MEMORY_LAYOUT</span><span class="p">:</span> <span class="n">Kokkos</span> <span class="n">memory</span> <span class="n">layout</span> <span class="p">(</span><span class="s2">"LEFT"</span> <span class="ow">or</span> <span class="s2">"RIGHT"</span><span class="p">)</span><span class="o">.</span> <span class="s2">"RIGHT"</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">default</span> <span class="n">value</span><span class="o">.</span>
+<span class="n">OMEGA_TILE_LENGTH</span><span class="p">:</span> <span class="n">a</span> <span class="n">length</span> <span class="n">of</span> <span class="n">one</span> <span class="s2">"side"</span> <span class="n">of</span> <span class="n">a</span> <span class="n">Kokkos</span> <span class="n">tile</span><span class="o">.</span> <span class="mi">64</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">default</span> <span class="n">value</span><span class="o">.</span>
+<span class="n">OMEGA_LOG_LEVEL</span><span class="p">:</span> <span class="n">a</span> <span class="n">default</span> <span class="n">logging</span> <span class="n">level</span><span class="o">.</span> <span class="s2">"OMEGA_LOG_INFO"</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">default</span> <span class="n">value</span><span class="o">.</span>
+<span class="n">OMEGA_LOG_FLUSH</span><span class="p">:</span> <span class="n">turn</span> <span class="n">on</span> <span class="n">the</span> <span class="n">unbuffered</span> <span class="n">logging</span><span class="o">.</span> <span class="s2">"OFF"</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">default</span> <span class="n">value</span><span class="o">.</span>
+<span class="n">OMEGA_VECTOR_LENGTH</span><span class="p">:</span> <span class="n">Vector</span> <span class="n">length</span> <span class="n">used</span> <span class="k">for</span> <span class="n">blocking</span> <span class="n">inner</span> <span class="n">loops</span> <span class="k">for</span> <span class="n">vectorization</span><span class="o">.</span> <span class="s2">"1"</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">default</span> <span class="n">value</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>E3SM-specific variables</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>E3SM_SOURCE_DIR: E3SM component directory (${E3SM_ROOT}/components)
+E3SM_CIME_ROOT: CIME root directory
+E3SM_CIMECONFIG_ROOT: E3SM CIME config directory
+E3SM_EXTERNALS_ROOT: E3SM externals directory
+E3SM_DEFAULT_BUILD_TYPE: E3SM build type (Release or Debug)
+</pre></div>
+</div>
+<p>CMake variables</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CMAKE_CURRENT_SOURCE_DIR</span>
+<span class="n">CMAKE_CURRENT_BINARY_DIR</span>
+<span class="n">CMAKE_CURRENT_LIST_DIR</span>
+<span class="n">CMAKE_CXX_STANDARD</span>
+<span class="n">CMAKE_CXX_COMPILER</span>
+<span class="n">CMAKE_CXX_FLAGS</span>
+<span class="n">CMAKE_CURRENT_LIST_DIR</span>
+<span class="n">CMAKE_BUILD_TYPE</span>
+<span class="n">CMAKE_INSTALL_PREFIX</span>
+<span class="n">CMAKE_VERSION</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-update">
+<h2>Step 2: Update<a class="headerlink" href="#step-2-update" title="Permalink to this heading"></a></h2>
+<p>In this step, CMake is configured, and external library variables,
+such as Kokkos, MPI, NetCDF, and PNetCDF, are set based on the settings
+defined in the Setup step. The integrity of the build setup is verified
+at the end of this step.</p>
+</section>
+<section id="step-3-build">
+<h2>Step 3: Build<a class="headerlink" href="#step-3-build" title="Permalink to this heading"></a></h2>
+<p>During this step, the build process is configured. It includes building
+external libraries, followed by building the Omega main model from source
+files. Optionally, tests can also be built.</p>
+<section id="optimization-in-cpu-debug-builds-with-gnu">
+<h3>Optimization in CPU Debug builds with GNU<a class="headerlink" href="#optimization-in-cpu-debug-builds-with-gnu" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Debug</span></code> builds compile Omega’s C++ code with <code class="docutils literal notranslate"><span class="pre">-g</span></code> and no <code class="docutils literal notranslate"><span class="pre">-O</span></code> level, so
+<code class="docutils literal notranslate"><span class="pre">g++</span></code> builds it at <code class="docutils literal notranslate"><span class="pre">-O0</span></code>. Without inlining, Kokkos kernels on the host
+(<code class="docutils literal notranslate"><span class="pre">SERIAL</span></code> and <code class="docutils literal notranslate"><span class="pre">OPENMP</span></code>) run about 130 times slower than in a <code class="docutils literal notranslate"><span class="pre">Release</span></code>
+build, so multi-day debug tests such as <code class="docutils literal notranslate"><span class="pre">ERS_D</span></code> run out of wall time.</p>
+<p>To avoid this, <code class="docutils literal notranslate"><span class="pre">src/CMakeLists.txt</span></code> adds <code class="docutils literal notranslate"><span class="pre">-Og</span></code> to the C++ compile options
+of the <code class="docutils literal notranslate"><span class="pre">OmegaLibFlags</span></code> interface target when <code class="docutils literal notranslate"><span class="pre">OMEGA_ARCH</span></code> is <code class="docutils literal notranslate"><span class="pre">SERIAL</span></code> or
+<code class="docutils literal notranslate"><span class="pre">OPENMP</span></code>, the C++ compiler is GNU and the build type is <code class="docutils literal notranslate"><span class="pre">Debug</span></code>. <code class="docutils literal notranslate"><span class="pre">-Og</span></code> is
+the optimization level GNU recommends for debugging, and it makes these
+builds about 30 times faster. This reaches the Omega library, executable
+and tests, but not Fortran sources or external libraries. Debug checks
+(<code class="docutils literal notranslate"><span class="pre">OMEGA_DEBUG</span></code>, Kokkos debug checks) and <code class="docutils literal notranslate"><span class="pre">-g</span></code> are unchanged.</p>
+</section>
+<section id="optimization-in-sycl-debug-builds">
+<h3>Optimization in SYCL Debug builds<a class="headerlink" href="#optimization-in-sycl-debug-builds" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Debug</span></code> builds compile Omega’s C++ code with <code class="docutils literal notranslate"><span class="pre">-g</span></code> and no <code class="docutils literal notranslate"><span class="pre">-O</span></code> level. For
+SYCL, <code class="docutils literal notranslate"><span class="pre">icpx</span></code> applies this to device code as <code class="docutils literal notranslate"><span class="pre">-O0</span></code>. The unoptimized kernels
+need so much private (per-work-item) memory that the GPU runtime’s
+per-kernel private allocations fill a whole GPU tile, and runs eventually
+crash with a GPU page fault (see
+<a class="reference external" href="https://github.com/E3SM-Project/Omega/issues/666">#666</a>).</p>
+<p>To avoid this, <code class="docutils literal notranslate"><span class="pre">src/CMakeLists.txt</span></code> adds <code class="docutils literal notranslate"><span class="pre">-O1</span></code> to the C++ compile options
+of the <code class="docutils literal notranslate"><span class="pre">OmegaLibFlags</span></code> interface target when <code class="docutils literal notranslate"><span class="pre">OMEGA_ARCH</span></code> is <code class="docutils literal notranslate"><span class="pre">SYCL</span></code> and the
+build type is <code class="docutils literal notranslate"><span class="pre">Debug</span></code>. This reaches the Omega library, executable and tests,
+but not Fortran sources or external libraries. Debug checks
+(<code class="docutils literal notranslate"><span class="pre">OMEGA_DEBUG</span></code>, Kokkos debug checks) and <code class="docutils literal notranslate"><span class="pre">-g</span></code> are unchanged.</p>
+</section>
+</section>
+<section id="step-4-output">
+<h2>Step 4: Output<a class="headerlink" href="#step-4-output" title="Permalink to this heading"></a></h2>
+<p>The final step, which is optional, involves copying a subset of the build
+artifacts to designated locations or generating dynamic outputs as needed.</p>
+</section>
+<section id="standalone-build-commands">
+<h2>Standalone Build Commands<a class="headerlink" href="#standalone-build-commands" title="Permalink to this heading"></a></h2>
+<p>In the Omega branch you would like to build, first update the submodules that
+Omega requires:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive<span class="w"> </span><span class="se">\</span>
+<span class="w">	</span>externals/YAKL<span class="w"> </span><span class="se">\</span>
+<span class="w">	</span>externals/ekat<span class="w"> </span><span class="se">\</span>
+<span class="w">	</span>externals/scorpio<span class="w"> </span><span class="se">\</span>
+<span class="w">	</span>components/omega/external<span class="w"> </span><span class="se">\</span>
+<span class="w">	</span>cime
+</pre></div>
+</div>
+<p>Since some systems require tests to be run in a scratch space, it is a good
+idea to build the code somewhere in your scratch space. We will refer to the
+build directory as <code class="docutils literal notranslate"><span class="pre">$BUILD_DIR</span></code>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>rm<span class="w"> </span>-rf<span class="w"> </span><span class="s2">"</span><span class="nv">$BUILD_DIR</span><span class="s2">"</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$BUILD_DIR</span><span class="s2">"</span>
+<span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="nv">$BUILD_DIR</span><span class="s2">"</span>
+</pre></div>
+</div>
+<p>Set <code class="docutils literal notranslate"><span class="pre">$PARMETIS_ROOT</span></code> to the location for Metis and Parmetis libraries built
+for your machine and compiler:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PARMETIS_ROOT</span><span class="o">=</span>&lt;parmetis_root&gt;
+</pre></div>
+</div>
+<p>Run CMake for the build type, machine, and compiler you want:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-DOMEGA_BUILD_TYPE<span class="o">=</span>&lt;build_type&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-DOMEGA_CIME_COMPILER<span class="o">=</span>&lt;compiler&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-DOMEGA_CIME_MACHINE<span class="o">=</span>&lt;machine&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-DOMEGA_PARMETIS_ROOT<span class="o">=</span><span class="si">${</span><span class="nv">PARMETIS_ROOT</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-DOMEGA_BUILD_TEST<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-Wno-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-S<span class="w"> </span>&lt;omega_branch&gt;/components/omega<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-B<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">&lt;build_type&gt;</span></code> is either <code class="docutils literal notranslate"><span class="pre">Debug</span></code> or <code class="docutils literal notranslate"><span class="pre">Release</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;omega_branch&gt;</span></code> is the
+path to the base of the Omega branch you want to build, and <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&lt;compiler&gt;</span></code> are supported by E3SM on that machine.</p>
+<p>The command above configures Omega to build CTests
+(<code class="docutils literal notranslate"><span class="pre">-DOMEGA_BUILD_TEST=ON</span></code>), which is recommended.</p>
+<p>If CMake configuration runs correctly, you should have an <code class="docutils literal notranslate"><span class="pre">omega_build.sh</span></code>
+script that you can run to build Omega:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./omega_build.sh
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">OMEGA_BUILD_MODE</span></code> is <code class="docutils literal notranslate"><span class="pre">E3SM</span></code>, <code class="docutils literal notranslate"><span class="pre">src/CMakeLists.txt</span></code> additionally
+builds an <code class="docutils literal notranslate"><span class="pre">ocn</span></code> library from the sources in <code class="docutils literal notranslate"><span class="pre">src/drivers/coupled/</span></code>
+(the Fortran/C++ bridge and MCT cap), linked against <code class="docutils literal notranslate"><span class="pre">OmegaLib</span></code> and
+<code class="docutils literal notranslate"><span class="pre">csm_share</span></code>. This is the library CIME builds and links into the E3SM
+executable when Omega is used as the ocean component of a coupled case.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="DevEnv.html" class="btn btn-neutral float-left" title="Development Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="CodeOrganization.html" class="btn btn-neutral float-right" title="Code Organization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

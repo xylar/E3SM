@@ -1,0 +1,254 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build Options &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Running Omega" href="../run/index.html" />
+    <link rel="prev" title="Building in E3SM" href="E3SM.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Building Omega</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Standalone.html">Standalone Build</a></li>
+<li class="toctree-l3"><a class="reference internal" href="E3SM.html">Building in E3SM</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Build Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#machine-and-compilers">Machine and compilers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#libraries">Libraries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-type-and-installation">Build type and installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#precision-and-performance">Precision and performance</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Building Omega</a></li>
+      <li class="breadcrumb-item active">Build Options</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/build/Options.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="build-options">
+<span id="omega-user-build-options"></span><h1>Build Options<a class="headerlink" href="#build-options" title="Permalink to this heading"></a></h1>
+<p>These CMake variables control a standalone build. Pass each one to <code class="docutils literal notranslate"><span class="pre">cmake</span></code>
+as <code class="docutils literal notranslate"><span class="pre">-D&lt;NAME&gt;=&lt;value&gt;</span></code>; see <a class="reference internal" href="Standalone.html#omega-user-build-standalone"><span class="std std-ref">Standalone Build</span></a> for the full
+command. In an E3SM case, CIME sets them from the case instead
+(<a class="reference internal" href="E3SM.html#omega-user-build-e3sm"><span class="std std-ref">Building in E3SM</span></a>). The <a class="reference internal" href="../../devGuide/gettingStarted/BuildSystem.html#omega-dev-cmake-build"><span class="std std-ref">The CMake Build System</span></a> page lists
+every variable the build system uses, including internal ones.</p>
+<section id="machine-and-compilers">
+<h2>Machine and compilers<a class="headerlink" href="#machine-and-compilers" title="Permalink to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_CIME_MACHINE</span></code></p></td>
+<td><p>CIME’s default for the host</p></td>
+<td><p>E3SM machine name, as defined in <code class="docutils literal notranslate"><span class="pre">cime_config/machines/config_machines.xml</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_CIME_COMPILER</span></code></p></td>
+<td><p>CIME’s default for the machine</p></td>
+<td><p>E3SM compiler name for that machine, as defined in the same file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_CIME_PROJECT</span></code></p></td>
+<td><p>CIME’s default for the machine</p></td>
+<td><p>Account to give CIME during the build, on machines that do not define a default <code class="docutils literal notranslate"><span class="pre">PROJECT</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_CXX_COMPILER</span></code></p></td>
+<td><p>from <code class="docutils literal notranslate"><span class="pre">OMEGA_CIME_COMPILER</span></code></p></td>
+<td><p>Path to a C++ compiler; overrides <code class="docutils literal notranslate"><span class="pre">OMEGA_CIME_COMPILER</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_ARCH</span></code></p></td>
+<td><p>detected</p></td>
+<td><p>Programming model: <code class="docutils literal notranslate"><span class="pre">CUDA</span></code>, <code class="docutils literal notranslate"><span class="pre">HIP</span></code>, <code class="docutils literal notranslate"><span class="pre">SYCL</span></code>, <code class="docutils literal notranslate"><span class="pre">OPENMP</span></code> or <code class="docutils literal notranslate"><span class="pre">SERIAL</span></code>. If not given, it is chosen from the machine and compiler; <code class="docutils literal notranslate"><span class="pre">OPENMP</span></code> when the machine configuration builds threaded. Set <code class="docutils literal notranslate"><span class="pre">CUDA</span></code> or <code class="docutils literal notranslate"><span class="pre">HIP</span></code> to build for GPUs.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="libraries">
+<h2>Libraries<a class="headerlink" href="#libraries" title="Permalink to this heading"></a></h2>
+<p>METIS, ParMETIS and, optionally, GKlib must be built separately, as static
+libraries; the other external libraries are built from the E3SM source tree.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_PARMETIS_ROOT</span></code></p></td>
+<td><p>none (required)</p></td>
+<td><p>ParMETIS installation directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_METIS_ROOT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_PARMETIS_ROOT</span></code></p></td>
+<td><p>METIS installation directory</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_GKLIB_ROOT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_METIS_ROOT</span></code></p></td>
+<td><p>GKlib installation directory</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="build-type-and-installation">
+<h2>Build type and installation<a class="headerlink" href="#build-type-and-installation" title="Permalink to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_BUILD_TYPE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Release</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Release</span></code> or <code class="docutils literal notranslate"><span class="pre">Debug</span></code>. A debug build gives a stack trace for critical errors (<a class="reference internal" href="../run/Errors.html#omega-user-run-errors"><span class="std std-ref">Error Messages</span></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_BUILD_TEST</span></code></p></td>
+<td><p>off</p></td>
+<td><p>Build the CTest unit tests</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_INSTALL_PREFIX</span></code></p></td>
+<td><p>none</p></td>
+<td><p>Directory that <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> copies the library and executable into, under <code class="docutils literal notranslate"><span class="pre">lib</span></code> and <code class="docutils literal notranslate"><span class="pre">bin</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="precision-and-performance">
+<h2>Precision and performance<a class="headerlink" href="#precision-and-performance" title="Permalink to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_SINGLE_PRECISION</span></code></p></td>
+<td><p>off</p></td>
+<td><p>Make the default <code class="docutils literal notranslate"><span class="pre">Real</span></code> type single precision (4 bytes) instead of double (8 bytes). Use the default unless you are studying the performance or accuracy of single precision.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_VECTOR_LENGTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p>Vector length for CPU loops</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OMEGA_MPI_ON_DEVICE</span></code></p></td>
+<td><p>on</p></td>
+<td><p>Let MPI send and receive halo buffers directly from device memory</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="E3SM.html" class="btn btn-neutral float-left" title="Building in E3SM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../run/index.html" class="btn btn-neutral float-right" title="Running Omega" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

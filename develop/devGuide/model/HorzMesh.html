@@ -1,0 +1,207 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horizontal Mesh &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Horizontal Operators" href="HorzOperators.html" />
+    <link rel="prev" title="Ocean State" href="OceanState.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Driver.html">Driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="OceanState.html">Ocean State</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Horizontal Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryState.html">Auxiliary State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PGrad.html">Pressure Gradient (PGrad)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertMix.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPPMix.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SfcCoupling.html">Surface Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model</a></li>
+      <li class="breadcrumb-item active">Horizontal Mesh</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/model/HorzMesh.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="horizontal-mesh">
+<span id="omega-dev-horz-mesh"></span><h1>Horizontal Mesh<a class="headerlink" href="#horizontal-mesh" title="Permalink to this heading"></a></h1>
+<p>The Omega horizontal mesh uses the <a class="reference external" href="https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf">MPAS Mesh
+Specification</a>.
+A mesh object is created by the <code class="docutils literal notranslate"><span class="pre">init</span></code> method, which assumes that <code class="docutils literal notranslate"><span class="pre">Decomp</span></code> has
+already been initialized.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">OMEGA</span><span class="o">::</span><span class="n">Decomp</span><span class="o">::</span><span class="n">init</span><span class="p">();</span>
+<span class="n">OMEGA</span><span class="o">::</span><span class="n">HorzMesh</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="n">ModelClock</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The model clock should be the ocean model clock and is required by the IOStream
+routines that read the HorzMesh variables from the input stream
+<a class="reference internal" href="../../userGuide/io/Mesh.html#omega-user-io-mesh"><span class="std std-ref">HorzMeshIn</span></a>.
+The constructor replicates the subdomain mesh cell/edge/vertex counts and
+connectivity information from Decomp so this information can be passed among the
+computational routines, alongside the other local mesh information.  It then
+reads most of the remaining mesh variables (coordinates, lengths, areas)
+from the input HorzMeshIn IOStream. A few variables, like masks and operator
+scaling are computed internally; the mesh scaling is relative to
+the global median cell width, which is computed during initialization.
+After reading, the init routine fills all
+halos and synchronizes the host and device copies of the mesh variables.
+These tasks are organized into several private methods. Eventually,
+dependent mesh variables will be computed from the minimum set of required mesh
+information.</p>
+<p>After initialization, the default mesh object can be retrieved via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">OMEGA</span><span class="p">::</span><span class="n">HorzMesh</span> <span class="o">*</span><span class="n">HMesh</span> <span class="o">=</span> <span class="n">OMEGA</span><span class="p">::</span><span class="n">HorzMesh</span><span class="p">::</span><span class="n">getDefault</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Once this retrieval has been performed, public member variables can be accessed
+using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">OMEGA</span><span class="p">::</span><span class="n">I4</span> <span class="n">NCellsOwned</span> <span class="o">=</span> <span class="n">HMesh</span><span class="o">-&gt;</span><span class="n">NCellsOwned</span><span class="p">;</span>
+<span class="n">OMEGA</span><span class="p">::</span><span class="n">Array1DR8</span> <span class="n">AreaCell</span> <span class="o">=</span> <span class="n">HMesh</span><span class="o">-&gt;</span><span class="n">AreaCell</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The HorzMesh is meant to be a container that allows the mesh information to be
+passed to the PDE solver routines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">computeFluxTendency</span><span class="p">(</span><span class="n">OMEGA</span><span class="p">::</span><span class="n">HorzMesh</span> <span class="o">*</span><span class="n">HMesh</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">OMEGA</span><span class="p">::</span><span class="n">parallelFor</span><span class="p">({</span><span class="n">HMesh</span><span class="o">-&gt;</span><span class="n">NCellsOwned</span><span class="p">,</span><span class="n">HMesh</span><span class="o">-&gt;</span><span class="n">MaxEdges</span><span class="p">},</span>
+                      <span class="n">KOKKOS_LAMBDA</span> <span class="p">(</span><span class="nb">int</span> <span class="n">Cell</span><span class="p">,</span> <span class="nb">int</span> <span class="n">Edge</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Edge</span> <span class="o">&lt;</span> <span class="n">HMesh</span><span class="o">-&gt;</span><span class="n">NEdgesOnCell</span><span class="p">(</span><span class="n">Cell</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">Var</span><span class="p">(</span><span class="n">Cell</span><span class="p">)</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">Cell</span><span class="p">)</span> <span class="o">+</span> <span class="n">Flux</span><span class="p">(</span><span class="n">Cell</span><span class="p">,</span><span class="n">Edge</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">MaxEdges</span></code> is read from the mesh file and is therefore only known at run time.
+Kernels that need a fixed-size per-thread array indexed by edge should size it
+with the compile-time bound instead:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">OMEGA</span><span class="p">::</span><span class="n">Real</span> <span class="n">Weights</span><span class="p">[</span><span class="n">OMEGA</span><span class="p">::</span><span class="n">HorzMesh</span><span class="p">::</span><span class="n">MaxEdgesBound</span><span class="p">];</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">MaxEdgesBound</span></code> is a single shared upper bound on <code class="docutils literal notranslate"><span class="pre">MaxEdges</span></code>; meshes exceeding
+it are rejected. Do not introduce a local copy of this limit.</p>
+<p>For member variables that are host arrays, variable names are appended with an
+<code class="docutils literal notranslate"><span class="pre">H</span></code>.  Array variable names not ending in <code class="docutils literal notranslate"><span class="pre">H</span></code> are device arrays.</p>
+<p>The device arrays are deallocated by the <code class="docutils literal notranslate"><span class="pre">HorzMesh::clear()</span></code> method, which is
+necessary before calling <code class="docutils literal notranslate"><span class="pre">Kokkos::finalize</span></code>. Because Field and IOStream also
+have references to HorzMesh variables, the <code class="docutils literal notranslate"><span class="pre">IOStream::clear()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Field::clear()</span></code> should also be called to ensure all device arrays are removed.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="OceanState.html" class="btn btn-neutral float-left" title="Ocean State" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="HorzOperators.html" class="btn btn-neutral float-right" title="Horizontal Operators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

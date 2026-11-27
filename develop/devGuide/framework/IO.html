@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parallel IO (IO) &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="IO Streams (IOStream)" href="IOStreams.html" />
+    <link rel="prev" title="CFUnits" href="CFUnits.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Framework</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="DataTypes.html">Data Types and Precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataTypes.html#arrays-and-kokkos">Arrays and Kokkos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ParallelLoops.html">Parallel loops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MachEnv.html">Machine Environment (MachEnv)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Decomp.html">Domain Decomposition (Decomp)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Halo.html">Halo Exchanges (Halo)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Broadcast.html">Broadcast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Reductions.html">Global Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Config.html">Model Configuration (Config)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Logging.html">Developing Omega Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Error.html">Error Handler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Timing.html">Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeMgr.html">Time Manager (TimeMgr)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Dimension.html">Dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Field.html">Fields and Metadata (Field)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CFUnits.html">CFUnits</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Parallel IO (IO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="IOStreams.html">IO Streams (IOStream)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TridiagonalSolvers.html">Tridiagonal Solvers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Framework</a></li>
+      <li class="breadcrumb-item active">Parallel IO (IO)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/framework/IO.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="parallel-io-io">
+<span id="omega-dev-io"></span><h1>Parallel IO (IO)<a class="headerlink" href="#parallel-io-io" title="Permalink to this heading"></a></h1>
+<p>For input and output of data needed for Omega, we use the Software for
+Caching Output and Reads for Parallel I/O
+(<a class="reference external" href="https://github.com/E3SM-Project/scorpio">SCORPIO</a>) library. This
+library supports parallel reading and writing of distributed arrays in various
+self-describing
+formats like <a class="reference external" href="https://docs.unidata.ucar.edu/netcdf/">NetCDF</a>,
+<a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5</a>,
+and <a class="reference external" href="https://csmd.ornl.gov/adios">ADIOS</a>.
+SCORPIO is responsible for rearranging data from the data decomposition used
+for computation to a different rearrangement for parallel IO. In particular,
+for optimal IO, the user would specify a different number of IO tasks than
+for computation. For example, the user could specify the number of IO tasks to
+match underlying hardware like the network interfaces (NICs) on a node.
+Users and developers will generally access IO via
+<a class="reference internal" href="../../userGuide/io/Streams.html#omega-user-io-streams"><span class="std std-ref">IOStreams</span></a>
+and other interfaces. The base IO layer described here only provides
+an Omega-aware wrapper around SCORPIO calls.</p>
+<p>The base interfaces provide functions for file operations (open/close),
+reading and writing of metadata, and reading and writing of data arrays.
+Interfaces at this level utilize raw pointers to data and assume
+contiguous storage for arrays. SCORPIO utilizes integer handles
+to various files and data types so these must often be defined or
+retrieved for many operations. Although there is no IO class, we encapsulate
+the IO routines within the Omega and IO namespaces.</p>
+<p>Before using any IO functions, the parallel IO system must be initialized
+using:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="n">IO</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="n">Comm</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where Comm is an MPI communicator and should in most cases be the communicator
+from the Omega default MachEnv (see <a class="reference internal" href="MachEnv.html#omega-dev-mach-env"><span class="std std-ref">MachEnv</span></a>). This
+function also extracts the user-defined variables from the model configuration,
+include the number of IO tasks, the IO task stride, the default data
+rearranger method, and the default file format
+(see <a class="reference internal" href="../../userGuide/config/Parallel.html#omega-user-config-parallel-io"><span class="std std-ref">User Guide</span></a>).</p>
+<p>As mentioned above, most I/O operations will take place within the IOStreams
+module, but the base IO functions can be accessed directly. To open and close
+files for reading/writing, use:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="n">IO</span><span class="o">::</span><span class="n">openFileRead</span><span class="p">(</span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">Filename</span><span class="p">,</span><span class="w"> </span><span class="n">FileFormat</span><span class="p">(</span><span class="n">optional</span><span class="p">));</span>
+<span class="w">   </span><span class="n">IO</span><span class="o">::</span><span class="n">closeFile</span><span class="p">(</span><span class="n">FileID</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="kt">bool</span><span class="w"> </span><span class="n">NewFile</span><span class="p">;</span>
+<span class="w">   </span><span class="n">IO</span><span class="o">::</span><span class="n">openFileWrite</span><span class="p">(</span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">Filename</span><span class="p">,</span><span class="w"> </span><span class="n">NewFile</span><span class="p">,</span><span class="w"> </span><span class="n">IfExists</span><span class="p">,</span><span class="w"> </span><span class="n">FileFormat</span><span class="p">(</span><span class="n">opt</span><span class="p">));</span>
+<span class="w">   </span><span class="n">IO</span><span class="o">::</span><span class="n">closeFile</span><span class="p">(</span><span class="n">FileID</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>In both case, an integer FileID is assigned to the open file which is then
+used by all subsequent operations. The Filename is a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> that
+should include the full path and name of the file. If the optional FileFormat
+is not supplied, the default file format (currently pnetcdf) is used. Supported
+file formats are shown below. The IfExists argument specifies the behavior
+for writing a file when the file already exists. It is an optional argument
+except when the FileFormat argument is needed; in that case, both must be
+supplied. The available options for IfExists are also shown below.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">/// Supported file formats</span>
+<span class="k">enum</span><span class="w"> </span><span class="nc">FileFmt</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="n">FmtPnetCDF</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_PNETCDF</span><span class="p">,</span><span class="w">  </span><span class="c1">///&lt; Parallel NetCDF</span>
+<span class="w">   </span><span class="n">FmtNetCDF3</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_NETCDF</span><span class="p">,</span><span class="w">   </span><span class="c1">///&lt; NetCDF3 classic format</span>
+<span class="w">   </span><span class="n">FmtNetCDF4c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_NETCDF4C</span><span class="p">,</span><span class="w"> </span><span class="c1">///&lt; NetCDF4 (HDF5-compatible) compressed</span>
+<span class="w">   </span><span class="n">FmtNetCDF4p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_NETCDF4P</span><span class="p">,</span><span class="w"> </span><span class="c1">///&lt; NetCDF4 (HDF5-compatible) parallel</span>
+<span class="w">   </span><span class="n">FmtNetCDF4z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_NETCDF4P_NCZARR</span><span class="p">,</span><span class="w"> </span><span class="c1">///&lt; NetCDF4 (HDF5) NCZarr</span>
+<span class="w">   </span><span class="n">FmtADIOS</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_ADIOS</span><span class="p">,</span><span class="w">           </span><span class="c1">///&lt; ADIOS parallel</span>
+<span class="w">   </span><span class="n">FmtADIOSC</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_ADIOSC</span><span class="p">,</span><span class="w">  </span><span class="c1">///&lt; ADIOS parallel with compression</span>
+<span class="w">   </span><span class="n">FmtHDF5</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_HDF5</span><span class="p">,</span><span class="w">    </span><span class="c1">///&lt; native HDF5 parallel</span>
+<span class="w">   </span><span class="n">FmtHDF5C</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_HDF5C</span><span class="p">,</span><span class="w">   </span><span class="c1">///&lt; native HDF5 parallel w compression</span>
+<span class="w">   </span><span class="n">FmtDefault</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_IOTYPE_PNETCDF</span><span class="p">,</span><span class="w"> </span><span class="c1">///&lt; PNETCDF is default</span>
+<span class="p">};</span>
+
+<span class="c1">/// Behavior (for output files) when a file already exists</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">IfExists</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="n">Fail</span><span class="p">,</span><span class="w">    </span><span class="c1">/// Fail with an error</span>
+<span class="w">   </span><span class="n">Replace</span><span class="p">,</span><span class="w"> </span><span class="c1">/// Replace the file</span>
+<span class="w">   </span><span class="n">Append</span><span class="p">,</span><span class="w">  </span><span class="c1">/// Append to the existing file</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The defaults for each are <code class="docutils literal notranslate"><span class="pre">IO::FmtDefault</span></code> for file format and
+<code class="docutils literal notranslate"><span class="pre">IO::IfExists::Fail</span></code> for IfExists. Earlier NetCDF formats should be avoided,
+but are provided in case an input file is in an earlier format.</p>
+<p>Once the file is open, data is read/written using one of two interfaces,
+depending on whether the array is decomposed across MPI tasks or not. For
+large decomposed arrays, the interface is:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">readArray</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">Size</span><span class="p">,</span><span class="w"> </span><span class="n">VariableName</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">DecompID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">);</span>
+<span class="n">IO</span><span class="o">::</span><span class="n">writeArray</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">Size</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">FillValue</span><span class="p">,</span><span class="w">   </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">DecompID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where the pointer to the data array is passed and data is assumed to be
+contiguous with the full local size of the array passed as Size. The FileID is
+the integer ID for the open file. The DecompID is a defined data decomposition
+as described below. For reading, the variable name (as a <code class="docutils literal notranslate"><span class="pre">std::string</span></code>) is
+supplied and the variable ID (VarID) is returned in case it is needed for
+reading of variable metadata. For writing, a FillValue is supplied to fill
+undefined locations in an array and the variable ID must have been assigned
+in a prior defineVar call prior to the write as described below. The readArray
+returns an error code so that the calling routine can re-try the read. This
+is used in Omega to manage name changes between Omega and the earlier MPAS
+names.</p>
+<p>Writing or reading multiple time slices (where there in an unlimited time
+dimension) is also possible and an additional optional Frame argument
+specifies the time index along that dimension that should be read/written:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">readArray</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">Size</span><span class="p">,</span><span class="w"> </span><span class="n">VariableName</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">DecompID</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">VarID</span><span class="p">,</span><span class="w"> </span><span class="n">Frame</span><span class="p">);</span>
+<span class="n">IO</span><span class="o">::</span><span class="n">writeArray</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">Size</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">FillValue</span><span class="p">,</span><span class="w">   </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">DecompID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">,</span><span class="w"> </span><span class="n">Frame</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>For arrays or scalars that are not distributed, the non-distributed variable
+interface must be used:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">readNDVar</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">VarType</span><span class="p">,</span><span class="w"> </span><span class="n">VariableName</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">);</span>
+<span class="n">IO</span><span class="o">::</span><span class="n">writeNDVar</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>with arguments similar to the distributed array calls above. The read
+requires a VarType argument giving the data type of the destination array
+(<code class="docutils literal notranslate"><span class="pre">IO::IOTypeI4</span></code>, <code class="docutils literal notranslate"><span class="pre">IOTypeI8</span></code>, <code class="docutils literal notranslate"><span class="pre">IOTypeR4</span></code> or <code class="docutils literal notranslate"><span class="pre">IOTypeR8</span></code>). This need
+not be the type the variable has in the file and the values are converted
+on read. Supplying it is required rather than optional: without it the
+underlying SCORPIO call fills the destination using the type stored in the
+file, so reading a double variable into a single-precision array would
+write eight bytes per element into four-byte slots and run off the end of
+the array. Distributed reads get the same information from the
+decomposition, so <code class="docutils literal notranslate"><span class="pre">readArray</span></code> needs no equivalent argument.</p>
+<p>Note that when defining dimensions for these fields, the dimensions must be
+non-distributed. For scalars, the number of dimensions should be zero.
+Multiple time slices can be also be read/written for non-distributed fields,
+but require two additional arguments. As in the distributed array, the
+Frame (index of the time slice) must be provided. In addition, a vector
+<code class="docutils literal notranslate"><span class="pre">std::vector&lt;int&gt;</span> <span class="pre">DimLengths</span></code> containing the length of the non-time
+dimensions must be provided:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">readNDVar</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">VarType</span><span class="p">,</span><span class="w"> </span><span class="n">VariableName</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">,</span><span class="w"> </span><span class="n">Frame</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">DimLengths</span><span class="p">);</span>
+<span class="n">IO</span><span class="o">::</span><span class="n">writeNDVar</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Array</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">,</span><span class="w"> </span><span class="n">Frame</span><span class="p">,</span><span class="w"> </span><span class="n">DimLengths</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Note that the full arrays in this case are written so if any masking or
+pruning of points is required, it should be performed before the call.</p>
+<p>The IO subsystem must know how the data is laid out in the parallel
+decomposition. Both the dimensions of the array and the decomposition
+across tasks must be defined. For each dimension, a dimension must be
+defined using:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">DimID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">defineDim</span><span class="p">(</span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">DimName</span><span class="p">,</span><span class="w"> </span><span class="n">Length</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where FileID is the ID of an open file, the DimName is a <code class="docutils literal notranslate"><span class="pre">std::string</span></code>
+with the dimension name (eg NCells, NEdges, NVertices, NVertLayers or
+NTracers), length is the length of the full global array and DimID is
+the ID assigned to this dimension. Note that for reading a file, we
+supply the function:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">getDimFromFile</span><span class="p">(</span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">DimName</span><span class="p">,</span><span class="w"> </span><span class="n">DimID</span><span class="p">,</span><span class="w"> </span><span class="n">DimLength</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>that can be used to inquire about the dimension length and retrieve the
+dimension ID from the file.</p>
+<p>Once the dimensions are defined, the decomposition of an array must
+be defined using:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">DecompID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">createDecomp</span><span class="p">(</span><span class="n">IODataType</span><span class="p">,</span><span class="w"> </span><span class="n">NDims</span><span class="p">,</span><span class="w"> </span><span class="n">DimLengths</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">Size</span><span class="p">,</span><span class="w"> </span><span class="n">GlobalIndx</span><span class="p">,</span><span class="w"> </span><span class="n">Rearr</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where DecompID is the ID assigned to the newly created decomposition,
+NDims is the number of dimensions for the array, DimLengths is an
+integer <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> of the NDims local dimension lengths, Size is the
+full size of the local array, and Rearr is the data rearranger method
+to use to map to the number of IO tasks. The Rearr can be set to
+<code class="docutils literal notranslate"><span class="pre">OMEGA::IO::DefaultRearr</span></code> to make use of the overall default defined
+when the IO system was initialized, but can also be set explicitly to
+<code class="docutils literal notranslate"><span class="pre">OMEGA::IO::RearrBox</span></code> or <code class="docutils literal notranslate"><span class="pre">OMEGA::IO::RearrSubset</span></code>. The box rearranger
+is generally preferred (see <a class="reference internal" href="../../userGuide/config/Parallel.html#omega-user-config-parallel-io"><span class="std std-ref">UserGuide</span></a>). The GlobalIndx
+array describes the global location (as a zero-based offset) of each
+local array entry. This can be computed from the Omega Default Decomp
+arrays. For example, an array dimensioned (NCellsAll,NVertLayers) would
+have an offset computed using:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">OffsetCell</span><span class="p">(</span><span class="n">NCellsAll</span><span class="o">*</span><span class="n">NVertLayers</span><span class="p">,</span><span class="mi">-1</span><span class="p">);</span>
+<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">Add</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">   </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">Cell</span><span class="p">;</span><span class="w"> </span><span class="n">Cell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">Cell</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">NCellsOwned</span><span class="p">){</span>
+<span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">NVertLayers</span><span class="p">){</span>
+<span class="w">         </span><span class="n">OffsetCell</span><span class="p">[</span><span class="n">Add</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">CellIDH</span><span class="p">(</span><span class="n">Cell</span><span class="p">)</span><span class="mi">-1</span><span class="p">)</span><span class="o">*</span><span class="n">NVertLayers</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="p">;</span>
+<span class="w">         </span><span class="n">Add</span><span class="o">++</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that we exclude Halo layers by assigning an offset of -1. Finally,
+the data type of the array must be supplied. To map the standard Omega
+data types to the data types used in the IO subsystem, we define:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span><span class="w"> </span><span class="nc">IODataType</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="n">IOTypeI4</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_INT</span><span class="p">,</span><span class="w">    </span><span class="c1">/// 32-bit integer</span>
+<span class="w">   </span><span class="n">IOTypeI8</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_INT64</span><span class="p">,</span><span class="w">  </span><span class="c1">/// 64-bit integer</span>
+<span class="w">   </span><span class="n">IOTypeR4</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_REAL</span><span class="p">,</span><span class="w">   </span><span class="c1">/// 32-bit real</span>
+<span class="w">   </span><span class="n">IOTypeR8</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="c1">/// 64-bit real</span>
+<span class="w">   </span><span class="n">IOTypeChar</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_CHAR</span><span class="p">,</span><span class="w">   </span><span class="c1">/// Character/string</span>
+<span class="w">   </span><span class="n">IOTypeLogical</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PIO_INT</span><span class="w">     </span><span class="c1">/// Logicals are converted to ints for IO</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>so that in the above interface, we would supply for example <code class="docutils literal notranslate"><span class="pre">IO::IOTypeI4</span></code>
+for an Omega I4 data type.</p>
+<p>Now that dimensions and decompositions have been defined, a variable can
+be defined (this is required for writing only) using:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">VarID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">defineVar</span><span class="p">(</span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarName</span><span class="p">,</span><span class="w"> </span><span class="n">IODataType</span><span class="p">,</span><span class="w"> </span><span class="n">NDims</span><span class="p">,</span><span class="w"> </span><span class="n">DimIDs</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where VarID is the ID assigned to the variable, FileID is the usual ID of
+the data file, VarName is a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> holding the variable name,
+IODataType is the data type described above, NDims are the number of dimensions,
+and DimIDs are an integer <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> holding the dimension IDs for each
+dimension. For scalar variables, NDims should be set to zero and a null pointer
+should be used in place of the DimID argument. Once defined, the variable ID
+is used in all IO calls related to this variable.</p>
+<p>In addition to data in a file, we can also read and write metadata. As with
+the data itself, metadata is typically managed by the IOStreams and Metadata
+interfaces, but the base IO module contains interfaces for reading and
+writing metadata associated with either an array or the file or simulation
+itself. To read/write metadata, use:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="n">IO</span><span class="o">::</span><span class="n">writeMeta</span><span class="p">(</span><span class="n">MetaName</span><span class="p">,</span><span class="w"> </span><span class="n">MetaValue</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">);</span>
+<span class="w">   </span><span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IO</span><span class="o">::</span><span class="n">readMeta</span><span class="w"> </span><span class="p">(</span><span class="n">MetaName</span><span class="p">,</span><span class="w"> </span><span class="n">MetaValue</span><span class="p">,</span><span class="w"> </span><span class="n">FileID</span><span class="p">,</span><span class="w"> </span><span class="n">VarID</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where MetaName is a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> holding the name of the metadata and
+the MetaValue is the value of the MetaData. All supported Omega data types are
+allowed except boolean which must be converted to an integer type. The FileID
+is once again the ID of the open data file and VarID is the variable to which
+this metadata is attached. For global file and simulation metadata not attached
+to a variable, the ID <code class="docutils literal notranslate"><span class="pre">IO::GlobalID</span></code> is used to denote global metadata. If
+data is being appended to a file (eg for multiple time slices), writeMeta will
+check first to see if metadata already exists with the same value. If the
+entry is absent, new metadata will be written. If it exists but with a
+different value, the writeMeta function will replace the current entry with
+the new value.</p>
+<p>For an example of the full read/write process, the IO unit test contains
+the full reading and writing of a data file and associated metadata. We
+will repeat again that users and developers are not expected to learn and
+use the interfaces above, but should access the IO system from the IOStreams
+interfaces.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="CFUnits.html" class="btn btn-neutral float-left" title="CFUnits" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="IOStreams.html" class="btn btn-neutral float-right" title="IO Streams (IOStream)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

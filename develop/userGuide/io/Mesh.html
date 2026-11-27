@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mesh Files &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Initial Conditions and Restarts" href="InitialConditions.html" />
+    <link rel="prev" title="I/O Streams" href="Streams.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Input and Output</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Streams.html">I/O Streams</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Mesh Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sphere-radius">Sphere radius</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="InitialConditions.html">Initial Conditions and Restarts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Fields.html">Fields and Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Input and Output</a></li>
+      <li class="breadcrumb-item active">Mesh Files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/io/Mesh.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="mesh-files">
+<span id="omega-user-io-mesh"></span><h1>Mesh Files<a class="headerlink" href="#mesh-files" title="Permalink to this heading"></a></h1>
+<p>Omega uses the <a class="reference internal" href="../../techGuide/discretization/MpasMesh.html#omega-tech-mpas-mesh"><span class="std std-ref">MPAS mesh specification</span></a>. The
+names of the mesh variables have been retained, with the caveat that they now
+begin with a capital letter (e.g. <code class="docutils literal notranslate"><span class="pre">angleEdge</span></code> becomes <code class="docutils literal notranslate"><span class="pre">AngleEdge</span></code>).</p>
+<p>The Mesh class is meant to be a container for all mesh variables local to a
+decomposed sub-domain that can be easily passed among the dycore routines. It
+depends on a given <a class="reference internal" href="../config/Parallel.html#omega-user-config-parallel"><span class="std std-ref">Decomp</span></a> and reproduces the
+cell/edge/vertex totals and connectivity information from that class. The Mesh
+class also creates parallel I/O decompositions that are used to read in the
+additional mesh variables, which are not required for Decomp.</p>
+<p>The domain decomposition (<a class="reference internal" href="../config/Parallel.html#omega-user-config-parallel"><span class="std std-ref">Parallel Layout</span></a>) reads a few of
+these fields first. It needs, at a minimum,</p>
+<ul class="simple">
+<li><p>the total number of cells, edges and vertices (NCells, NEdges, NVertices)</p></li>
+<li><p>the mesh connectivity contained in the arrays CellsOnCell, EdgesOnCell
+VerticesOnCell, CellsOnEdge, EdgesOnEdge, CellsOnVertex, EdgesOnVertex.
+For spherical meshes, the vector reconstruction stencil arrays
+NEdgesReconOnCell and ReconStencilCell are also required.</p></li>
+</ul>
+<p>The Mesh class then reads in every other field required by the
+<a class="reference internal" href="../../techGuide/discretization/MpasMesh.html#omega-tech-mpas-mesh"><span class="std std-ref">MPAS mesh specification</span></a> except those read by
+Decomp. The input contents are defined by the
+<code class="docutils literal notranslate"><span class="pre">HorzMeshIn</span></code> FieldGroup. Refer to the specification for the
+definition, units, and dimensions of each field.</p>
+<p>These are all read using the input <a class="reference internal" href="Streams.html#omega-user-io-streams"><span class="std std-ref">IOStream</span></a> HorzMeshIn</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">IOStreams</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">HorzMeshIn</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">UsePointerFile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">Filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OmegaMesh.nc</span>
+<span class="w">      </span><span class="nt">Mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+<span class="w">      </span><span class="nt">Precision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">double</span>
+<span class="w">      </span><span class="nt">Freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">FreqUnits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OnStartup</span>
+<span class="w">      </span><span class="nt">UseStartEnd</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">Contents</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HorzMeshIn</span>
+</pre></div>
+</div>
+<p>Only the Filename should be changed by the user to point to the relevant input
+mesh file. The mesh Filename is sometimes overridden by the driver routine in
+the case of unit tests using an optional argument to the
+<a class="reference internal" href="../../devGuide/framework/Decomp.html#omega-dev-decomp"><span class="std std-ref">decomposition</span></a>.</p>
+<p>In addition, some mesh metadata are read from the file and stored as mesh
+variables. These include <code class="docutils literal notranslate"><span class="pre">OnSphere</span></code> (or <code class="docutils literal notranslate"><span class="pre">on_a_sphere</span></code> for backcompatibility),
+<code class="docutils literal notranslate"><span class="pre">IsPeriodic</span></code> (<code class="docutils literal notranslate"><span class="pre">is_periodic</span></code>), <code class="docutils literal notranslate"><span class="pre">SphereRadius</span></code> (<code class="docutils literal notranslate"><span class="pre">sphere_radius</span></code>),
+<code class="docutils literal notranslate"><span class="pre">XPeriod</span></code> (<code class="docutils literal notranslate"><span class="pre">x_period</span></code>), and <code class="docutils literal notranslate"><span class="pre">YPeriod</span></code> (<code class="docutils literal notranslate"><span class="pre">y_period</span></code>). The two flags
+OnSphere and IsPeriodic are stored as YES/NO strings in the metadata but as
+boolean flags in the code.</p>
+<p>In the future, the Mesh class will optionally compute internally those fields
+the specification marks as <em>could be computed internally</em> — the areas, lengths,
+angles, and weights needed for the TRiSK discretization.</p>
+<section id="sphere-radius">
+<span id="omega-user-io-mesh-radius"></span><h2>Sphere radius<a class="headerlink" href="#sphere-radius" title="Permalink to this heading"></a></h2>
+<p>The MPAS mesh specification places no requirement on the radius of a
+spherical mesh, but Omega does: <code class="docutils literal notranslate"><span class="pre">SphereRadius</span></code> must match the Earth radius
+from the Physical Constants Dictionary (<code class="docutils literal notranslate"><span class="pre">mean_radius</span></code>, 6371008.7714 m;
+<code class="docutils literal notranslate"><span class="pre">REarth</span></code> in <code class="docutils literal notranslate"><span class="pre">GlobalConstants.h</span></code>) to a relative tolerance of <span class="math notranslate nohighlight">\(10^{-8}\)</span>, and
+the model aborts otherwise. Meshes generated by Polaris satisfy this; older
+MPAS-Ocean meshes (typically 6371229 m) must be rescaled, which Polaris’
+<code class="docutils literal notranslate"><span class="pre">utils/omega/convert_mpaso_ic_to_omega.py</span></code> does along with the variable
+renaming.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Streams.html" class="btn btn-neutral float-left" title="I/O Streams" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="InitialConditions.html" class="btn btn-neutral float-right" title="Initial Conditions and Restarts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

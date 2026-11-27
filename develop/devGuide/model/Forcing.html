@@ -1,0 +1,457 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forcing &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Surface Coupling" href="SfcCoupling.html" />
+    <link rel="prev" title="Frazil" href="Frazil.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Driver.html">Driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="OceanState.html">Ocean State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzMesh.html">Horizontal Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryState.html">Auxiliary State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PGrad.html">Pressure Gradient (PGrad)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertMix.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPPMix.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Forcing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#surface-stress-forcing-design">Surface stress forcing design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surface-thickness-and-tracer-flux-forcing-design">Surface thickness and tracer flux forcing design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#notes">Notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#penetrating-shortwave-radiation-design">Penetrating shortwave radiation design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surface-tracer-restoring-design">Surface tracer restoring design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SfcCoupling.html">Surface Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model</a></li>
+      <li class="breadcrumb-item active">Forcing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/model/Forcing.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="forcing">
+<span id="omega-dev-forcing"></span><h1>Forcing<a class="headerlink" href="#forcing" title="Permalink to this heading"></a></h1>
+<p>This page describes design and implementation details for forcing-related
+pathways in Omega, currently this includes:</p>
+<ul class="simple">
+<li><p>Surface stress forcing (e.g. wind stress)</p></li>
+<li><p>Surface thickness and tracer flux forcing (actively coupled or data-forced)</p></li>
+<li><p>Surface tracer restoring (soon to be ported as a field originating from the coupler)</p></li>
+<li><p>Penetrating shortwave radiation</p></li>
+</ul>
+<section id="surface-stress-forcing-design">
+<h2>Surface stress forcing design<a class="headerlink" href="#surface-stress-forcing-design" title="Permalink to this heading"></a></h2>
+<section id="surface-stress-forcing-data-flow">
+<h3>Surface stress forcing data flow<a class="headerlink" href="#surface-stress-forcing-data-flow" title="Permalink to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>External fields provide:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcStressZonal</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcStressMeridional</span></code></p></li>
+</ul>
+</li>
+<li><p>Forcing compute builds <code class="docutils literal notranslate"><span class="pre">NormalStressEdge</span></code> from those fields.</p></li>
+<li><p>Tendency term applies surface stress forcing to edge-normal velocity tendency.</p></li>
+</ol>
+</section>
+<section id="surface-stress-forcing-key-classes-components">
+<h3>Surface stress forcing key classes/components<a class="headerlink" href="#surface-stress-forcing-key-classes-components" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcStressForcingVars</span></code></p>
+<ul>
+<li><p>Stores surface stress cell fields and computed <code class="docutils literal notranslate"><span class="pre">NormalStressEdge</span></code></p></li>
+<li><p>Applies configured interpolation choice (<code class="docutils literal notranslate"><span class="pre">InterpType</span></code>)</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forcing</span></code></p>
+<ul>
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">SfcStressForcingVars::computeVarsOnEdge</span></code> from
+<code class="docutils literal notranslate"><span class="pre">computeSfcStressForcingOnEdge</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcStressForcingOnEdge</span></code> tendency term</p>
+<ul>
+<li><p>Adds contribution proportional to normal stress and inverse layer
+thickness in the surface layer</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="surface-stress-forcing-config-coupling">
+<h3>Surface stress forcing config coupling<a class="headerlink" href="#surface-stress-forcing-config-coupling" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.SfcStress.InterpType</span></code></p>
+<ul>
+<li><p>mapped to <code class="docutils literal notranslate"><span class="pre">InterpCellToEdgeOption</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Tendencies.SfcStressForcingTendencyEnable</span></code></p>
+<ul>
+<li><p>gates execution of surface stress forcing tendency kernel</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="surface-thickness-and-tracer-flux-forcing-design">
+<h2>Surface thickness and tracer flux forcing design<a class="headerlink" href="#surface-thickness-and-tracer-flux-forcing-design" title="Permalink to this heading"></a></h2>
+<section id="surface-thickness-and-tracer-flux-forcing-data-flow">
+<h3>Surface thickness and tracer flux forcing data flow<a class="headerlink" href="#surface-thickness-and-tracer-flux-forcing-data-flow" title="Permalink to this heading"></a></h3>
+<p><strong>Thickness equation pathway:</strong></p>
+<ol class="arabic simple">
+<li><p>External fields provide freshwater and salt flux components:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SnowFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">RainFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">EvaporationFlux</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SeaIceFreshWaterFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">IceRunoffFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">RiverRunoffFlux</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SeaIceSaltFlux</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forcing</span></code> stores the flux fields in <code class="docutils literal notranslate"><span class="pre">TracerForcingVars</span></code></p></li>
+<li><p>The tendency term <code class="docutils literal notranslate"><span class="pre">SfcThicknessForcingOnCell</span></code> sums the freshwater and salt mass fluxes and applies them to
+the surface layer pseudo-thickness.</p></li>
+</ol>
+<p><strong>Tracer equation pathway:</strong></p>
+<ol class="arabic simple">
+<li><p>External fields provide heat and salt flux components:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LatentHeatFluxEvap</span></code>, <code class="docutils literal notranslate"><span class="pre">SensibleHeatFlux</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LongWaveHeatFluxUp</span></code>, <code class="docutils literal notranslate"><span class="pre">LongWaveHeatFluxDown</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SeaIceHeatFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">ShortWaveHeatFlux</span></code></p></li>
+<li><p>mass fluxes which add energy changes (<code class="docutils literal notranslate"><span class="pre">SnowFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">RainFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">IceRunoffFlux</span></code>, <code class="docutils literal notranslate"><span class="pre">RiverRunoffFlux</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SeaIceSaltFlux</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forcing</span></code> stores the flux fields in <code class="docutils literal notranslate"><span class="pre">TracerForcingVars</span></code></p></li>
+<li><p>The tendency term <code class="docutils literal notranslate"><span class="pre">SfcTracerForcingOnCell</span></code> converts the summed external heat fluxes to a conservative-temperature tendency,
+and applies the external sea-ice salt flux to the top layer salt content thus impacting salinity.</p></li>
+</ol>
+</section>
+<section id="surface-thickness-and-tracer-flux-forcing-key-classes-components">
+<h3>Surface thickness and tracer flux forcing key classes/components<a class="headerlink" href="#surface-thickness-and-tracer-flux-forcing-key-classes-components" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TracerForcingVars</span></code></p>
+<ul>
+<li><p>Stores 13 coupled flux cell-centered fields: 6 freshwater fluxes, 6 heat
+fluxes, and 1 salt flux component</p></li>
+<li><p>Fields initialized to zero and registered in <code class="docutils literal notranslate"><span class="pre">Forcing</span></code> field group</p></li>
+<li><p>Stores <code class="docutils literal notranslate"><span class="pre">SurfaceTracerFlux[NTracers,</span> <span class="pre">NCells]</span></code>, the unified forcing input
+for KPP non-local tracer mixing. External forcing supplies every
+non-temperature/salinity tracer flux explicitly; an explicit zero is a
+valid flux. KPP derives temperature and salinity from the heat and mass
+flux components and overwrites those two entries before using the field.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcThicknessForcingOnCell</span></code> tendency term</p>
+<ul>
+<li><p>Computes the layer mass contribution (converted to pseudo-thickness): <span class="math notranslate nohighlight">\(\sum (\text{SnowFlux} + \text{RainFlux} + \text{EvaporationFlux} + \text{SeaIceFreshWaterFlux} + \text{IceRunoffFlux} + \text{RiverRunoffFlux} + \text{SeaIceSaltFlux}) / \rho_{sw}\)</span></p></li>
+<li><p>Applied only at surface layer (top active layer) using <code class="docutils literal notranslate"><span class="pre">MinLayerCell</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcTracerForcingOnCell</span></code> tendency term</p>
+<ul>
+<li><p>For temperature: adds the direct heat fluxes
+Q_{\text{sensible}} + Q_{\text{lw,up}} + Q_{\text{lw,down}} + Q_{\text{sw}}<span class="math notranslate nohighlight">\(,
+the enthalpy flux from sea-ice interactions (conduction, phase-change and enthalpy of mass flux)  Q_{\text{ice}}, the enthalpy of added freshwater mass \)</span>(\text{RainFlux} + \text{RiverRunoffFlux}) c^0_{p,sw} max(C_T(0,0,0),C_T^{\text{top}})<span class="math notranslate nohighlight">\( (freshwater \)</span>T &gt;= 0<span class="math notranslate nohighlight">\(), the evaporation terms (\)</span>Q_{\text{latentEvap}} + EvapFlux c^0_{p,sw} C_T^{\text{top}})
+, the enthalpy change for frozen mass <span class="math notranslate nohighlight">\((\text{SnowFlux} + \text{IceRunoffFlux}) PotEnthalpyIce\)</span>, where PotEnthalpyIce is the potential enthalpy of solid ice (which includes phase change and enthalpy of the melted mass). To first order, <span class="math notranslate nohighlight">\(PotEnthalpyIce\)</span> is approximated by <span class="math notranslate nohighlight">\(-LatIce\)</span>, the engineering handbook value, neglecting 0.1%.
+These potential enthalpy terms are then scaled by <span class="math notranslate nohighlight">\(H_{\text{FluxFac}}\)</span> to provide the layer tracer tendency.</p></li>
+<li><p>For salinity: applies the mass salt flux with the appropriate unit conversion: <span class="math notranslate nohighlight">\(\text{SeaIceSaltFlux} \times S_{\text{FluxFac}}\)</span></p></li>
+<li><p>Applied only at surface layer using <code class="docutils literal notranslate"><span class="pre">MinLayerCell</span></code></p></li>
+<li><p>Uses tracer index validation to apply to specific tracers only</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forcing</span></code></p>
+<ul>
+<li><p>Manages <code class="docutils literal notranslate"><span class="pre">TracerForcingVars</span></code> instance</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Tendencies</span></code></p>
+<ul>
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">SfcThicknessForcingOnCell</span></code> in <code class="docutils literal notranslate"><span class="pre">computePseudoThicknessTendenciesOnly</span></code></p></li>
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">SfcTracerForcingOnCell</span></code> in <code class="docutils literal notranslate"><span class="pre">computeTracerTendenciesOnly</span></code> after surface tracer restoring</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="surface-thickness-and-tracer-flux-forcing-config-coupling">
+<h3>Surface thickness and tracer flux forcing config coupling<a class="headerlink" href="#surface-thickness-and-tracer-flux-forcing-config-coupling" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Tendencies.SfcThicknessForcingTendencyEnable</span></code></p>
+<ul>
+<li><p>gates execution of coupled flux thickness kernel</p></li>
+<li><p>controls freshwater and salt flux forcing on sea surface height</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Tendencies.SfcTracerForcingTendencyEnable</span></code></p>
+<ul>
+<li><p>gates execution of coupled flux tracer kernel</p></li>
+<li><p>controls direct heat flux forcing on temperature and salt flux forcing on salinity</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="coupled-energy-heat-correction-aka-energy-fixer">
+<span id="omega-dev-forcing-extra-energy"></span><h3>Coupled energy/heat correction (aka energy fixer)<a class="headerlink" href="#coupled-energy-heat-correction-aka-energy-fixer" title="Permalink to this heading"></a></h3>
+<p>The instantaneous field, in W m<span class="math notranslate nohighlight">\(^{-2}\)</span>, is owned by
+<code class="docutils literal notranslate"><span class="pre">Forcing::TracerForcing.ExtraEnergyCell</span></code>. <code class="docutils literal notranslate"><span class="pre">SfcTracerForcingOnCell</span></code> computes it
+alongside the surface tracer tendency, as defined in
+<a class="reference internal" href="../../techGuide/physics/SurfaceForcing.html#omega-tech-surface-forcing-extra-energy"><span class="std std-ref">Coupled energy correction</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ExtraEnergyCell</span></code> is reset to zero on every tracer-tendency evaluation,
+including when surface tracer forcing is disabled.</p>
+<p>The correction is exported as <code class="docutils literal notranslate"><span class="pre">Faoo_h2otemp</span></code>; see
+<a class="reference internal" href="SfcCoupling.html#omega-dev-sfc-coupling"><span class="std std-ref">surface coupling</span></a> for averaging and export details.</p>
+</section>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Currently all forcing is applied to the surface layer only. In the future, vertical spreading of river runoff contributions will be needed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SeaIceFreshWaterFlux</span></code> is the pure freshwater mass from sea ice. The full mass flux from sea ice is <code class="docutils literal notranslate"><span class="pre">SeaIceFreshWaterFlux</span> <span class="pre">+</span> <span class="pre">SeaIceSaltFlux</span></code></p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">KPPNonLocalTracerFluxTendencyEnable</span></code> is true, every active
+<code class="docutils literal notranslate"><span class="pre">SurfaceTracerFlux</span></code> entry must be supplied for the current forcing step.
+KPP validates this after inserting its temperature and salinity fluxes and
+aborts if an active entry retains its fill value. This prevents a missing
+carbon or passive-tracer flux from becoming a non-local tendency.</p></li>
+<li><p>Coupled callers update the full field with <code class="docutils literal notranslate"><span class="pre">Forcing::setSurfaceTracerFlux</span></code>.
+They supply every non-temperature/salinity entry; KPP overwrites the two
+reserved temperature and salinity entries. Partial non-temperature/salinity
+updates are not supported, so omitted values cannot persist from a previous
+forcing step.</p></li>
+</ul>
+</section>
+<section id="penetrating-shortwave-radiation-design">
+<h2>Penetrating shortwave radiation design<a class="headerlink" href="#penetrating-shortwave-radiation-design" title="Permalink to this heading"></a></h2>
+<section id="data-flow">
+<h3>Data flow<a class="headerlink" href="#data-flow" title="Permalink to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>The coupled driver imports <code class="docutils literal notranslate"><span class="pre">Foxx_swnet</span></code> and stores it in
+<code class="docutils literal notranslate"><span class="pre">CplToOcnFields::ShortWaveHeatFlux</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SfcCoupling::applyImportFields()</span></code> copies the field to
+<code class="docutils literal notranslate"><span class="pre">TracerForcingVars::ShortWaveHeatFluxCell</span></code>.</p></li>
+<li><p>Surface tracer forcing and penetrating shortwave heating are computed only
+on owned cells, so the shortwave forcing field needs no halo exchange.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forcing</span></code> owns the cell-centered annual-average fields
+<code class="docutils literal notranslate"><span class="pre">ExtinctionCoeffRedCell</span></code> and <code class="docutils literal notranslate"><span class="pre">ExtinctionCoeffBlueCell</span></code> from the
+<code class="docutils literal notranslate"><span class="pre">ShortwaveExtinctionIn</span></code> stream.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Tendencies::computeTracerTendenciesOnly()</span></code> invokes
+<code class="docutils literal notranslate"><span class="pre">PenetratingShortwaveOnCell</span></code> when
+<code class="docutils literal notranslate"><span class="pre">PenetratingShortwaveTendency.Enable</span></code> is enabled and
+<code class="docutils literal notranslate"><span class="pre">SfcTracerForcingTendencyEnable</span></code> is true.</p></li>
+</ol>
+</section>
+<section id="key-classes-and-fields">
+<h3>Key classes and fields<a class="headerlink" href="#key-classes-and-fields" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CplToOcnFields::ShortWaveHeatFlux</span></code>: host-side coupled shortwave flux.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TracerForcingVars::ShortWaveHeatFluxCell</span></code>: device-side cell forcing field.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ShortwavePenForcingVars</span></code>: owns and registers the two extinction coefficient
+fields in the <code class="docutils literal notranslate"><span class="pre">ShortwaveExtinction</span></code> field group.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PenetratingShortwaveOnCell</span></code>: Kokkos functor whose operator is defined in
+<code class="docutils literal notranslate"><span class="pre">ocn/TendencyTerms.h</span></code>; its constructor is defined in
+<code class="docutils literal notranslate"><span class="pre">ocn/TendencyTerms.cpp</span></code>.</p></li>
+</ul>
+</section>
+<section id="vertical-deposition">
+<h3>Vertical deposition<a class="headerlink" href="#vertical-deposition" title="Permalink to this heading"></a></h3>
+<p>The shortwave profile and how it is deposited in each layer are given in
+<a class="reference internal" href="../../techGuide/physics/SurfaceForcing.html#omega-tech-surface-forcing-shortwave"><span class="std std-ref">Penetrating shortwave radiation</span></a>.</p>
+<p>When penetration is enabled, <code class="docutils literal notranslate"><span class="pre">Tendencies</span></code> sets
+<code class="docutils literal notranslate"><span class="pre">SfcTracerForcingOnCell::IncludeShortWaveHeatFlux</span></code> to false. This prevents
+the same shortwave energy from being applied once through the penetrating
+kernel and again in the surface tracer forcing kernel.</p>
+</section>
+</section>
+<section id="surface-tracer-restoring-design">
+<h2>Surface tracer restoring design<a class="headerlink" href="#surface-tracer-restoring-design" title="Permalink to this heading"></a></h2>
+<section id="surface-tracer-restoring-data-flow">
+<h3>Surface tracer restoring data flow<a class="headerlink" href="#surface-tracer-restoring-data-flow" title="Permalink to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>External fields provide target values: <code class="docutils literal notranslate"><span class="pre">TracersMonthlySurfClimoCell</span></code> (values and units should match the state variables)</p></li>
+<li><p>Auxiliary-state compute forms restoring differences: <code class="docutils literal notranslate"><span class="pre">SurfTracerRestoringDiffsCell</span> <span class="pre">=</span> <span class="pre">target</span> <span class="pre">-</span> <span class="pre">tracer_surface</span></code></p></li>
+<li><p>Tendency term applies restoring only at surface layer and only for tracers selected from <code class="docutils literal notranslate"><span class="pre">SurfaceRestoring.TracersToRestore</span></code>.</p></li>
+</ol>
+</section>
+<section id="surface-tracer-restoring-key-classes-components">
+<h3>Surface tracer restoring key classes/components<a class="headerlink" href="#surface-tracer-restoring-key-classes-components" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SurfTracerRestAuxVars</span></code></p>
+<ul>
+<li><p>Inputs: <code class="docutils literal notranslate"><span class="pre">TracersMonthlySurfClimoCell</span></code>, tracer state array</p></li>
+<li><p>Output: <code class="docutils literal notranslate"><span class="pre">SurfTracerRestoringDiffsCell</span></code></p></li>
+<li><p>Uses <code class="docutils literal notranslate"><span class="pre">MinLayerCell</span></code> to select surface layer index</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SurfaceTracerRestoringOnCell</span></code> tendency term</p>
+<ul>
+<li><p>Applies <code class="docutils literal notranslate"><span class="pre">PistonVelocity</span> <span class="pre">*</span> <span class="pre">SurfTracerRestoringDiffsCell</span></code> at surface</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Tendencies</span></code></p>
+<ul>
+<li><p>Parses <code class="docutils literal notranslate"><span class="pre">SurfaceRestoring.TracersToRestore</span></code> and resolves tracer indices</p></li>
+<li><p>Builds <code class="docutils literal notranslate"><span class="pre">TracerIdsToRestore</span></code> and <code class="docutils literal notranslate"><span class="pre">NTracersToRestore</span></code></p></li>
+<li><p>Applies tracer-selection logic at call site in
+<code class="docutils literal notranslate"><span class="pre">computeTracerTendenciesOnly</span></code></p></li>
+<li><p>Aborts if restoring is enabled but no tracer IDs are available</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="surface-tracer-restoring-config-coupling">
+<h3>Surface tracer restoring config coupling<a class="headerlink" href="#surface-tracer-restoring-config-coupling" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.SurfaceRestoring.PistonVelocity</span></code></p>
+<ul>
+<li><p>tendency scaling</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.SurfaceRestoring.TracersToRestore</span></code></p>
+<ul>
+<li><p>tracer-level enable list used to build <code class="docutils literal notranslate"><span class="pre">TracerIdsToRestore</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega.Tendencies.SurfaceTracerRestoringEnable</span></code></p>
+<ul>
+<li><p>gates restoring tendency execution</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>Notes<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>If a tracer is not listed in <code class="docutils literal notranslate"><span class="pre">TracersToRestore</span></code>, no restoring tendency is applied to that tracer.</p></li>
+<li><p>If restoring is enabled but no tracer IDs are available at tendency compute-time, Omega aborts with an error.</p></li>
+<li><p>It is assumed that the incoming <code class="docutils literal notranslate"><span class="pre">TracersMonthlySurfClimoCell</span></code> fields (values and units) match the Omega state variables (i.e. conservative temperature and absolute salinity for Teos-10). If not, a pre-processing conversion should be implemented.</p></li>
+<li><p>Surface tracer restoring is active everywhere if enabled. A flag to turn it off under sea ice will need to be added in later development if this feature is desired.</p></li>
+<li><p>Unlike MPAS-Ocean, a <code class="docutils literal notranslate"><span class="pre">MaxDiff</span></code> clamping is not applied here. This check should instead be implemented in Ocean Validate when that is available.</p></li>
+<li><p>A global scaling to ensure zero-sum has not been implemented for the surface tracer restoring, but should be added in later development.</p></li>
+<li><p>At this stage, there is no temporal interpolation applied to the restoring targets, the raw <code class="docutils literal notranslate"><span class="pre">TracersMonthlySurfClimoCell</span></code> snapshot is used.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Frazil.html" class="btn btn-neutral float-left" title="Frazil" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SfcCoupling.html" class="btn btn-neutral float-right" title="Surface Coupling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

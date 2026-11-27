@@ -1,0 +1,527 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Model Options" href="../model/index.html" />
+    <link rel="prev" title="Fields and Metadata" href="Fields.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Input and Output</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Streams.html">I/O Streams</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Mesh.html">Mesh Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="InitialConditions.html">Initial Conditions and Restarts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Fields.html">Fields and Metadata</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#analysis-groups">Analysis Groups</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#usage-notes">Usage Notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#future-extensions">Future Extensions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Input and Output</a></li>
+      <li class="breadcrumb-item active">Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/io/Analysis.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="analysis">
+<span id="omega-user-io-analysis"></span><h1>Analysis<a class="headerlink" href="#analysis" title="Permalink to this heading"></a></h1>
+<p>The Analysis module provides in-situ computation of diagnostic fields from the
+ocean model state during a simulation. Analysis fields are computed on the fly
+at user-specified frequencies and written to output streams, eliminating the
+need to store large volumes of raw model output for offline post-processing.</p>
+<p>In the initial delivery, analysis is configured through pre-defined bundled
+<strong>AnalysisGroups</strong> such as <code class="docutils literal notranslate"><span class="pre">GlobalStats</span></code>. These bundles provide convenient
+shorthands for commonly-used analysis patterns and are configured entirely
+through the YAML input file. Future updates will add user-defined composable
+operator chains for fully customizable analysis, though the capability of
+using pre-defined bundled groups will persist as convenient defaults.</p>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this heading"></a></h2>
+<p>The Analysis module supports two output modes:</p>
+<ul class="simple">
+<li><p><strong>Temporal reduction:</strong> Time-averaged output over a specified period (e.g.,
+daily or monthly means). Fields are accumulated each timestep; the reduction
+is finalized and written at the end of each period. Temporal reduction is
+configured with the <code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code> parameter. A reduction period may span a
+restart: the mid-period accumulation state (the partial sum and sample count)
+is checkpointed in the restart file and restored on continuation, so the final
+average is identical to an uninterrupted run. There is no requirement that the
+reduction period divide evenly into the restart interval.</p></li>
+<li><p><strong>Instantaneous output:</strong> Snapshots of analysis fields written at specified
+frequencies (e.g., every 6 hours). Instantaneous output is configured with the
+<code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> parameter.</p></li>
+</ul>
+<section id="sampling-interval-for-temporal-reductions">
+<span id="omega-user-analysis-sampling-interval"></span><h3>Sampling interval for temporal reductions<a class="headerlink" href="#sampling-interval-for-temporal-reductions" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">SamplingInterval</span></code> parameter set the temporal reduction accumulation
+cadence. The values <code class="docutils literal notranslate"><span class="pre">dt</span></code> and <code class="docutils literal notranslate"><span class="pre">timestep</span></code> are accepted as keys to accumulate
+a sample on <strong>every</strong> model timestep. Setting <code class="docutils literal notranslate"><span class="pre">SamplingInterval</span></code> to one of the
+accepted forms below instead collects samples at a coarser cadence, so the time
+average is formed from fewer, evenly-spaced samples. This is the in-model
+equivalent of MPAS-Ocean’s driver-level <code class="docutils literal notranslate"><span class="pre">compute_interval</span></code> for the
+<code class="docutils literal notranslate"><span class="pre">time_series_stats</span></code> analysis member.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SamplingInterval</span></code> accepts three forms, distinguished by suffix:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Form</p></th>
+<th class="head"><p>Example</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TimeInterval units</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">6hour</span></code></p></td>
+<td><p>a fixed time interval between samples</p></td>
+</tr>
+<tr class="row-odd"><td><p>Timestep count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4steps</span></code></p></td>
+<td><p>every 4 model timesteps</p></td>
+</tr>
+<tr class="row-even"><td><p>Samples per period</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8perPeriod</span></code></p></td>
+<td><p>8 evenly-spaced samples per reduction period</p></td>
+</tr>
+</tbody>
+</table>
+<p>Behavior and constraints:</p>
+<ul class="simple">
+<li><p><strong>Omitted/empty:</strong> sample every timestep.</p></li>
+<li><p><strong>Phasing:</strong> the first sample falls one <code class="docutils literal notranslate"><span class="pre">SamplingInterval</span></code> after the start of
+each reduction period (samples at <code class="docutils literal notranslate"><span class="pre">PeriodStart</span> <span class="pre">+</span> <span class="pre">n*SamplingInterval</span></code>).</p></li>
+<li><p><strong>Snap-to-step:</strong> like all model alarms, sampling fires on the first timestep
+at or after each target time. A <code class="docutils literal notranslate"><span class="pre">SamplingInterval</span></code> that is not a whole
+multiple of the timestep therefore snaps to the next step, giving a bounded
+sub-timestep phase error (zero when the interval is a timestep multiple).</p></li>
+<li><p><strong>Samples per period:</strong> <code class="docutils literal notranslate"><span class="pre">&lt;n&gt;perPeriod</span></code> divides a period given in days or
+shorter units into <code class="docutils literal notranslate"><span class="pre">n</span></code> equal intervals. Months vary in length, so for a
+period given in months or years <code class="docutils literal notranslate"><span class="pre">n</span></code> must divide the number of months, as
+in <code class="docutils literal notranslate"><span class="pre">3perPeriod</span></code> for <code class="docutils literal notranslate"><span class="pre">1Year</span></code>; otherwise use a fixed interval such as <code class="docutils literal notranslate"><span class="pre">1day</span></code>.</p></li>
+<li><p><strong>Period-divisibility (required):</strong> the reduction period must be evenly
+divisible by the sampling interval, so the simple count-mean remains an
+unbiased estimate of the time average. A violation aborts the run. <strong>This
+check is unrelated to the restart interval</strong> — temporal reductions may still
+span restarts with no restart-interval divisibility requirement.</p></li>
+<li><p><strong>Accuracy caveat:</strong> the averaged value stays unbiased, but when the interval
+is not a timestep multiple the per-period sample count may differ by ±1
+between periods (a boundary-adjacent sample can snap to either side). This
+per-period count variation is <strong>reproducible across restarts</strong>: the sample
+schedule is anchored to the absolute clock start, so an exact-restart (ERS)
+run reconstructs the identical boundaries and reproduces the straight-through
+result bit-for-bit. When the interval is a timestep multiple, the count is
+constant and this does not arise at all.</p></li>
+</ul>
+</section>
+</section>
+<section id="configuration-overview">
+<h2>Configuration Overview<a class="headerlink" href="#configuration-overview" title="Permalink to this heading"></a></h2>
+<p>Analysis groups are configured in the YAML input file under <code class="docutils literal notranslate"><span class="pre">Omega:</span> <span class="pre">Analysis:</span></code>.
+Each group can be independently enabled or disabled. The initial delivery
+provides the <code class="docutils literal notranslate"><span class="pre">GlobalStats</span></code> group.</p>
+<section id="common-configuration-parameters">
+<h3>Common Configuration Parameters<a class="headerlink" href="#common-configuration-parameters" title="Permalink to this heading"></a></h3>
+<p>All AnalysisGroups support the following parameters:</p>
+<ul class="simple">
+<li><p><strong>Enable:</strong> Required boolean (<code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code>). Enables or disables the
+group.</p></li>
+<li><p><strong>Filename:</strong> Required string. Template for output filenames with optional
+time-based variables (<code class="docutils literal notranslate"><span class="pre">$Y</span></code>, <code class="docutils literal notranslate"><span class="pre">$M</span></code>, <code class="docutils literal notranslate"><span class="pre">$D</span></code>, <code class="docutils literal notranslate"><span class="pre">$h</span></code>, <code class="docutils literal notranslate"><span class="pre">$m</span></code>, <code class="docutils literal notranslate"><span class="pre">$s</span></code>). The group
+automatically appends frequency and type information to the filename.</p></li>
+<li><p><strong>Stream:</strong> Optional map of IOStream parameters to customize output behavior.
+See <a class="reference internal" href="#stream-parameters">Stream Parameters</a> below for details.</p></li>
+</ul>
+</section>
+</section>
+<section id="analysis-groups">
+<h2>Analysis Groups<a class="headerlink" href="#analysis-groups" title="Permalink to this heading"></a></h2>
+<p>Each AnalysisGroup encapsulates a set of related analysis operations. Groups
+inherit from the <code class="docutils literal notranslate"><span class="pre">AnalysisGroup</span></code> base class, which provides common
+functionality for operator chain construction and stream management.</p>
+<p>When initialized, each group:</p>
+<ol class="arabic simple">
+<li><p>Parses its configuration to determine which operator chains to build</p></li>
+<li><p>Registers operator chains with the Analysis orchestrator</p></li>
+<li><p>Groups chains by output frequency and type (time reduction vs. instantaneous
+output)</p></li>
+<li><p>Creates IOStream objects for each unique temporal configuration</p></li>
+</ol>
+<p>All groups automatically handle intermediate operator sharing—if multiple
+chains require the same intermediate result, it is computed once and reused.
+Temporal reduction operators automatically checkpoint their mid-period
+accumulation state to the restart file, so reduction periods may span restarts
+without any divisibility requirement.</p>
+<section id="stream-parameters">
+<h3>Stream Parameters<a class="headerlink" href="#stream-parameters" title="Permalink to this heading"></a></h3>
+<p>All AnalysisGroups support the optional <code class="docutils literal notranslate"><span class="pre">Stream</span></code> sub-node for customizing
+IOStream output parameters. If omitted, defaults are used.</p>
+<p><strong>Default values set by the Analysis module:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">UsePointerFile:</span> <span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IfExists:</span> <span class="pre">append</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Precision:</span> <span class="pre">double</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UseStartEnd:</span> <span class="pre">false</span></code></p></li>
+</ul>
+<p>All other Stream parameters (<code class="docutils literal notranslate"><span class="pre">FileFreq</span></code>, <code class="docutils literal notranslate"><span class="pre">FileFreqUnits</span></code>, <code class="docutils literal notranslate"><span class="pre">PointerFilename</span></code>,
+<code class="docutils literal notranslate"><span class="pre">StartTime</span></code>, <code class="docutils literal notranslate"><span class="pre">EndTime</span></code>) are empty or disabled by default.</p>
+<p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">Filename</span></code>, <code class="docutils literal notranslate"><span class="pre">Freq</span></code>, and <code class="docutils literal notranslate"><span class="pre">FreqUnits</span></code> stream parameters are set
+automatically by <code class="docutils literal notranslate"><span class="pre">AnalysisGroup</span></code> configuration. Any user-specified values for
+these parameters will be overwritten.</p>
+<p>For complete IOStream documentation, see the
+<a class="reference internal" href="Streams.html#omega-user-io-streams"><span class="std std-ref">IOStreams</span></a> section of the User’s Guide.</p>
+</section>
+<section id="globalstats">
+<h3>GlobalStats<a class="headerlink" href="#globalstats" title="Permalink to this heading"></a></h3>
+<p>Computes global spatial statistics (mean, min, max, standard deviation) for
+user-specified fields. The mean and standard deviation are weighted so that
+they do not depend on the mesh resolution: by the area of each cell, edge or
+vertex for a horizontal field, and by mass (area times pseudo-thickness) for
+a field with a vertical dimension, with an interface field weighted by half
+the mass of each adjacent layer. Only active layers take part. Each statistic
+is written with the <code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">standard_name</span></code> of the field it reduces and a
+CF <code class="docutils literal notranslate"><span class="pre">cell_methods</span></code> attribute describing the reduction, for example
+<code class="docutils literal notranslate"><span class="pre">area:</span> <span class="pre">depth:</span> <span class="pre">mean</span></code> for the mean of a layered field and
+<code class="docutils literal notranslate"><span class="pre">area:</span> <span class="pre">depth:</span> <span class="pre">mean</span> <span class="pre">time:</span> <span class="pre">mean</span></code> for its time mean.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Omega</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Analysis</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">GlobalStats</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">Fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Temperature</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">GeomZInterface</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Salinity</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">NormalVelocity</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">SpatialStats</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Mean</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Max</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Min</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">StdDev</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">ReductionPeriod</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1Day</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1Month</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">SamplingInterval</span><span class="p">:</span><span class="w"> </span><span class="s">"dt"</span>
+<span class="w">      </span><span class="nt">SnapshotPeriod</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">6Hour</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">Filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">global.stats.$Y.nc</span>
+<span class="w">      </span><span class="nt">Stream</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">FileFreq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">        </span><span class="nt">FileFreqUnits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">years</span>
+<span class="w">        </span><span class="nt">Precision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">single</span>
+</pre></div>
+</div>
+<p><strong>Group-Specific Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>Fields:</strong> Required list of field names to analyze. The simulation will
+abort if a requested field does not exist.</p></li>
+<li><p><strong>SpatialStats:</strong> Required list of spatial operators.</p></li>
+<li><p><strong>ReductionPeriod:</strong> Optional list of time periods for temporal reduction
+(e.g., <code class="docutils literal notranslate"><span class="pre">1Hour</span></code>, <code class="docutils literal notranslate"><span class="pre">1Day</span></code>, <code class="docutils literal notranslate"><span class="pre">1Month</span></code>, <code class="docutils literal notranslate"><span class="pre">1Year</span></code>). At least one of <code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code>
+or <code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> must be specified.</p></li>
+<li><p><strong>SamplingInterval:</strong> Cadence at which the temporal reductions accumulate
+samples; see
+<a class="reference internal" href="#omega-user-analysis-sampling-interval">Sampling interval for temporal reductions</a>.
+Empty, <code class="docutils literal notranslate"><span class="pre">dt</span></code>, or <code class="docutils literal notranslate"><span class="pre">timestep</span></code> samples every timestep.</p></li>
+<li><p><strong>SnapshotPeriod:</strong> Optional list of intervals for instantaneous output
+(e.g., <code class="docutils literal notranslate"><span class="pre">1Hour</span></code>, <code class="docutils literal notranslate"><span class="pre">6Hour</span></code>, <code class="docutils literal notranslate"><span class="pre">1Day</span></code>). At least one of <code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code> or
+<code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> must be specified.</p></li>
+</ul>
+<p><strong>Output fields:</strong>
+For each <code class="docutils literal notranslate"><span class="pre">(Field,</span> <span class="pre">SpatialStat)</span></code> combination:</p>
+<ul class="simple">
+<li><p>Instantaneous output: <code class="docutils literal notranslate"><span class="pre">FieldName_SpatialStat</span></code> (e.g.,
+<code class="docutils literal notranslate"><span class="pre">Temperature_SpatialMean</span></code>)</p></li>
+<li><p>Temporal reduction: <code class="docutils literal notranslate"><span class="pre">FieldName_SpatialStat_TimeMeanPeriod</span></code> (e.g.,
+<code class="docutils literal notranslate"><span class="pre">Temperature_SpatialMean_TimeMean1Day</span></code>)</p></li>
+</ul>
+<p><strong>Output streams:</strong>
+Automatically created and named:</p>
+<ul class="simple">
+<li><p>Time reduction: <code class="docutils literal notranslate"><span class="pre">GlobalStats_FreqTimeStats</span></code> (e.g.,
+<code class="docutils literal notranslate"><span class="pre">GlobalStats_1DayTimeStats</span></code>)</p></li>
+<li><p>Instantaneous output: <code class="docutils literal notranslate"><span class="pre">GlobalStats_FreqInstants</span></code> (e.g.,
+<code class="docutils literal notranslate"><span class="pre">GlobalStats_6HourInstants</span></code>)</p></li>
+</ul>
+</section>
+<section id="moc">
+<h3>MOC<a class="headerlink" href="#moc" title="Permalink to this heading"></a></h3>
+<p>Computes the Meridional Overturning Circulation (MOC) streamfunction using two
+methods: latitude-binned regional MOC and transect-based MOC. The MOC
+represents zonally integrated meridional mass transport as a function of
+latitude and depth (regional MOC) or depth alone (transect MOC). Output is in
+Sverdrups (Sv), where 1 Sv = 10⁶ m³/s, so its <code class="docutils literal notranslate"><span class="pre">units</span></code> attribute is
+<code class="docutils literal notranslate"><span class="pre">1e+06</span> <span class="pre">m3</span> <span class="pre">s-1</span></code>, the udunits spelling of a Sverdrup (udunits reads <code class="docutils literal notranslate"><span class="pre">Sv</span></code> as the
+sievert).</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Omega</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Analysis</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">MOC</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">NumBins</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180</span>
+<span class="w">      </span><span class="nt">MinLat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-90.0</span>
+<span class="w">      </span><span class="nt">MaxLat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">90.0</span>
+<span class="w">      </span><span class="nt">Regions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Global</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">Transects</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<span class="w">      </span><span class="nt">ReductionPeriod</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1Month</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">SamplingInterval</span><span class="p">:</span><span class="w"> </span><span class="s">"dt"</span>
+<span class="w">      </span><span class="nt">SnapshotPeriod</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1Day</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">Filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">moc.$Y-$M.nc</span>
+<span class="w">      </span><span class="nt">Stream</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">FileFreq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">        </span><span class="nt">FileFreqUnits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">months</span>
+</pre></div>
+</div>
+<p><strong>Group-Specific Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>NumBins:</strong> Optional integer specifying the number of latitude bins for
+regional MOC (default: 180, approximately 1-degree resolution).</p></li>
+<li><p><strong>MinLat:</strong> Optional minimum latitude in degrees for binning (default: -90.0).</p></li>
+<li><p><strong>MaxLat:</strong> Optional maximum latitude in degrees for binning (default: 90.0).</p></li>
+<li><p><strong>Regions:</strong> Optional list of region names for regional MOC computation
+(default: <code class="docutils literal notranslate"><span class="pre">[Global]</span></code>). Regional MOC computes the streamfunction as a function
+of latitude and depth. Currently only <code class="docutils literal notranslate"><span class="pre">Global</span></code> is supported; region masks are
+not yet implemented.</p></li>
+<li><p><strong>Transects:</strong> Optional list of transect names for transect-based MOC
+computation (default: <code class="docutils literal notranslate"><span class="pre">[]</span></code>). Transect MOC computes the streamfunction as a
+function of depth only by accumulating transport across specified transect
+edges. Transect masks are not yet implemented.</p></li>
+<li><p><strong>ReductionPeriod:</strong> Optional list of time periods for temporal reduction.
+At least one of <code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code> or <code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> must be specified.</p></li>
+<li><p><strong>SamplingInterval:</strong> Cadence at which the temporal reductions accumulate
+samples; see
+<a class="reference internal" href="#omega-user-analysis-sampling-interval">Sampling interval for temporal reductions</a>.
+Empty, <code class="docutils literal notranslate"><span class="pre">dt</span></code>, or <code class="docutils literal notranslate"><span class="pre">timestep</span></code> samples every timestep.</p></li>
+<li><p><strong>SnapshotPeriod:</strong> Optional list of intervals for instantaneous output. At
+least one of <code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code> or <code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> must be specified.</p></li>
+</ul>
+<p><strong>Output fields:</strong></p>
+<ul class="simple">
+<li><p>Regional MOC: <code class="docutils literal notranslate"><span class="pre">MOC_streamfunction_RegionName</span></code> (2D: latitude bins × depth)</p></li>
+<li><p>Transect MOC: <code class="docutils literal notranslate"><span class="pre">MOC_streamfunction_transect_TransectName</span></code> (1D: depth only)</p></li>
+</ul>
+<p>For temporal reduction, <code class="docutils literal notranslate"><span class="pre">_TimeMeanPeriod</span></code> is appended (e.g.,
+<code class="docutils literal notranslate"><span class="pre">MOC_streamfunction_Global_TimeMean1Month</span></code>).</p>
+<p><strong>Output streams:</strong>
+Automatically created and named:</p>
+<ul class="simple">
+<li><p>Time reduction: <code class="docutils literal notranslate"><span class="pre">MOC_FreqTimeStats</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">MOC_1MonthTimeStats</span></code>)</p></li>
+<li><p>Instantaneous output: <code class="docutils literal notranslate"><span class="pre">MOC_FreqInstants</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">MOC_1DayInstants</span></code>)</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Regional and transect masks are not yet implemented. The <code class="docutils literal notranslate"><span class="pre">Regions</span></code> parameter
+currently only supports <code class="docutils literal notranslate"><span class="pre">[Global]</span></code>, and <code class="docutils literal notranslate"><span class="pre">Transects</span></code> is a placeholder for future
+functionality. The underlying operator infrastructure is complete and ready for
+use once the mask fields are implemented in Omega.</p>
+</div>
+</section>
+<section id="monthlyaverages">
+<h3>MonthlyAverages<a class="headerlink" href="#monthlyaverages" title="Permalink to this heading"></a></h3>
+<p>Computes monthly time averages of a set of requested global fields. Unlike
+<code class="docutils literal notranslate"><span class="pre">GlobalStats</span></code>, no spatial reduction is applied: each requested field is passed
+directly to a temporal-reduction (<code class="docutils literal notranslate"><span class="pre">TimeMean</span></code>) operator. The averaging period
+defaults to one month, but may be overridden with the optional
+<code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code> parameter. The <code class="docutils literal notranslate"><span class="pre">MonghtlyAverages</span></code> group is specifically for
+temporal reductions, any defined <code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> parameter is ignored. This
+group mirrors the <code class="docutils literal notranslate"><span class="pre">timeSeriesStatsMonthly</span></code> analysis member in MPAS-Ocean, which
+delivers monthly means of prognostic and derived fields.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Omega</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Analysis</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">MonthlyAverages</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">Fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Temperature</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Salinity</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">NormalVelocity</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">PseudoThickness</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">ReductionPeriod</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1Month</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># optional; defaults to [1Month]</span>
+<span class="w">      </span><span class="nt">SamplingInterval</span><span class="p">:</span><span class="w"> </span><span class="s">"dt"</span>
+<span class="w">      </span><span class="nt">Filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">monthly.averages.$Y.nc</span>
+<span class="w">      </span><span class="nt">Stream</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">FileFreq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">        </span><span class="nt">FileFreqUnits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">years</span>
+</pre></div>
+</div>
+<p><strong>Group-Specific Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>Fields:</strong> Required list of field names to average. The simulation will abort
+if a requested field does not exist.</p></li>
+<li><p><strong>ReductionPeriod:</strong> Optional list of time periods for temporal reduction
+(e.g., <code class="docutils literal notranslate"><span class="pre">1Day</span></code>, <code class="docutils literal notranslate"><span class="pre">1Month</span></code>, <code class="docutils literal notranslate"><span class="pre">1Year</span></code>). Defaults to <code class="docutils literal notranslate"><span class="pre">[1Month]</span></code> when not specified.
+Any <code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code> supplied for this group is ignored.</p></li>
+<li><p><strong>SamplingInterval:</strong> Cadence at which the temporal reductions accumulate
+samples; see
+<a class="reference internal" href="#omega-user-analysis-sampling-interval">Sampling interval for temporal reductions</a>.
+Empty, <code class="docutils literal notranslate"><span class="pre">dt</span></code>, or <code class="docutils literal notranslate"><span class="pre">timestep</span></code> samples every timestep.</p></li>
+</ul>
+<p><strong>Output fields:</strong>
+For each requested field, a time-averaged field is produced:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FieldName_TimeMeanPeriod</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">Temperature_TimeMean1Month</span></code>)</p></li>
+</ul>
+<p><strong>Output streams:</strong>
+Automatically created and named:</p>
+<ul class="simple">
+<li><p>Time reduction: <code class="docutils literal notranslate"><span class="pre">MonthlyAverages_FreqTimeStats</span></code> (e.g.,
+<code class="docutils literal notranslate"><span class="pre">MonthlyAverages_1MonthTimeStats</span></code>)</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default field list in <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> includes the core prognostic fields
+(<code class="docutils literal notranslate"><span class="pre">Temperature</span></code>, <code class="docutils literal notranslate"><span class="pre">Salinity</span></code>, <code class="docutils literal notranslate"><span class="pre">NormalVelocity</span></code>, <code class="docutils literal notranslate"><span class="pre">PseudoThickness</span></code>). Additional
+registered global fields may be requested by adding them to the <code class="docutils literal notranslate"><span class="pre">Fields</span></code> list.
+A reduction period may span a restart; see
+<a class="reference internal" href="#temporal-reduction-and-restarts">Temporal Reduction and Restarts</a> below.</p>
+</div>
+</section>
+</section>
+<section id="usage-notes">
+<h2>Usage Notes<a class="headerlink" href="#usage-notes" title="Permalink to this heading"></a></h2>
+<section id="temporal-reduction-and-restarts">
+<h3>Temporal Reduction and Restarts<a class="headerlink" href="#temporal-reduction-and-restarts" title="Permalink to this heading"></a></h3>
+<p>Temporal reductions (<code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code>) may span a model restart. There is no
+requirement that the reduction period divide evenly into the restart interval,
+so any combination of periods and restart intervals is valid (for example, a
+<code class="docutils literal notranslate"><span class="pre">1Month</span></code> average with a 10-day restart interval). When a restart is written in
+the middle of a reduction period, the mid-period accumulation state (the
+partial sum and the sample count) is checkpointed in the restart file and
+restored on continuation, so the final written average is identical to that of
+an uninterrupted run. Restart files written before this capability was added
+remain readable; a reduction that lacks checkpointed state simply begins a
+fresh accumulation period on restart.</p>
+</section>
+<section id="field-availability">
+<h3>Field Availability<a class="headerlink" href="#field-availability" title="Permalink to this heading"></a></h3>
+<p>The Analysis module initializes after the model state and validates that all
+requested fields exist. If a requested field is not found, the simulation
+aborts during initialization with an error message.</p>
+</section>
+<section id="intermediate-results">
+<h3>Intermediate Results<a class="headerlink" href="#intermediate-results" title="Permalink to this heading"></a></h3>
+<p>Some analysis operators require intermediate computations. For example,
+computing the standard deviation requires the mean as input. Currently, when
+configuring the <code class="docutils literal notranslate"><span class="pre">SpatialStats</span></code> list, users must include both <code class="docutils literal notranslate"><span class="pre">Mean</span></code> and
+<code class="docutils literal notranslate"><span class="pre">StdDev</span></code> if standard deviation is desired. The mean computation will be
+automatically shared if multiple statistics require it.</p>
+</section>
+</section>
+<section id="future-extensions">
+<h2>Future Extensions<a class="headerlink" href="#future-extensions" title="Permalink to this heading"></a></h2>
+<p>The Analysis framework is designed for extensibility. Future versions will
+include:</p>
+<ul class="simple">
+<li><p><strong>User-defined composable operator chains:</strong> Full control over operator
+composition specified directly in the configuration file, enabling custom
+analysis workflows beyond the pre-defined bundles.</p></li>
+<li><p><strong>Additional pre-defined analysis groups:</strong> Bundled groups for common
+analysis patterns such as AMOC stream function, eddy statistics, regional
+diagnostics, and more.</p></li>
+<li><p><strong>Additional operators:</strong> Vertical operations, horizontal gradients, spatial
+filtering, and custom transformations.</p></li>
+</ul>
+<p>The bundled <code class="docutils literal notranslate"><span class="pre">AnalysisGroup</span></code> types like <code class="docutils literal notranslate"><span class="pre">GlobalStats</span></code> will persist as convenient
+shorthands for commonly-used analysis outputs, even as the composable operator
+capability becomes available.</p>
+<p>For detailed information about the Analysis architecture, operator composition,
+dependency resolution, and extending the module with new operators or groups,
+see the <a class="reference internal" href="../../devGuide/model/Analysis.html#omega-dev-analysis"><span class="std std-ref">Analysis</span></a> section of the Developer’s Guide.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Fields.html" class="btn btn-neutral float-left" title="Fields and Metadata" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../model/index.html" class="btn btn-neutral float-right" title="Model Options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

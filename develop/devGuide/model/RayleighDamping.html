@@ -1,0 +1,179 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rayleigh Damping &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Frazil" href="Frazil.html" />
+    <link rel="prev" title="Submesoscale Eddy Parameterization" href="SubmesoEddies.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Driver.html">Driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="OceanState.html">Ocean State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzMesh.html">Horizontal Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryState.html">Auxiliary State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PGrad.html">Pressure Gradient (PGrad)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertMix.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPPMix.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Rayleigh Damping</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#implementation">Implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SfcCoupling.html">Surface Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model</a></li>
+      <li class="breadcrumb-item active">Rayleigh Damping</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/model/RayleighDamping.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="rayleigh-damping">
+<span id="omega-dev-rayleigh-damping"></span><h1>Rayleigh Damping<a class="headerlink" href="#rayleigh-damping" title="Permalink to this heading"></a></h1>
+<p>Rayleigh damping (see the <a class="reference internal" href="../../userGuide/model/RayleighDamping.html#omega-user-model-rayleigh-damping"><span class="std std-ref">user guide</span></a>) is not a separate class or tendency term. It is a diagonal contribution to the tridiagonal system solved by the implicit velocity vertical mixing in <code class="docutils literal notranslate"><span class="pre">VertMix::applyVelVertMixImplicit</span></code>.</p>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">VelVertMixSetupOnEdge</span></code> functor in <code class="docutils literal notranslate"><span class="pre">VertMix.h</span></code>, which sets up the tridiagonal system for each edge column, has two public members for Rayleigh damping, alongside the members for implicit bottom drag:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span><span class="w"> </span><span class="n">RayleighDampingEnabled</span><span class="p">;</span><span class="w"> </span><span class="c1">///&lt; Enable Rayleigh damping flag</span>
+<span class="n">Real</span><span class="w"> </span><span class="n">RayleighDampingCoeff</span><span class="p">;</span><span class="w">   </span><span class="c1">///&lt; Rayleigh damping coefficient (s^-1)</span>
+</pre></div>
+</div>
+<p>The constructor sets them to <code class="docutils literal notranslate"><span class="pre">false</span></code> and <code class="docutils literal notranslate"><span class="pre">0</span></code>. They are read from the <code class="docutils literal notranslate"><span class="pre">RayleighDamping</span></code> config group in <code class="docutils literal notranslate"><span class="pre">VertMix::init()</span></code>, which aborts if <code class="docutils literal notranslate"><span class="pre">DampingCoeff</span></code> is negative.</p>
+<p>The damping adds a term to the diagonal-only coefficient <code class="docutils literal notranslate"><span class="pre">H</span></code> of the
+diffusion-type tridiagonal system for each edge column; the discrete form is
+given in <a class="reference internal" href="../../techGuide/physics/RayleighDamping.html#omega-tech-rayleigh-damping"><span class="std std-ref">Rayleigh Damping</span></a>. The functor is only called for active layers, so damping is applied to exactly those layers. The contribution is guarded by <code class="docutils literal notranslate"><span class="pre">RayleighDampingEnabled</span></code>, so the disabled path is unchanged.</p>
+<p>Because the damping is part of the implicit solve, <code class="docutils literal notranslate"><span class="pre">Tendencies</span></code> aborts at initialization if Rayleigh damping is enabled but <code class="docutils literal notranslate"><span class="pre">VelVertMixTendencyEnable</span></code> is <code class="docutils literal notranslate"><span class="pre">false</span></code>, as it already does for implicit bottom drag. <code class="docutils literal notranslate"><span class="pre">VertMix::init()</span></code> must therefore be called before <code class="docutils literal notranslate"><span class="pre">Tendencies::init()</span></code>.</p>
+<p>All time steppers apply the damping through <code class="docutils literal notranslate"><span class="pre">VertMix::VertMixImplicit</span></code>. No fields, halo exchanges or I/O are added.</p>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">VertMixTest</span></code> calls <code class="docutils literal notranslate"><span class="pre">VertMix::applyVelVertMixImplicit</span></code> with a test <code class="docutils literal notranslate"><span class="pre">OceanState</span></code> and checks:</p>
+<ul class="simple">
+<li><p>With no vertical viscosity or bottom drag, every active layer decays by exactly <span class="math notranslate nohighlight">\(1/(1 + \Delta t \, c_R)\)</span>, both for a typical coefficient and for <span class="math notranslate nohighlight">\(c_R \Delta t = 10^3\)</span>. Velocity must keep its sign and not grow. Inactive layers must be unchanged.</p></li>
+<li><p>With viscosity and bottom drag, disabled damping and enabled damping with <span class="math notranslate nohighlight">\(c_R = 0\)</span> give bit-for-bit identical results.</p></li>
+<li><p>With nonuniform viscosity, implicit bottom drag and damping all enabled, the result matches a host Thomas-algorithm solve of the system above.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SubmesoEddies.html" class="btn btn-neutral float-left" title="Submesoscale Eddy Parameterization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Frazil.html" class="btn btn-neutral float-right" title="Frazil" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

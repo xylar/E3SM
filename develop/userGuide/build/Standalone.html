@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standalone Build &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Building in E3SM" href="E3SM.html" />
+    <link rel="prev" title="Building Omega" href="index.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Building Omega</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Standalone Build</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#if-you-are-using-polaris">If You Are Using Polaris</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#building">Building</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="E3SM.html">Building in E3SM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Options.html">Build Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Building Omega</a></li>
+      <li class="breadcrumb-item active">Standalone Build</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/build/Standalone.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="standalone-build">
+<span id="omega-user-build-standalone"></span><h1>Standalone Build<a class="headerlink" href="#standalone-build" title="Permalink to this heading"></a></h1>
+<p>Omega’s build system uses CMake. This page describes how to build Omega
+standalone, outside Polaris or within other workflows. To build it as part of
+an E3SM case, see <a class="reference internal" href="E3SM.html#omega-user-build-e3sm"><span class="std std-ref">Building in E3SM</span></a>; every CMake option is listed
+in <a class="reference internal" href="Options.html#omega-user-build-options"><span class="std std-ref">Build Options</span></a>.</p>
+<section id="if-you-are-using-polaris">
+<h2>If You Are Using Polaris<a class="headerlink" href="#if-you-are-using-polaris" title="Permalink to this heading"></a></h2>
+<p>If you are already using Polaris to set up tasks or suites, you typically do
+not need to build Omega manually. In that workflow, use Polaris auto-build
+during <code class="docutils literal notranslate"><span class="pre">polaris</span> <span class="pre">setup</span></code> or <code class="docutils literal notranslate"><span class="pre">polaris</span> <span class="pre">suite</span></code>.</p>
+<ul class="simple">
+<li><p>Polaris quick start (developers):
+<a class="reference external" href="https://docs.e3sm.org/polaris/main/developers_guide/quick_start.html">https://docs.e3sm.org/polaris/main/developers_guide/quick_start.html</a></p></li>
+<li><p>Building E3SM components:
+<a class="reference external" href="https://docs.e3sm.org/polaris/main/developers_guide/quick_start.html#building-e3sm-components">https://docs.e3sm.org/polaris/main/developers_guide/quick_start.html#building-e3sm-components</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omega_pr</span></code> suite:
+<a class="reference external" href="https://docs.e3sm.org/polaris/main/users_guide/ocean/suites.html#omega-pr-suite">https://docs.e3sm.org/polaris/main/users_guide/ocean/suites.html#omega-pr-suite</a></p></li>
+</ul>
+<p>Standalone/manual and Polaris-based build workflows are both supported.</p>
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h2>
+<p>A standalone build creates a generic E3SM case and reads the build
+configuration for the machine from it. It then configures CMake variables and
+environment variables for the machine, along with any options given on the
+CMake command line.</p>
+<p>The build needs a Python interpreter and CMake 3.21 or newer.</p>
+</section>
+<section id="building">
+<h2>Building<a class="headerlink" href="#building" title="Permalink to this heading"></a></h2>
+<p>CMake and Omega prefer an out-of-source build. This enables a user to build
+and maintain multiple executables from the same source directory.
+The standard practice is for a user to create a separate directory where
+the build should take place and the commands below should be launched from
+that directory.</p>
+<p>Choose the machine and compiler by their names in the E3SM machine
+configuration (<code class="docutils literal notranslate"><span class="pre">cime_config/machines/config_machines.xml</span></code>), and give the path
+to ParMETIS, which must be built separately. For example, to build for GPUs on
+Perlmutter:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;&gt;<span class="w"> </span>cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DOMEGA_CIME_COMPILER<span class="o">=</span>nvidiagpu<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DOMEGA_CIME_MACHINE<span class="o">=</span>pm-gpu<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DOMEGA_ARCH<span class="o">=</span>CUDA<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DOMEGA_PARMETIS_ROOT<span class="o">=</span>/path/to/parmetis<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="si">${</span><span class="nv">E3SM_HOME</span><span class="si">}</span>/components/omega
+</pre></div>
+</div>
+<p><a class="reference internal" href="Options.html#omega-user-build-options"><span class="std std-ref">Build Options</span></a> describes these and the other options, such
+as <code class="docutils literal notranslate"><span class="pre">OMEGA_BUILD_TEST</span></code> to build the unit tests and <code class="docutils literal notranslate"><span class="pre">OMEGA_BUILD_TYPE</span></code> for a
+debug build.</p>
+<p>Once the command completes successfully, several scripts will be created
+in the build directory.</p>
+<ul class="simple">
+<li><p>omega_env.sh   : load specific modules and set env. variables read from CIME</p></li>
+<li><p>omega_build.sh : run <code class="docutils literal notranslate"><span class="pre">make</span></code> command after sourcing <code class="docutils literal notranslate"><span class="pre">omega_env.sh</span></code></p></li>
+<li><p>omega_run.sh   : run <code class="docutils literal notranslate"><span class="pre">./src/omega.exe</span></code> after sourcing <code class="docutils literal notranslate"><span class="pre">omega_env.sh</span></code></p></li>
+<li><p>omega_ctest.sh : run <code class="docutils literal notranslate"><span class="pre">ctest</span></code> after sourcing <code class="docutils literal notranslate"><span class="pre">omega_env.sh</span></code></p></li>
+</ul>
+<p>Run omega_build.sh in the build directory to build Omega.</p>
+<p>Once the <code class="docutils literal notranslate"><span class="pre">cmake</span></code> command succeeds, the directory where the command was
+executed will contain the following files and directories.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;&gt;<span class="w"> </span>ls<span class="w"> </span>-1<span class="w"> </span><span class="si">${</span><span class="nv">WORKDIR</span><span class="si">}</span>
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+CTestTestfile.cmake
+external
+Makefile
+omega_build.sh
+omega_ctest.sh
+omega_env.sh
+omega_run.sh
+src
+<span class="nb">test</span>
+</pre></div>
+</div>
+<p>To build the Omega, execute the <code class="docutils literal notranslate"><span class="pre">./omega_build.sh</span></code> command in the build directory.</p>
+<p>If the build succeeds, the Omega library and executable are created in the
+<code class="docutils literal notranslate"><span class="pre">src</span></code> sub-directory of the build directory.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">./omega_ctest.sh</span></code> command runs Omega unit tests. To run the tests, MPI
+parallel job launcher such as SLURM srun should be available. You may first
+get allocation of an interactive computing node or use batch system.
+In addition, you must either copy (or soft link) a mesh file into the same
+directory as the unit test executables or specify in a configuration file
+(not implemented yet) the path to that mesh input file. For detailed instructions
+on how to obtain appropiate test meshes see <a class="reference internal" href="../../devGuide/gettingStarted/QuickStart.html#omega-dev-quick-start-getting-meshes"><span class="std std-ref">Getting test meshes</span></a>.</p>
+<p>For example, if you are on an interactive computing node, you can run
+Omega unit test by running <code class="docutils literal notranslate"><span class="pre">omega_ctest.sh</span></code> as shown below.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;&gt;<span class="w"> </span>./omega_ctest.sh
+Test<span class="w"> </span>project<span class="w"> </span>&lt;cmake<span class="w"> </span>working<span class="w"> </span>directory&gt;
+<span class="w">    </span>Start<span class="w"> </span><span class="m">1</span>:<span class="w"> </span>DATA_TYPES_TEST
+<span class="m">1</span>/1<span class="w"> </span>Test<span class="w"> </span><span class="c1">#1: DATA_TYPES_TEST ..................   Passed    0.03 sec</span>
+
+<span class="m">100</span>%<span class="w"> </span>tests<span class="w"> </span>passed,<span class="w"> </span><span class="m">0</span><span class="w"> </span>tests<span class="w"> </span>failed<span class="w"> </span>out<span class="w"> </span>of<span class="w"> </span><span class="m">1</span>
+
+Total<span class="w"> </span>Test<span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="o">(</span>real<span class="o">)</span><span class="w"> </span><span class="o">=</span><span class="w">   </span><span class="m">0</span>.04<span class="w"> </span>sec
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Building Omega" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="E3SM.html" class="btn btn-neutral float-right" title="Building in E3SM" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

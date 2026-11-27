@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tendency Terms &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Tracers" href="Tracers.html" />
+    <link rel="prev" title="Model Options" href="index.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../io/index.html">Input and Output</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model Options</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Tendency Terms</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Advection.html">Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalMixing.html">Horizontal Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PressureGradient.html">Pressure Gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VerticalCoordinate.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VerticalMixing.html">Vertical Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPP.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model Options</a></li>
+      <li class="breadcrumb-item active">Tendency Terms</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/model/Tendencies.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="tendency-terms">
+<span id="omega-user-model-tendencies"></span><h1>Tendency Terms<a class="headerlink" href="#tendency-terms" title="Permalink to this heading"></a></h1>
+<p>Tendencies for updating state variables are computed using functors, which are
+class objects that can be called like functions. These functors are used within
+Kokkos parallel loops to compute the full tendency arrays. The following
+tendency terms are currently implemented:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>PseudoThicknessFluxDivOnCell</p></td>
+<td><p>divergence of pseudo-pseudo-thickness flux, defined at cell center</p></td>
+</tr>
+<tr class="row-odd"><td><p>PotentialVortHAdvOnEdge</p></td>
+<td><p>horizontal advection of potential vorticity, defined on edges</p></td>
+</tr>
+<tr class="row-even"><td><p>KEGradOnEdge</p></td>
+<td><p>gradient of kinetic energy, defined on edges</p></td>
+</tr>
+<tr class="row-odd"><td><p>SSHGradOnEdge</p></td>
+<td><p>gradient of sea-surface height, multiplied by gravitational acceleration, defined on edges</p></td>
+</tr>
+<tr class="row-even"><td><p>VelocityDiffusionOnEdge</p></td>
+<td><p>Laplacian horizontal mixing, defined on edges</p></td>
+</tr>
+<tr class="row-odd"><td><p>VelocityHyperDiffOnEdge</p></td>
+<td><p>biharmonic horizontal mixing, defined on edges</p></td>
+</tr>
+<tr class="row-even"><td><p>TracerHorzAdvOnCell</p></td>
+<td><p>horizontal advection of thickness-weighted tracers</p></td>
+</tr>
+<tr class="row-odd"><td><p>TracerDiffOnCell</p></td>
+<td><p>horizontal diffusion of thickness-weighted tracers</p></td>
+</tr>
+<tr class="row-even"><td><p>TracerHyperDiffOnCell</p></td>
+<td><p>biharmonic horizontal mixing of thickness-weighted tracers</p></td>
+</tr>
+<tr class="row-odd"><td><p>SfcStressForcingOnEdge</p></td>
+<td><p>forcing by surface stress (e.g. wind), defined on edges</p></td>
+</tr>
+<tr class="row-even"><td><p>BottomDragOnEdge</p></td>
+<td><p>bottom drag, defined on edges</p></td>
+</tr>
+<tr class="row-odd"><td><p>SfcThicknessForcingOnCell</p></td>
+<td><p>surface pseudo-thickness forcing from coupled freshwater and salt fluxes, defined on cells</p></td>
+</tr>
+<tr class="row-even"><td><p>SfcTracerForcingOnCell</p></td>
+<td><p>surface tracer forcing from coupled heat and salt fluxes, with direct heat always and mass-flux enthalpy terms gated by thickness forcing, defined on cells</p></td>
+</tr>
+<tr class="row-odd"><td><p>PenetratingShortwaveOnCell</p></td>
+<td><p>depth-dependent three-band shortwave heating, defined on cells</p></td>
+</tr>
+<tr class="row-even"><td><p>SurfaceTracerRestoringOnCell</p></td>
+<td><p>surface tracer restoring, defined on cells</p></td>
+</tr>
+</tbody>
+</table>
+<p>Among the internal data stored by each functor is a <code class="docutils literal notranslate"><span class="pre">bool</span></code> which can enable or
+disable the contribution of that particular term to the tendency. These flags
+need to be provided in the configuration file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Tendencies</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">ThicknessFluxTendencyEnable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>Some functors have member variables that can be set by the user by the
+configuration file. The following are the user-configurable parameters for the
+currently available tendency terms; the coefficients of the horizontal mixing
+terms are described in <a class="reference internal" href="HorizontalMixing.html#omega-user-model-horizontal-mixing"><span class="std std-ref">Horizontal Mixing</span></a>, and the
+advection schemes in <a class="reference internal" href="Advection.html#omega-user-model-advection"><span class="std std-ref">Advection</span></a>:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Term</p></th>
+<th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>PseudoThicknessFluxDivOnCell</p></td>
+<td><p>ThicknessFluxTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p>PotentialVortHAdvOnEdge</p></td>
+<td><p>PVTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-even"><td><p>KEGradOnEdge</p></td>
+<td><p>KETendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p>SSHGradONEdge</p></td>
+<td><p>SSHTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-even"><td><p>VelocityDiffusionOnEdge</p></td>
+<td><p>VelDiffTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p>VelocityHyperDiffOnEdge</p></td>
+<td><p>VelHyperDiffTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-even"><td><p>TracerHorzAdvOnCell</p></td>
+<td><p>TracerHorzAdvTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p>TracerDiffOnCell</p></td>
+<td><p>TracerDiffTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-even"><td><p>TracerHyperDiffOnCell</p></td>
+<td><p>TracerHyperDiffTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p>SfcStressForcingOnEdge</p></td>
+<td><p>SfcStressForcingTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-even"><td><p>BottomDragOnEdge</p></td>
+<td><p>BottomDragTendency</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>BottomDragTendency:Mode</p></td>
+<td><p>bottom drag mode; <code class="docutils literal notranslate"><span class="pre">Implicit</span></code> or <code class="docutils literal notranslate"><span class="pre">Explicit</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>BottomDragTendency:Type</p></td>
+<td><p>bottom drag type; <code class="docutils literal notranslate"><span class="pre">Constant</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>BottomDragTendency:BottomDragCoeff</p></td>
+<td><p>bottom drag coefficient</p></td>
+</tr>
+<tr class="row-even"><td><p>SfcThicknessForcingOnCell</p></td>
+<td><p>SfcThicknessForcingTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-odd"><td><p>SfcTracerForcingOnCell</p></td>
+<td><p>SfcTracerForcingTendencyEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+<tr class="row-even"><td><p>PenetratingShortwaveOnCell</p></td>
+<td><p>PenetratingShortwaveTendency:Enable</p></td>
+<td><p>enable/disable depth-dependent shortwave heating; its parameters are described in <a class="reference internal" href="Forcing.html#omega-user-model-forcing"><span class="std std-ref">Forcing</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>SurfaceTracerRestoringOnCell</p></td>
+<td><p>SurfaceTracerRestoringEnable</p></td>
+<td><p>enable/disable term</p></td>
+</tr>
+</tbody>
+</table>
+<p>The vertical advection, pressure gradient and vertical mixing tendencies are not
+implemented as the functors above, but they are enabled from the same
+<code class="docutils literal notranslate"><span class="pre">Tendencies</span></code> section of the configuration file:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ThicknessVertAdvTendencyEnable</p></td>
+<td><p>enable/disable vertical advection of thickness</p></td>
+</tr>
+<tr class="row-odd"><td><p>VelocityVertAdvTendencyEnable</p></td>
+<td><p>enable/disable vertical advection of velocity</p></td>
+</tr>
+<tr class="row-even"><td><p>TracerVertAdvTendencyEnable</p></td>
+<td><p>enable/disable vertical advection of tracers</p></td>
+</tr>
+<tr class="row-odd"><td><p>PressureGradTendencyEnable</p></td>
+<td><p>enable/disable the pressure gradient tendency</p></td>
+</tr>
+<tr class="row-even"><td><p>VelVertMixTendencyEnable</p></td>
+<td><p>enable/disable vertical mixing of velocity; required when bottom drag uses <code class="docutils literal notranslate"><span class="pre">Implicit</span></code> mode</p></td>
+</tr>
+<tr class="row-odd"><td><p>TracerVertMixTendencyEnable</p></td>
+<td><p>enable/disable vertical mixing of tracers</p></td>
+</tr>
+<tr class="row-even"><td><p>KPPNonLocalTracerFluxTendencyEnable</p></td>
+<td><p>enable/disable the KPP non-local tracer flux; see <a class="reference internal" href="KPP.html#omega-user-model-kpp"><span class="std std-ref">KPP Boundary Layer Mixing</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>KPPNonLocalTracerDiagnosticsEnable</p></td>
+<td><p>enable/disable diagnostic output of the non-local flux tendency</p></td>
+</tr>
+</tbody>
+</table>
+<p>The non-local options are only read when velocity or tracer vertical mixing is
+enabled. If omitted, <code class="docutils literal notranslate"><span class="pre">KPPNonLocalTracerFluxTendencyEnable</span></code> defaults to disabled
+and <code class="docutils literal notranslate"><span class="pre">KPPNonLocalTracerDiagnosticsEnable</span></code> defaults to enabled.
+The non-local tracer tendency is applied only when
+<code class="docutils literal notranslate"><span class="pre">TracerVertMixTendencyEnable</span></code> is also enabled; velocity-only vertical mixing
+does not apply a tracer mixing tendency.</p>
+<p>Two further flags control tendency sources rather than individual terms:
+<code class="docutils literal notranslate"><span class="pre">UseCustomTendency</span></code> enables user-supplied tendencies and
+<code class="docutils literal notranslate"><span class="pre">ManufacturedSolutionTendency</span></code> adds the forcing used by the manufactured
+solution test case.</p>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Permalink to this heading"></a></h2>
+<p>Additional information on forcing, including surface stress forcing,
+surface thickness and tracer flux forcing, and surface tracer restoring, is detailed in
+<a class="reference internal" href="Forcing.html#omega-user-model-forcing"><span class="std std-ref">Forcing</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Model Options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Tracers.html" class="btn btn-neutral float-right" title="Tracers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

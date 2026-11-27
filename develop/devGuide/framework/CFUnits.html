@@ -1,0 +1,196 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CFUnits &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Parallel IO (IO)" href="IO.html" />
+    <link rel="prev" title="Fields and Metadata (Field)" href="Field.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Framework</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="DataTypes.html">Data Types and Precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataTypes.html#arrays-and-kokkos">Arrays and Kokkos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ParallelLoops.html">Parallel loops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MachEnv.html">Machine Environment (MachEnv)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Decomp.html">Domain Decomposition (Decomp)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Halo.html">Halo Exchanges (Halo)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Broadcast.html">Broadcast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Reductions.html">Global Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Config.html">Model Configuration (Config)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Logging.html">Developing Omega Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Error.html">Error Handler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Timing.html">Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeMgr.html">Time Manager (TimeMgr)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Dimension.html">Dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Field.html">Fields and Metadata (Field)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">CFUnits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="IO.html">Parallel IO (IO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="IOStreams.html">IO Streams (IOStream)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TridiagonalSolvers.html">Tridiagonal Solvers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Framework</a></li>
+      <li class="breadcrumb-item active">CFUnits</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/framework/CFUnits.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="cfunits">
+<span id="omega-dev-cfunits"></span><h1>CFUnits<a class="headerlink" href="#cfunits" title="Permalink to this heading"></a></h1>
+<p>Omega fields carry their units as a string attribute in the plain form used
+by the CF standard name table: unit symbols separated by single spaces, each
+with an optional signed integer exponent (<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">s-1</span></code>, <code class="docutils literal notranslate"><span class="pre">kg</span> <span class="pre">m-3</span></code>, <code class="docutils literal notranslate"><span class="pre">W</span> <span class="pre">m-2</span></code>), and <code class="docutils literal notranslate"><span class="pre">1</span></code>
+for a dimensionless quantity. When a field is derived from others, its units
+must be derived too. The <code class="docutils literal notranslate"><span class="pre">CFUnits</span></code> class parses such a string, supports the
+product, quotient and integer power of units expressions, and formats the
+result back in the plain form.</p>
+<p>The string interfaces cover the common cases:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">"CFUnits.h"</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">Flux</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">CFUnits</span><span class="o">::</span><span class="n">multiply</span><span class="p">(</span><span class="s">"m s-1"</span><span class="p">,</span><span class="w"> </span><span class="s">"m2"</span><span class="p">);</span><span class="w">   </span><span class="c1">// "m3 s-1"</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">Speed</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">CFUnits</span><span class="o">::</span><span class="n">divide</span><span class="p">(</span><span class="s">"m3 s-1"</span><span class="p">,</span><span class="w"> </span><span class="s">"m2"</span><span class="p">);</span><span class="w">    </span><span class="c1">// "m s-1"</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">Energy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CFUnits</span><span class="o">::</span><span class="n">power</span><span class="p">(</span><span class="s">"m s-1"</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w">         </span><span class="c1">// "m2 s-2"</span>
+</pre></div>
+</div>
+<p>Exponents of the same symbol are merged (<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">s-1</span></code> times <code class="docutils literal notranslate"><span class="pre">m</span></code> is <code class="docutils literal notranslate"><span class="pre">m2</span> <span class="pre">s-1</span></code>) and
+a symbol whose exponent reaches zero is dropped, so <code class="docutils literal notranslate"><span class="pre">kg</span> <span class="pre">m-3</span></code> times <code class="docutils literal notranslate"><span class="pre">m3</span></code> is
+<code class="docutils literal notranslate"><span class="pre">kg</span></code>. In the result, symbols with positive exponents come first, then those
+with negative exponents, each in the order they first appeared.</p>
+<p>A units string may also start with a positive number, the scale factor of a
+scaled unit as udunits writes it: <code class="docutils literal notranslate"><span class="pre">1e+06</span> <span class="pre">m3</span> <span class="pre">s-1</span></code> is a million cubic meters
+per second. Multiplying a field’s values by a constant, for example to report
+a transport in units of 10^6 m3 s-1, scales its units by the reciprocal:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">Transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CFUnits</span><span class="o">::</span><span class="n">scale</span><span class="p">(</span><span class="s">"m3 s-1"</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1.0e-6</span><span class="p">);</span><span class="w"> </span><span class="c1">// "1e+06 m3 s-1"</span>
+</pre></div>
+</div>
+<p>Scale factors multiply through products, quotients and powers, and are
+written with the fewest digits that reproduce them, so the rounding error in
+<code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">1.0e-6</span></code> does not show. A number is only accepted before the unit
+symbols, and must be positive and finite.</p>
+<p>A field with no units attribute has <em>unknown</em> units, represented by the empty
+string. Unknown units propagate through every operation, so a field derived
+from one without units has no units either, rather than wrong ones.</p>
+<p>The parser also accepts the udunits caret and slash spellings (<code class="docutils literal notranslate"><span class="pre">m^2</span></code>, <code class="docutils literal notranslate"><span class="pre">m/s</span></code>),
+which some older field definitions still use, but always emits the plain
+form. Any other string is an error: the string interfaces abort, and the
+value interface reports it so a caller can decide:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">CFUnits</span><span class="w"> </span><span class="n">Units</span><span class="p">;</span>
+<span class="n">Error</span><span class="w"> </span><span class="n">Err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CFUnits</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="s">"m s-1"</span><span class="p">,</span><span class="w"> </span><span class="n">Units</span><span class="p">);</span><span class="w">  </span><span class="c1">// Fail for a malformed string</span>
+<span class="n">CFUnits</span><span class="w"> </span><span class="n">Area</span><span class="p">;</span>
+<span class="n">CFUnits</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="s">"m2"</span><span class="p">,</span><span class="w"> </span><span class="n">Area</span><span class="p">);</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">Flux</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Units</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">Area</span><span class="p">).</span><span class="n">str</span><span class="p">();</span><span class="w">     </span><span class="c1">// "m3 s-1"</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">CFUnits</span></code> also provides <code class="docutils literal notranslate"><span class="pre">operator/</span></code>, <code class="docutils literal notranslate"><span class="pre">pow(int)</span></code>, <code class="docutils literal notranslate"><span class="pre">scaled(double)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">isUnknown()</span></code>, <code class="docutils literal notranslate"><span class="pre">isDimensionless()</span></code> and an order-insensitive <code class="docutils literal notranslate"><span class="pre">operator==</span></code>.</p>
+<p>A malformed units string is a programming error in a field definition, and
+aborting when the derived field is created stops the run at initialization
+rather than writing output with a wrong or missing attribute.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Field.html" class="btn btn-neutral float-left" title="Fields and Metadata (Field)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="IO.html" class="btn btn-neutral float-right" title="Parallel IO (IO)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

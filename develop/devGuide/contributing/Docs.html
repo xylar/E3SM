@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="CIME buildnml and Configuration Validation" href="CimeIntegration.html" />
+    <link rel="prev" title="Testing Code" href="Testing.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Contributing</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Linting.html">Linting Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Testing.html">Testing Code</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#principles">Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#where-things-go">Where things go</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-a-page">Adding a page</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-documents">Design documents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="CimeIntegration.html">CIME <code class="docutils literal notranslate"><span class="pre">buildnml</span></code> and Configuration Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Contributing</a></li>
+      <li class="breadcrumb-item active">Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/contributing/Docs.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="documentation">
+<span id="omega-dev-docs"></span><h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h1>
+<p>The Omega documentation is generated using the
+<a class="reference external" href="https://www.sphinx-doc.org/en/master/">Sphinx</a> package and is written in
+<a class="reference external" href="https://myst-parser.readthedocs.io/en/latest/syntax/syntax.html">MyST</a>
+format, in <code class="docutils literal notranslate"><span class="pre">components/omega/doc</span></code>. We recommend these
+<a class="reference external" href="https://myst-parser.readthedocs.io/en/latest/syntax/roles-and-directives.html#roles-directives">basic tips</a>
+on using MyST in Sphinx.</p>
+<section id="principles">
+<h2>Principles<a class="headerlink" href="#principles" title="Permalink to this heading"></a></h2>
+<p>These are the rules a documentation change is reviewed against. The reasons
+for them are in the <a class="reference internal" href="../../design/ReorgDocs.html#omega-design-reorg-docs"><span class="std std-ref">documentation design</span></a>.</p>
+<ol class="arabic simple">
+<li><p><strong>Organize by the reader’s question, not by the code.</strong> A page belongs in
+the guide whose question it answers (see below), whichever source file
+implements it.</p></li>
+<li><p><strong>One home per fact; everywhere else, link.</strong> Every configuration option,
+equation, class and procedure is described in exactly one place, and
+other pages link to it. Link to Polaris and E3SM documentation rather than
+repeating it.</p></li>
+<li><p><strong>Docs ship with the code.</strong> A pull request that changes behavior updates
+the affected pages in the same pull request.</p></li>
+<li><p><strong>Design documents are frozen.</strong> They record the reasoning at the time of
+design and are not updated afterward; the guides describe the code as it
+is.</p></li>
+<li><p><strong>Generate reference material; write everything else.</strong> Lists that must be
+complete and exact, such as the configuration options, come from one
+machine-readable source.</p></li>
+<li><p><strong>Math is written to be checked against code.</strong> Technical Guide notation
+stays close to the variable names in the source, and each page links to
+the files that implement it.</p></li>
+<li><p><strong>Placeholders are explicit, never silent.</strong> A page that has not been
+written says what belongs there and links the issue that tracks it.</p></li>
+<li><p><strong>Every page has a stable anchor</strong>, prefixed by its guide.</p></li>
+<li><p><strong>Prefer short, focused pages over long chapters.</strong></p></li>
+<li><p><strong>Cite the literature through the bibliography.</strong></p></li>
+</ol>
+</section>
+<section id="where-things-go">
+<h2>Where things go<a class="headerlink" href="#where-things-go" title="Permalink to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Guide</p></th>
+<th class="head"><p>Question it answers</p></th>
+<th class="head"><p>Sections</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>User Guide (<code class="docutils literal notranslate"><span class="pre">userGuide/</span></code>)</p></td>
+<td><p>How do I set up and run Omega, and what can I control?</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">build/</span></code>, <code class="docutils literal notranslate"><span class="pre">run/</span></code>, <code class="docutils literal notranslate"><span class="pre">config/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code>, <code class="docutils literal notranslate"><span class="pre">model/</span></code>, <code class="docutils literal notranslate"><span class="pre">tutorials/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Developer Guide (<code class="docutils literal notranslate"><span class="pre">devGuide/</span></code>)</p></td>
+<td><p>How do I work on the code?</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gettingStarted/</span></code>, <code class="docutils literal notranslate"><span class="pre">contributing/</span></code>, <code class="docutils literal notranslate"><span class="pre">framework/</span></code>, <code class="docutils literal notranslate"><span class="pre">model/</span></code>, <code class="docutils literal notranslate"><span class="pre">howto/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Technical Guide (<code class="docutils literal notranslate"><span class="pre">techGuide/</span></code>)</p></td>
+<td><p>What does the model compute, and why?</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">equations/</span></code>, <code class="docutils literal notranslate"><span class="pre">discretization/</span></code>, <code class="docutils literal notranslate"><span class="pre">physics/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Design documents (<code class="docutils literal notranslate"><span class="pre">design/</span></code>)</p></td>
+<td><p>What were we thinking when we built it?</p></td>
+<td><p>one directory</p></td>
+</tr>
+</tbody>
+</table>
+<p>A new feature usually touches all three guides:</p>
+<ul class="simple">
+<li><p>the <strong>User Guide</strong> page for the feature says what a user can set (config
+options, build flags) and what it produces, and links the Technical Guide
+for what it means;</p></li>
+<li><p>the <strong>Developer Guide</strong> page describes the classes and how to use them, and
+the unit and Polaris tests that cover the feature;</p></li>
+<li><p>the <strong>Technical Guide</strong> page gives the continuous equations and their
+discretized form, with variables close to those in the code.</p></li>
+</ul>
+</section>
+<section id="adding-a-page">
+<h2>Adding a page<a class="headerlink" href="#adding-a-page" title="Permalink to this heading"></a></h2>
+<p>Put the page in the directory of the section it belongs to, with a CamelCase
+file name, and add it to the toctree in that section’s <code class="docutils literal notranslate"><span class="pre">index.md</span></code>. Start the
+page with its anchor and a level-1 title:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span>(omega-user-model-frazil)=
+
+<span class="gh"># Frazil</span>
+</pre></div>
+</div>
+<p>Anchors start with the guide’s prefix: <code class="docutils literal notranslate"><span class="pre">omega-user-&lt;section&gt;-&lt;page&gt;</span></code> in the
+User Guide, <code class="docutils literal notranslate"><span class="pre">omega-dev-&lt;page&gt;</span></code> in the Developer Guide, <code class="docutils literal notranslate"><span class="pre">omega-tech-&lt;page&gt;</span></code> in
+the Technical Guide and <code class="docutils literal notranslate"><span class="pre">omega-design-&lt;page&gt;</span></code> for design documents. Sphinx
+treats anchors without regard to case, so two that differ only in case
+collide. Link to other pages with <code class="docutils literal notranslate"><span class="pre">{ref}`anchor`</span></code> or <code class="docutils literal notranslate"><span class="pre">[text](#anchor)</span></code>
+rather than a relative path to the Markdown file, so that links survive when
+pages move.</p>
+<p>Images go in the <code class="docutils literal notranslate"><span class="pre">images/</span></code> directory of the guide that uses them.</p>
+<p>A page that has not been written yet is a placeholder:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span>(omega-user-quick-start)=
+
+<span class="gh"># Quick Start</span>
+
+:::{admonition} Not yet written
+:class: warning
+This page is a placeholder. It will cover: &lt;one or two sentences&gt;.
+Progress is tracked in [<span class="nt">E3SM-Project/Omega#NNN</span>](<span class="na">https://github.com/E3SM-Project/Omega/issues/NNN</span>).
+:::
+</pre></div>
+</div>
+<section id="citations">
+<h3>Citations<a class="headerlink" href="#citations" title="Permalink to this heading"></a></h3>
+<p>Technical Guide pages cite papers from <code class="docutils literal notranslate"><span class="pre">techGuide/references.bib</span></code>, which the
+<a class="reference internal" href="../../techGuide/Bibliography.html#omega-tech-bibliography"><span class="std std-ref">Bibliography</span></a> page lists. Add an entry there, keyed by the
+first author’s surname and the year, and cite it with <code class="docutils literal notranslate"><span class="pre">{cite:t}`Key`</span></code>
+(“Ringler et al. (2010)”) or <code class="docutils literal notranslate"><span class="pre">{cite:p}`Key`</span></code> (“(Ringler et al., 2010)”).
+Only cited entries appear in the bibliography.</p>
+</section>
+</section>
+<section id="building-the-documentation">
+<span id="omega-dev-building-docs"></span><h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this heading"></a></h2>
+<p>As long as you have followed the procedure in <a class="reference internal" href="../gettingStarted/DevEnv.html#omega-dev-env"><span class="std std-ref">Development Environment</span></a> for
+setting up your development environment, you will already have the packages
+available that you need to build the documentation.</p>
+<p>From the root of an Omega branch, run the following to build the docs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>components/omega/doc
+make<span class="w"> </span>clean<span class="w"> </span>html
+</pre></div>
+</div>
+<p>You can view the documentation by opening <code class="docutils literal notranslate"><span class="pre">_build/html/index.html</span></code> in your
+choice of browsers or copy it to a web portal.</p>
+<p>Pull requests are checked with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html-strict</span></code>, which turns warnings into
+errors; run it before you push. If you run into errors or warnings related to
+changes you have made, check with the development team for help on fixing
+them.</p>
+<section id="versioned-docs">
+<h3>Versioned docs<a class="headerlink" href="#versioned-docs" title="Permalink to this heading"></a></h3>
+<p>The published docs keep one directory per version, with a version switcher
+in the sidebar. <code class="docutils literal notranslate"><span class="pre">develop</span></code> is published whenever a change to the docs merges
+into <code class="docutils literal notranslate"><span class="pre">develop</span></code>, and each release when its <code class="docutils literal notranslate"><span class="pre">Omega-v*</span></code> tag is pushed. To
+preview that layout locally, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>components/omega/doc
+make<span class="w"> </span>versioned-html
+python<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span>-d<span class="w"> </span>_build/html
+</pre></div>
+</div>
+<p>and open <a class="reference external" href="http://localhost:8000/develop/index.html">http://localhost:8000/develop/index.html</a>. The switcher only works
+through a web server like this one, since browsers do not let it read the
+list of versions from local files. It lists every version built into
+<code class="docutils literal notranslate"><span class="pre">_build/html</span></code>; build another with, for example,
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">versioned-html</span> <span class="pre">DOCS_VERSION=0.1.0</span></code>. <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">versioned-html-strict</span></code> turns
+warnings into errors, and <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean-versioned-html</span></code> removes all versions.</p>
+</section>
+</section>
+<section id="design-documents">
+<span id="omega-dev-docs-design"></span><h2>Design documents<a class="headerlink" href="#design-documents" title="Permalink to this heading"></a></h2>
+<p>A design document records the design of a new capability before it is
+implemented. Start from the <a class="reference internal" href="../../design/Template.html"><span class="doc">template</span></a>, put the new
+document in <code class="docutils literal notranslate"><span class="pre">design/</span></code>, and add it to the toctree in <code class="docutils literal notranslate"><span class="pre">design/index.md</span></code>, before
+<code class="docutils literal notranslate"><span class="pre">Template</span></code>. Once the design is accepted, the document is not updated to follow
+the code; the guides are.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Testing.html" class="btn btn-neutral float-left" title="Testing Code" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="CimeIntegration.html" class="btn btn-neutral float-right" title="CIME buildnml and Configuration Validation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

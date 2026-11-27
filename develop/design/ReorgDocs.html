@@ -1,0 +1,848 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation Reorganization &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+
+  
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="State" href="State.html" />
+    <link rel="prev" title="Global Reductions" href="Reductions.html" />
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Design Documents</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="OmegaV0ShallowWater.html">Omega V0: Shallow Water</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OmegaV1GoverningEqns.html">Omega V1: Governing Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Broadcast.html">Broadcast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Coupling.html">Surface Coupling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DataTypes.html">DataTypes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Decomp.html">Decomp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Driver.html">Driver and Component Layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Error.html">ErrorHandler (Error)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FillValues.html">Fill Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Halo.html">Halo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HorzMeshClass.html">Horizontal Mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Logging.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MachEnv.html">MachineEnv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metadata.html">Metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PGrad.html">Pressure Gradient</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PGradHighOrder.html">Higher-Order Horizontal Pressure Gradient</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IO.html">Input/Output (IO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IOStreams.html">IOStreams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Reductions.html">Global Reductions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Documentation Reorganization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">1 Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-starting-point">2 The starting point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-other-ocean-models-do">3 What other ocean models do</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audiences">4 Audiences</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#principles">5 Principles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#design">6 Design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#top-level-structure">6.1 Top-level structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#user-guide">6.2 User Guide</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#developer-guide">6.3 Developer Guide</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#technical-guide">6.4 Technical Guide</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-documents">6.5 Design documents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#directory-layout-naming-and-anchors">6.6 Directory layout, naming and anchors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-reference">6.7 Configuration reference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bibliography">6.8 Bibliography</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#versioned-publication">6.9 Versioned publication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#placeholders-and-tracking-issues">6.10 Placeholders and tracking issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coordination-with-polaris">6.11 Coordination with Polaris</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#scope-of-the-initial-reorganization">7 Scope of the initial reorganization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#discussion-and-open-questions">8 Discussion and open questions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verification">9 Verification</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="State.html">State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="StateValidation.html">Ocean State Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SubmesoscaleEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tendency.html">Tendency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AuxiliaryVariables.html">Auxiliary variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AuxiliaryState.html">AuxiliaryState</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TimeMgr.html">TimeManager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Timers.html">Timers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TimeStepping.html">Time Stepping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tracers.html">Tracer Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TridiagonalSolver.html">Tridiagonal Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KPPMix.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="VerticalMixingCoeff.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Template.html">Template</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Design Documents</a></li>
+      <li class="breadcrumb-item active">Documentation Reorganization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/design/ReorgDocs.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="documentation-reorganization">
+<span id="omega-design-reorg-docs"></span><h1>Documentation Reorganization<a class="headerlink" href="#documentation-reorganization" title="Permalink to this heading"></a></h1>
+<p><strong>Table of Contents</strong></p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#overview">Overview</a></p></li>
+<li><p><a class="reference internal" href="#the-starting-point">The starting point</a></p></li>
+<li><p><a class="reference internal" href="#what-other-ocean-models-do">What other ocean models do</a></p></li>
+<li><p><a class="reference internal" href="#audiences">Audiences</a></p></li>
+<li><p><a class="reference internal" href="#principles">Principles</a></p></li>
+<li><p><a class="reference internal" href="#design">Design</a></p></li>
+<li><p><a class="reference internal" href="#scope-of-the-initial-reorganization">Scope of the initial reorganization</a></p></li>
+<li><p><a class="reference internal" href="#discussion-and-open-questions">Discussion and open questions</a></p></li>
+<li><p><a class="reference internal" href="#verification">Verification</a></p></li>
+</ol>
+<section id="overview">
+<h2>1 Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
+<p>This document describes the reorganization of the Omega documentation from a
+layout that mirrors the source tree into one organized around the questions
+readers bring to it. It records the reasoning behind the new structure, the
+principles that should guide future changes to the documentation, and the
+decisions about mechanisms (configuration reference generation, bibliography,
+versioned publication) that the structure depends on.</p>
+<p>Like every design document in this directory, it captures our thinking at the
+time it was written. It is not a description of the documentation as it exists
+today; that description is the documentation itself, and the living statement of
+the rules is the Developer Guide page on documentation.</p>
+</section>
+<section id="the-starting-point">
+<h2>2 The starting point<a class="headerlink" href="#the-starting-point" title="Permalink to this heading"></a></h2>
+<p>Before this reorganization, the documentation consisted of three flat lists in
+the top-level <code class="docutils literal notranslate"><span class="pre">index.md</span></code>:</p>
+<ul class="simple">
+<li><p>a <em>User’s Guide</em> of 42 pages,</p></li>
+<li><p>a <em>Developer’s Guide</em> of 49 pages, and</p></li>
+<li><p>42 <em>Design documents</em>.</p></li>
+</ul>
+<p>The User’s and Developer’s Guides were organized one page per source module:
+<code class="docutils literal notranslate"><span class="pre">Config</span></code>, <code class="docutils literal notranslate"><span class="pre">Broadcast</span></code>, <code class="docutils literal notranslate"><span class="pre">Halo</span></code>, <code class="docutils literal notranslate"><span class="pre">Decomp</span></code>, <code class="docutils literal notranslate"><span class="pre">Field</span></code>, <code class="docutils literal notranslate"><span class="pre">Reductions</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeMgr</span></code>, and
+so on, with the same list repeated in both guides. This was a deliberate crutch
+while the model was being built: a developer adding a module knew exactly which
+two pages to add. It has several costs that grew as the model matured.</p>
+<ul class="simple">
+<li><p><strong>Readers do not think in modules.</strong> A user asking “how do I control the time
+step?” has to know that the answer is split across <code class="docutils literal notranslate"><span class="pre">TimeMgr</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeStepping</span></code>
+and <code class="docutils literal notranslate"><span class="pre">Driver</span></code>. A developer asking “how do I add a tracer?” has to know to look
+in <code class="docutils literal notranslate"><span class="pre">Tracers</span></code>, then <code class="docutils literal notranslate"><span class="pre">Field</span></code>, then <code class="docutils literal notranslate"><span class="pre">IOStreams</span></code>.</p></li>
+<li><p><strong>The user/developer split produced duplication, not differentiation.</strong> Many
+User’s Guide pages were thinner copies of the Developer’s Guide page (for
+example <code class="docutils literal notranslate"><span class="pre">Config</span></code>), and about a third of them said, in effect, “there are no
+user-configurable options; see the Developer’s Guide.”</p></li>
+<li><p><strong>The science had no home.</strong> The governing equations lived only in a frozen
+design document; discretization details were scattered through
+developer pages and user pages (the second-order tracer advection derivation
+was in the <em>User’s</em> Guide, and so were the Rayleigh damping equation and the
+physical background of the finite-volume pressure gradient, while the KPP
+notation and the penetrating shortwave formulas were in the <em>Developer’s</em>
+Guide). Nothing in the layout told a scientist where to
+look, and the <a class="reference external" href="https://docs.e3sm.org/E3SM/">E3SM documentation</a> pattern of a
+<em>Technical Guide</em> had no counterpart.</p></li>
+<li><p><strong>No onboarding path.</strong> The user Quick Start was a stub, there were no
+tutorials, and “how to run Omega” was not a page.</p></li>
+<li><p><strong>No reference material.</strong> Configuration options were documented by hand,
+inconsistently, on whichever page a developer chose or only in comments in
+<code class="docutils literal notranslate"><span class="pre">Default.yml</span></code>; there was no single list.</p></li>
+<li><p><strong>No versioning.</strong> The published site tracked <code class="docutils literal notranslate"><span class="pre">develop</span></code> only. With a first
+release approaching, users of a release would have had no matching
+documentation.</p></li>
+</ul>
+</section>
+<section id="what-other-ocean-models-do">
+<h2>3 What other ocean models do<a class="headerlink" href="#what-other-ocean-models-do" title="Permalink to this heading"></a></h2>
+<p>We surveyed the documentation of several community ocean models to find
+practices worth adopting. The observations below are about <em>organization</em>, not
+content.</p>
+<p><strong>MOM6</strong> (<a class="reference external" href="https://mom6.readthedocs.io/en/main/">mom6.readthedocs.io</a>) is
+organized by topic, science first: Equations, Spatial Discretization, Time
+Discretization, Tracers, Grids, Parameterizations, Other Physics, Working with
+MOM6, Forcing, Parallel Implementation, Testing, then an API reference and a
+bibliography. Each topic has one home containing the continuous equations, the
+discrete form, and pointers to code and parameters, so there is no duplication
+by construction. Runtime parameters are documented automatically from the code.
+The weakness is onboarding: “how do I build and run” is delegated to a wiki,
+and the practical material is buried in chapter 8.</p>
+<p><strong>MITgcm</strong> (<a class="reference external" href="https://mitgcm.readthedocs.io/en/latest/">mitgcm.readthedocs.io</a>)
+is a single numbered manual: Overview (theory), Discretization and Algorithm,
+Getting Started, Tutorial Example Experiments, Contributing, Software
+Architecture, Packages, Utilities, References. It is thorough and the tutorial
+experiments are the most praised part of it. The chapters are very long.</p>
+<p><strong>NEMO</strong> (<a class="reference external" href="https://sites.nemo-ocean.io/user-guide/">sites.nemo-ocean.io/user-guide</a>)
+splits cleanly into a practical <em>User Guide</em> (Basics: install, prepare, run;
+Advanced: coupling, assimilation, new configurations; Appendix: release notes,
+migration; plus a short Developer guide) and a separate <em>Reference Manual</em> for
+the science and numerics. The user guide explicitly says it is practical rather
+than theoretical and points to the reference manual for the rest.</p>
+<p><strong>ROMS</strong> (the UCLA fork on
+<a class="reference external" href="https://cworthy-ucla-roms.readthedocs.io/en/latest/">readthedocs</a>; the
+official documentation is a wiki) is Introduction, Key technical information,
+Getting Started, Customizing, Tutorials, References, Release notes: a simple
+progression from “what is it” to “how do I change it.”</p>
+<p><strong>Oceananigans</strong>
+(<a class="reference external" href="https://clima.github.io/OceananigansDocumentation/stable/">clima.github.io/OceananigansDocumentation</a>)
+is Quick start, Examples, Workflows (Models, Simulations), Concepts (Physics,
+Numerical implementation), Developer, Appendix. It separates “how to use it”
+from “how it works” cleanly and keeps pages short and heavily cross-linked.</p>
+<p><strong>E3SM component documentation</strong> (<a class="reference external" href="https://docs.e3sm.org/E3SM/">docs.e3sm.org</a>)
+uses a <em>User Guide / Developer Guide / Technical Guide</em> triad for every
+component. EAMxx is the most developed example: its Developer Guide has a
+quick start, code organization, style guide, testing, “important tools and
+objects” and how-tos; its Technical Guide holds physics descriptions. In other
+components the Technical Guide is thin or a pointer to a PDF.</p>
+<p>The <strong><a class="reference external" href="https://diataxis.fr">Diátaxis</a></strong> framework is the general form of what
+these sites converge on: documentation serves four distinct needs (tutorials,
+how-to guides, reference, explanation), and mixing them on one page serves none
+of them well.</p>
+<p>What we take from each:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Source</p></th>
+<th class="head"><p>Adopted</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>E3SM components</p></td>
+<td><p>The User / Developer / Technical Guide triad as the outer frame, so Omega is recognizable next to its siblings.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MOM6</p></td>
+<td><p>The science-first topical spine <em>inside</em> the Technical Guide; auto-generated parameter reference; a real bibliography.</p></td>
+</tr>
+<tr class="row-even"><td><p>NEMO</p></td>
+<td><p>A User Guide that is explicitly practical and defers theory elsewhere.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MITgcm, ROMS</p></td>
+<td><p>A place for tutorials, even if it starts empty.</p></td>
+</tr>
+<tr class="row-even"><td><p>Oceananigans</p></td>
+<td><p>Short, focused, cross-linked pages; explicit how-to recipes for developers.</p></td>
+</tr>
+<tr class="row-odd"><td><p>EAMxx</p></td>
+<td><p>The shape of the Developer Guide: getting started, code organization, contributing, the framework objects, how-tos.</p></td>
+</tr>
+<tr class="row-even"><td><p>Diátaxis</p></td>
+<td><p>The rule that each section answers one kind of question.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="audiences">
+<h2>4 Audiences<a class="headerlink" href="#audiences" title="Permalink to this heading"></a></h2>
+<p>In priority order <strong>at the time of writing</strong> (before the v1 release):</p>
+<ol class="arabic simple">
+<li><p><strong>Omega and Polaris developers</strong> adding features to the model and its test
+framework. This is the dominant audience today.</p></li>
+<li><p><strong>Standalone users</strong> running Omega through Polaris.</p></li>
+<li><p><strong>E3SM coupled-model users</strong> configuring the ocean component.</p></li>
+<li><p><strong>E3SM integration and release staff</strong> building and testing Omega inside
+E3SM.</p></li>
+<li><p><strong>Scientists and reviewers</strong> who want the equations, discretization and
+parameterizations.</p></li>
+</ol>
+<p>This ordering will invert over time: as the model stabilizes the emphasis
+shifts toward the broader E3SM development team and then the community. The
+structure is chosen so that shift does not require another reorganization: the
+Technical Guide exists from the start even though it begins mostly as
+placeholders, and the User Guide is organized by task so that coupled-model and
+community users slot in without displacing anything.</p>
+</section>
+<section id="principles">
+<h2>5 Principles<a class="headerlink" href="#principles" title="Permalink to this heading"></a></h2>
+<p>These are the rules the documentation should follow, and the rules a reviewer
+should hold a documentation change to. They are restated (and maintained) in
+the Developer Guide; this is the record of why they were chosen.</p>
+<ol class="arabic simple">
+<li><p><strong>Organize by the reader’s question, not by the code.</strong> The User Guide
+answers “how do I set up and run Omega, and what can I control?” The
+Developer Guide answers “how do I work on the code?” The Technical Guide
+answers “what does the model compute, and why?” The design documents answer
+“what were we thinking when we built it?” A page belongs where its question
+belongs, regardless of which source file implements it.</p></li>
+<li><p><strong>One home per fact; everywhere else, link.</strong> Every configuration option,
+equation, class and procedure is described in exactly one place. Other pages
+link to it rather than restating it. This applies across projects too: Omega
+links to Polaris and E3SM documentation rather than duplicating them, and
+vice versa.</p></li>
+<li><p><strong>Docs ship with the code.</strong> A pull request that changes behavior updates
+the affected guide pages in the same pull request. There is no separate
+documentation backlog.</p></li>
+<li><p><strong>Design documents are frozen.</strong> A design document records the reasoning at
+the time of design. It is never reconciled with the code afterward; the
+guides describe the code as it is. Design documents are labelled as such, and
+new designs still go there, using the template.</p></li>
+<li><p><strong>Generate reference material; write everything else.</strong> Lists that must be
+complete and exact (configuration options; eventually the API) come from a
+single machine-readable source and are generated at build time. Prose is
+written by hand.</p></li>
+<li><p><strong>Math is written to be checked against code.</strong> Technical Guide notation
+stays close to the variable names in the source, and each page links to the
+files that implement it, so a reviewer can verify an implementation against
+its description.</p></li>
+<li><p><strong>Placeholders are explicit, never silent.</strong> If a page has not been written,
+a stub page says what belongs there and links the issue that tracks it. A
+missing topic should be visible, not discovered.</p></li>
+<li><p><strong>Every page has a stable anchor.</strong> Anchors are prefixed by guide
+(<code class="docutils literal notranslate"><span class="pre">omega-user-</span></code>, <code class="docutils literal notranslate"><span class="pre">omega-dev-</span></code>, <code class="docutils literal notranslate"><span class="pre">omega-tech-</span></code>, <code class="docutils literal notranslate"><span class="pre">omega-design-</span></code>) so that
+cross-references survive moves within a guide and are unambiguous if the
+Omega documentation is ever merged with other E3SM documentation.</p></li>
+<li><p><strong>Prefer short, focused pages over long chapters.</strong> A page covers one topic
+and links to its neighbors. Readers arrive from search and from links, not
+from the beginning of a chapter.</p></li>
+<li><p><strong>Cite the literature through a bibliography.</strong> Technical Guide pages cite
+papers with <code class="docutils literal notranslate"><span class="pre">{cite}</span></code> roles against a single BibTeX file rather than inline
+links, so citations are consistent and collected in one place.</p></li>
+<li><p><strong>The structure has room to grow toward science without another
+reorganization.</strong> See <a class="reference internal" href="#audiences">Audiences</a>.</p></li>
+</ol>
+</section>
+<section id="design">
+<h2>6 Design<a class="headerlink" href="#design" title="Permalink to this heading"></a></h2>
+<section id="top-level-structure">
+<h3>6.1 Top-level structure<a class="headerlink" href="#top-level-structure" title="Permalink to this heading"></a></h3>
+<p>The documentation has four top-level sections. Each answers one kind of
+question and has a landing page that says who it is for and where the other
+questions are answered.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>Question</p></th>
+<th class="head"><p>Primary audiences</p></th>
+<th class="head"><p>Diátaxis form</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>User Guide</p></td>
+<td><p>How do I set up and run Omega, and what can I control?</p></td>
+<td><p>2, 3, 4</p></td>
+<td><p>tutorials, how-to, reference</p></td>
+</tr>
+<tr class="row-odd"><td><p>Developer Guide</p></td>
+<td><p>How do I work on the code?</p></td>
+<td><p>1, 4</p></td>
+<td><p>how-to, reference</p></td>
+</tr>
+<tr class="row-even"><td><p>Technical Guide</p></td>
+<td><p>What does the model compute, and why?</p></td>
+<td><p>5, 1</p></td>
+<td><p>explanation</p></td>
+</tr>
+<tr class="row-odd"><td><p>Design documents</p></td>
+<td><p>What were we thinking when we built it?</p></td>
+<td><p>1</p></td>
+<td><p>(archive)</p></td>
+</tr>
+</tbody>
+</table>
+<p>This is a hybrid: the E3SM triad on the outside, the MOM6 topical spine on the
+inside of the Technical Guide. We considered two alternatives.</p>
+<p><em>A pure audience split</em> (the triad with nothing more said) is what we had, and
+it produced duplication rather than differentiation, because “user” and
+“developer” are not different <em>questions</em> about the same topic unless the
+guides are given distinct jobs. The table above gives them distinct jobs.</p>
+<p><em>A pure topical spine</em> (MOM6’s shape) would have put the model’s physics and
+numerics at the top of the table of contents, with building, running,
+contributing and the infrastructure classes as afterthoughts. For the next
+year or two that is backwards for our audiences, and Omega’s substantial
+infrastructure layer (configuration, I/O streams, fields, halos,
+decomposition, time management, Kokkos loops) does not fit a science spine at
+all. We keep the spine, but inside the Technical Guide.</p>
+<p>The cost of the hybrid is three trees to keep coherent. Principle 2 (one home
+per fact) is what controls that cost: a configuration option’s meaning lives on
+one User Guide page, the discretization it selects lives on one Technical Guide
+page, the class that reads it lives on one Developer Guide page, and each links
+to the others.</p>
+<p>Matching the E3SM triad exactly was judged to matter little in itself. Omega
+keeps its own Sphinx build and will be linked from the E3SM site as a subpage;
+the triad was adopted because it is a good fit for the questions, not for
+conformity.</p>
+</section>
+<section id="user-guide">
+<h3>6.2 User Guide<a class="headerlink" href="#user-guide" title="Permalink to this heading"></a></h3>
+<p>Organized by task. Each subdirectory has a short landing page.</p>
+<ul class="simple">
+<li><p><strong>Quick start</strong> (placeholder until the model is ready for outside users).</p></li>
+<li><p><strong>Building</strong>: standalone build, build inside E3SM, and the CMake options
+(precision, architecture, threading, vector length, MPI on device) in one
+place.</p></li>
+<li><p><strong>Running</strong>: what a standalone run directory needs and where Polaris takes
+over; running as the E3SM ocean component (<code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code>, compsets, how
+the coupler controls time, and which settings belong to the case rather than
+to Omega, such as the I/O layout set by the <code class="docutils literal notranslate"><span class="pre">PIO_*_OCN</span></code> case variables); the
+outputs of a run (log files, timing files, error messages and what they
+mean).</p></li>
+<li><p><strong>Configuration</strong>: the YAML file and how <code class="docutils literal notranslate"><span class="pre">buildnml</span></code> layers it in a coupled
+case; time management (calendar, start type and time, stop type and
+criterion); time stepping choices, including split-explicit; parallel layout
+(decomposition and I/O tasks); and the generated <strong>configuration reference</strong>
+(§6.7).</p></li>
+<li><p><strong>Input and output</strong>: I/O streams; mesh-file requirements, both the MPAS
+mesh specification and what Omega adds to it (such as the Earth radius a
+spherical mesh must use); initial conditions and restarts; available fields,
+groups and metadata (including fill values and inactive layers); analysis
+and diagnostics.</p></li>
+<li><p><strong>Model options</strong>: one page per user-facing choice about the physics and
+numerics (tendency terms, tracers, advection, horizontal mixing and its mesh
+scaling, pressure gradient, vertical coordinate, vertical mixing, KPP
+boundary-layer mixing, submesoscale eddies, Rayleigh damping, equation of
+state, surface forcing, frazil), each stating what can be set and linking the
+Technical Guide for what it means.</p></li>
+<li><p><strong>Tutorials</strong> (placeholder). Standalone tutorials belong mostly to Polaris
+and will be linked; coupled E3SM tutorials may live here.</p></li>
+</ul>
+<p>Pages of the old User’s Guide whose content was “no user-configurable options”
+(Broadcast, Reductions, Halo, MachEnv, Dimension, Field internals, Driver
+internals, Auxiliary state, Tendencies container, Ocean state, Horizontal
+operators, Tridiagonal solvers, Surface coupling internals) do not survive as
+user pages; whatever user-relevant sentences they contained move to the task
+page that needs them.</p>
+<p>The User Guide owns “running Omega in E3SM” for now because no other
+documentation does. It may migrate to coupled-model documentation later.</p>
+</section>
+<section id="developer-guide">
+<h3>6.3 Developer Guide<a class="headerlink" href="#developer-guide" title="Permalink to this heading"></a></h3>
+<p>Organized by what a developer is trying to do. Modeled on EAMxx’s Developer
+Guide and Oceananigans’ Developer section.</p>
+<ul class="simple">
+<li><p><strong>Getting started</strong>: quick start, the development environment (pixi, with a
+conda fallback), the CMake build system, and a new <strong>code organization</strong>
+page describing <code class="docutils literal notranslate"><span class="pre">src/</span></code>, <code class="docutils literal notranslate"><span class="pre">test/</span></code>, <code class="docutils literal notranslate"><span class="pre">configs/</span></code>, <code class="docutils literal notranslate"><span class="pre">cime_config/</span></code> and <code class="docutils literal notranslate"><span class="pre">ci/</span></code>.</p></li>
+<li><p><strong>Contributing</strong>: linting and style, testing (CTest unit tests, the Polaris
+<code class="docutils literal notranslate"><span class="pre">omega_pr</span></code> suite, CIME system tests, and what CI runs on each pull request),
+documentation (this section restates the principles and says where each
+kind of content goes, how to build the docs, and how to write a design
+document), and CIME integration (<code class="docutils literal notranslate"><span class="pre">buildnml</span></code> and its configuration layers).</p></li>
+<li><p><strong>Framework</strong>: the infrastructure classes a developer uses, grouped by
+concern on the landing page: parallel programming (data types, Kokkos loops,
+machine environment, decomposition, halos, broadcasts, reductions); runtime
+services (configuration, logging, errors, timers, time manager); fields and
+I/O (dimensions, fields and metadata, CF units, parallel I/O, streams);
+numerical utilities (tridiagonal solvers).</p></li>
+<li><p><strong>Model</strong>: how the ocean model is put together: the drivers, state,
+mesh and operators, vertical coordinate, auxiliary variables, tendencies,
+time steppers (including split-explicit), tracers, equation of state,
+pressure gradient, vertical advection, vertical mixing and KPP, submesoscale
+eddies, Rayleigh damping, frazil, forcing, surface coupling, analysis. These
+pages describe classes and their use, not the mathematics; each links to its
+Technical Guide counterpart.</p></li>
+<li><p><strong>How-to recipes</strong>: short task pages (“add a configuration option”, “add a
+tracer”, “add a field to output”, “add a tendency term”, “add an analysis
+operator”, “add a time stepper”, “add a supported mesh”, “add a unit test”).
+This is the Diátaxis how-to form and the thing developers <em>using</em> the guide
+most often want. A few are written from existing material; the rest are
+placeholders.</p></li>
+</ul>
+<p>The Developer Guide no longer carries the old rule that it must describe the
+mathematical terms and their discretized form. That content moves to the
+Technical Guide (§6.4). A reviewer verifying an implementation reads the
+Technical Guide page and the Developer Guide page; we accepted that cost for
+the sake of a single home for the math.</p>
+<p>The Framework and Model pages still correspond roughly to classes, which is
+appropriate for reference material about classes. What has changed is that they
+are grouped by concern, they no longer have a user-guide twin, and they no
+longer carry the science.</p>
+</section>
+<section id="technical-guide">
+<h3>6.4 Technical Guide<a class="headerlink" href="#technical-guide" title="Permalink to this heading"></a></h3>
+<p>MOM6’s spine, adapted to Omega, and thin at first:</p>
+<ul class="simple">
+<li><p><strong>Equations</strong>: notation; governing equations; the vertical coordinate
+(pseudo-height).</p></li>
+<li><p><strong>Discretization</strong>: the MPAS mesh specification; TRiSK horizontal operators
+and discrete auxiliary quantities (vorticity, kinetic energy); tracer
+advection (horizontal, including the monotone flux-corrected limiter, and
+vertical); pressure gradient (centered and finite-volume); time stepping
+(including split-explicit); tridiagonal systems.</p></li>
+<li><p><strong>Physics and parameterizations</strong>: equation of state; vertical mixing
+(background, shear and convective mixing, and the KPP boundary layer);
+horizontal mixing and its scaling with mesh size; surface forcing (including
+penetrating shortwave and the coupled energy correction); frazil;
+submesoscale eddy restratification; Rayleigh damping.</p></li>
+<li><p><strong>Diagnostics</strong>: definitions of analysis quantities (global statistics, the
+MOC streamfunction, time averages).</p></li>
+<li><p><strong>Bibliography</strong>.</p></li>
+</ul>
+<p>Existing mathematical content is moved here from the old user and developer
+pages (the mesh specification, second-order tracer advection and its flux
+limiter, pressure-gradient background, vertical-coordinate definition,
+vertical mixing formulas, KPP notation, horizontal mixing mesh scaling,
+penetrating shortwave deposition and the coupled energy correction, Rayleigh
+damping, equation of state details, tridiagonal system forms, kinetic energy on
+cells). New science content — in particular a proper governing-equations
+chapter derived from the V1 design document, and the finite-volume pressure
+gradient derived from its design document — is placeholders with tracking
+issues.</p>
+<p>Technical Guide pages follow principle 6: variable names close to the code, a
+link to the implementing files, and <code class="docutils literal notranslate"><span class="pre">{cite}</span></code> references.</p>
+</section>
+<section id="design-documents">
+<h3>6.5 Design documents<a class="headerlink" href="#design-documents" title="Permalink to this heading"></a></h3>
+<p>Unchanged in content. They get a landing page stating that they are frozen
+records of design-time reasoning (principle 4) and that the guides describe the
+code as it is. The template stays and is referenced from the Developer Guide’s
+documentation page.</p>
+</section>
+<section id="directory-layout-naming-and-anchors">
+<h3>6.6 Directory layout, naming and anchors<a class="headerlink" href="#directory-layout-naming-and-anchors" title="Permalink to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">doc</span><span class="o">/</span>
+  <span class="n">index</span><span class="o">.</span><span class="n">md</span>              <span class="n">landing</span><span class="p">:</span> <span class="n">what</span> <span class="n">Omega</span> <span class="ow">is</span><span class="p">,</span> <span class="n">how</span> <span class="n">the</span> <span class="n">docs</span> <span class="n">are</span> <span class="n">organized</span>
+  <span class="n">userGuide</span><span class="o">/</span>            <span class="n">index</span><span class="o">.</span><span class="n">md</span> <span class="o">+</span> <span class="n">build</span><span class="o">/</span> <span class="n">run</span><span class="o">/</span> <span class="n">config</span><span class="o">/</span> <span class="n">io</span><span class="o">/</span> <span class="n">model</span><span class="o">/</span> <span class="n">tutorials</span><span class="o">/</span>
+  <span class="n">devGuide</span><span class="o">/</span>             <span class="n">index</span><span class="o">.</span><span class="n">md</span> <span class="o">+</span> <span class="n">gettingStarted</span><span class="o">/</span> <span class="n">contributing</span><span class="o">/</span> <span class="n">framework</span><span class="o">/</span> <span class="n">model</span><span class="o">/</span> <span class="n">howto</span><span class="o">/</span>
+  <span class="n">techGuide</span><span class="o">/</span>            <span class="n">index</span><span class="o">.</span><span class="n">md</span> <span class="o">+</span> <span class="n">equations</span><span class="o">/</span> <span class="n">discretization</span><span class="o">/</span> <span class="n">physics</span><span class="o">/</span> <span class="o">+</span> <span class="n">Bibliography</span><span class="o">.</span><span class="n">md</span><span class="p">,</span> <span class="n">references</span><span class="o">.</span><span class="n">bib</span>
+  <span class="n">design</span><span class="o">/</span>               <span class="n">index</span><span class="o">.</span><span class="n">md</span> <span class="o">+</span> <span class="n">existing</span> <span class="n">documents</span><span class="p">,</span> <span class="n">Template</span><span class="o">.</span><span class="n">md</span>
+</pre></div>
+</div>
+<p>Each subdirectory has an <code class="docutils literal notranslate"><span class="pre">index.md</span></code> landing page with a toctree; the sidebar
+shows two levels. File names remain CamelCase for consistency with the
+existing files. Anchors on every page use the prefixes from principle 8; the
+old <code class="docutils literal notranslate"><span class="pre">omega-</span></code> (no guide) prefix on some user pages is normalized to
+<code class="docutils literal notranslate"><span class="pre">omega-user-</span></code>.</p>
+<p>Old URLs are not preserved. At the time of the reorganization, the only links
+to individual pages from outside the Omega documentation are in Polaris (its
+ocean analysis task links the MOC section of the analysis page) and, within
+this repository, in the pull request template. Both are updated in tandem.
+Links to the landing page, such as
+the one from the E3SM documentation, keep working through the redirect in
+§6.9. Maintaining redirects for every page would have been ongoing cost for no
+reader.</p>
+</section>
+<section id="configuration-reference">
+<h3>6.7 Configuration reference<a class="headerlink" href="#configuration-reference" title="Permalink to this heading"></a></h3>
+<p>The configuration reference is generated (principle 5) from two files that
+parallel each other:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">configs/Default.yml</span></code>, which already exists, holds the default <em>value</em> of
+every option and is what <code class="docutils literal notranslate"><span class="pre">omega_buildnml</span></code> validates a case’s configuration
+against. This design adds no descriptions to it. Comments describing options
+have accumulated in it since this design was first drafted (for example the
+allowed values of <code class="docutils literal notranslate"><span class="pre">PressureGradType</span></code> and the meaning of each analysis-group
+option); they move to the companion file when it is created, so that each
+description has one home (principle 2) and <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> is left with values
+and short section headings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">configs/ConfigDescriptions.yml</span></code>, a new companion file with the same nesting
+as <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code>, holds the <em>meaning</em> of every option: a description, and
+optionally a type, units and the allowed values or range. Each section also
+carries a description and the anchor of the User Guide page that discusses
+it. It never holds a default value, so the two files cannot disagree about
+one; what they share is the option names and nesting, which is what the
+build check compares.</p></li>
+</ul>
+<p>For example, the <code class="docutils literal notranslate"><span class="pre">Decomp</span></code> section of <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code>,</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Decomp</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">HaloWidth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">DecompMethod</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MetisKWay</span>
+</pre></div>
+</div>
+<p>would be paired with</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Decomp</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Horizontal domain decomposition across MPI tasks.</span>
+<span class="w">  </span><span class="nt">doc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">omega-user-config-parallel</span>
+<span class="w">  </span><span class="nt">HaloWidth</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Number of halo layers around each subdomain. Must be at least 3 for higher-order tracer advection.</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span>
+<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">null</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">DecompMethod</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Partitioning algorithm.</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">MetisKWay</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">ParMetisKWay</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>A description is aimed at one or two sentences; there is no limit, and YAML
+folds longer text over as many lines as needed without continuation
+characters:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">HaloWidth</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<span class="w">    </span><span class="no">Number of halo layers around each subdomain. Must be at least 3 so that</span>
+<span class="w">    </span><span class="no">all baroclinic and higher-order tracer advection terms can be computed</span>
+<span class="w">    </span><span class="no">without communication.</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span>
+</pre></div>
+</div>
+<p>Some sections are collections of entries that share the same options. Every
+stream under <code class="docutils literal notranslate"><span class="pre">IOStreams</span></code> has a <code class="docutils literal notranslate"><span class="pre">Filename</span></code>, <code class="docutils literal notranslate"><span class="pre">Mode</span></code>, <code class="docutils literal notranslate"><span class="pre">Freq</span></code> and so on, and every
+analysis group under <code class="docutils literal notranslate"><span class="pre">Analysis</span></code> has a <code class="docutils literal notranslate"><span class="pre">ReductionPeriod</span></code>, <code class="docutils literal notranslate"><span class="pre">SamplingInterval</span></code>,
+<code class="docutils literal notranslate"><span class="pre">SnapshotPeriod</span></code>, <code class="docutils literal notranslate"><span class="pre">Filename</span></code> and <code class="docutils literal notranslate"><span class="pre">Stream</span></code>. Such a section describes the shared
+options once, in an <code class="docutils literal notranslate"><span class="pre">each</span></code> block, and each entry describes itself and only the
+options unique to it:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">IOStreams</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Files read and written by the model.</span>
+<span class="w">  </span><span class="nt">doc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">omega-user-io-streams</span>
+<span class="w">  </span><span class="nt">each</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">Filename</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">File name, or a template using $Y, $M and other time codes.</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">Mode</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Whether the stream is read or written.</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">read</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">write</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">HorzMeshIn</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The horizontal mesh, read once at startup.</span>
+<span class="w">  </span><span class="nt">History</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prognostic state and tracers, written periodically.</span>
+</pre></div>
+</div>
+<p>This also gives a description to any stream that a case’s <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code>
+defines for itself.</p>
+<p>A Python script, run by Sphinx at the start of every documentation build,
+reads both files and writes the reference page: one section per top-level
+configuration group, one table per section with the option name, default,
+type, units, allowed values and description. The generated page is not
+committed; it is rebuilt every time.</p>
+<p>The reference also shows what a coupled case gets, because that differs from
+<code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> in ways a coupled user needs to see. <code class="docutils literal notranslate"><span class="pre">omega_buildnml</span></code> layers the
+<code class="docutils literal notranslate"><span class="pre">coupled</span></code> section of <code class="docutils literal notranslate"><span class="pre">cime_config/omega_buildnml/data/config_overrides.yaml</span></code>
+over <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> (for example, coupled cases use the split-explicit time
+stepper and turn frazil on), and it rejects a <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> override of the
+options the case itself controls, such as the I/O layout that the
+<code class="docutils literal notranslate"><span class="pre">PIO_*_OCN</span></code> case variables set. The generator reads both from
+<code class="docutils literal notranslate"><span class="pre">omega_buildnml</span></code> rather than copying them, so each stays in one place: a
+coupled-default column shows the coupled value where it differs from
+<code class="docutils literal notranslate"><span class="pre">Default.yml</span></code>, and options that cannot be set in <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> are marked as
+such. The description of a marked option says what sets it instead. The
+per-mesh overrides in the same file are not tabulated; the User Guide page on
+running in E3SM says where they live.</p>
+<p>The script also checks the two files against each other, and any failure is a
+build error, so the pull-request documentation build fails (principle 7):</p>
+<ul class="simple">
+<li><p>every option in <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> has a description, either its own or one in
+its section’s <code class="docutils literal notranslate"><span class="pre">each</span></code> block;</p></li>
+<li><p>every entry in <code class="docutils literal notranslate"><span class="pre">ConfigDescriptions.yml</span></code> names an option that exists in
+<code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> (for an <code class="docutils literal notranslate"><span class="pre">each</span></code> entry, in at least one entry of its section);</p></li>
+<li><p>every default value satisfies its own <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code> or <code class="docutils literal notranslate"><span class="pre">range</span></code>;</p></li>
+<li><p>every <code class="docutils literal notranslate"><span class="pre">doc</span></code> anchor exists.</p></li>
+</ul>
+<p>This is what keeps the reference from rotting: a pull request that adds an
+option to <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code> cannot pass CI without describing it, and one that
+removes or renames an option cannot leave a stale description behind.</p>
+<p>The descriptions file is also useful beyond the documentation build, because
+it is ordinary YAML that any tool can read. <code class="docutils literal notranslate"><span class="pre">omega_buildnml</span></code> can use <code class="docutils literal notranslate"><span class="pre">values</span></code>
+and <code class="docutils literal notranslate"><span class="pre">range</span></code> to reject a <code class="docutils literal notranslate"><span class="pre">user_nl_omega</span></code> override that names a real option but
+gives it an illegal value, at <code class="docutils literal notranslate"><span class="pre">case.setup</span></code> time rather than at run time. The
+model itself could do the same check at startup later.</p>
+<p>Three approaches were considered:</p>
+<ol class="arabic simple">
+<li><p><em>Descriptions as comments in <code class="docutils literal notranslate"><span class="pre">Default.yml</span></code></em>: no new file, but comments have
+no structure to check against and are easy to leave stale. It is what has
+been happening informally since this design was first drafted.</p></li>
+<li><p><em>A companion descriptions file</em> (chosen): explicit and checkable, at the
+cost of a second file that the build check keeps in step with the first.</p></li>
+<li><p><em>MOM6-style descriptions in the C++ <code class="docutils literal notranslate"><span class="pre">Config::get</span></code> calls</em>, dumped by a
+documentation mode of the executable: keeps each description next to the
+code that reads the option, but requires touching every module and building
+the executable to build the documentation.</p></li>
+</ol>
+<p>Option 3 remains attractive and is an open discussion item (§8); the generator
+is written so that its input could later come from such a dump instead of the
+companion file.</p>
+<p>Only the design, the placeholder page and the tracking issue are part of the
+initial reorganization; the descriptions file, generator and build check
+follow.</p>
+</section>
+<section id="bibliography">
+<h3>6.8 Bibliography<a class="headerlink" href="#bibliography" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">sphinxcontrib-bibtex</span></code> is added to the documentation build with a single
+<code class="docutils literal notranslate"><span class="pre">techGuide/references.bib</span></code>. Technical Guide pages cite with <code class="docutils literal notranslate"><span class="pre">{cite:t}</span></code> and
+<code class="docutils literal notranslate"><span class="pre">{cite:p}</span></code>; <code class="docutils literal notranslate"><span class="pre">techGuide/Bibliography.md</span></code> renders the list. Design documents are
+frozen and keep whatever citation style they have.</p>
+</section>
+<section id="versioned-publication">
+<h3>6.9 Versioned publication<a class="headerlink" href="#versioned-publication" title="Permalink to this heading"></a></h3>
+<p>The published site keeps one directory per version, following the Polaris
+pattern:</p>
+<ul class="simple">
+<li><p>The publish workflow runs on pushes to <code class="docutils literal notranslate"><span class="pre">develop</span></code>, on pushes of release tags
+(<code class="docutils literal notranslate"><span class="pre">Omega-v*</span></code>), and on manual dispatch. Omega publishes releases as tags, not
+GitHub releases, so the tag push is the trigger. The workflow builds into
+<code class="docutils literal notranslate"><span class="pre">_build/html/&lt;version&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">DOCS_VERSION</span></code>) is <code class="docutils literal notranslate"><span class="pre">develop</span></code> or
+the tag without its <code class="docutils literal notranslate"><span class="pre">Omega-v</span></code> prefix (tag <code class="docutils literal notranslate"><span class="pre">Omega-v1.0.0</span></code> publishes to
+<code class="docutils literal notranslate"><span class="pre">Omega/1.0.0/</span></code>). It replaces only that directory on <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> under
+<code class="docutils literal notranslate"><span class="pre">Omega/</span></code>, never touches other versions, and regenerates
+<code class="docutils literal notranslate"><span class="pre">Omega/shared/versions.json</span></code> from the directories present.</p></li>
+<li><p>A small JavaScript version switcher in the sidebar reads <code class="docutils literal notranslate"><span class="pre">versions.json</span></code>.
+<code class="docutils literal notranslate"><span class="pre">develop</span></code> is listed first, then releases from newest to oldest, with each
+pre-release listed below the final release of the same version.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Omega/index.html</span></code> redirects to <code class="docutils literal notranslate"><span class="pre">develop/</span></code>, so links to the unversioned
+landing page keep working.</p></li>
+</ul>
+<p>Rebuilding old versions’ documentation from within a newer checkout was
+rejected from experience: it is fragile and rarely worth it. Old versions are
+simply kept as built.</p>
+</section>
+<section id="placeholders-and-tracking-issues">
+<h3>6.10 Placeholders and tracking issues<a class="headerlink" href="#placeholders-and-tracking-issues" title="Permalink to this heading"></a></h3>
+<p>A placeholder page consists of the page’s anchor and title, a standard
+admonition saying the page has not yet been written, a sentence or two on what
+it will contain, and a link to the tracking issue. Placeholders are listed in
+the tracking issues so they can be found and retired.</p>
+</section>
+<section id="coordination-with-polaris">
+<h3>6.11 Coordination with Polaris<a class="headerlink" href="#coordination-with-polaris" title="Permalink to this heading"></a></h3>
+<p>Standalone-run documentation is shared between the two projects by linking:
+Polaris documents the workflow (setting up tasks, building, running suites);
+Omega documents what is Omega-specific (configuration, streams, mesh and
+initial-condition requirements, outputs). A Polaris pull request accompanies
+the reorganization to update any links into the Omega documentation and to add
+links to the new pages.</p>
+</section>
+</section>
+<section id="scope-of-the-initial-reorganization">
+<h2>7 Scope of the initial reorganization<a class="headerlink" href="#scope-of-the-initial-reorganization" title="Permalink to this heading"></a></h2>
+<p>In scope for the reorganization pull request:</p>
+<ul class="simple">
+<li><p>the new directory structure, landing pages and toctrees;</p></li>
+<li><p>moving and retitling every existing page into its new home, merging the
+user/developer duplicates and splitting mathematical content into the
+Technical Guide;</p></li>
+<li><p>the new Developer Guide pages that are connective (code organization,
+documentation rules) and the how-to recipes that can be assembled from
+existing text;</p></li>
+<li><p>the design documents landing page;</p></li>
+<li><p>the bibliography mechanism;</p></li>
+<li><p>versioned publication;</p></li>
+<li><p>explicit placeholders, with tracking issues, for everything below.</p></li>
+</ul>
+<p>Deferred to tracked issues:</p>
+<ul class="simple">
+<li><p>a real user Quick Start, running standalone and running in E3SM;</p></li>
+<li><p>the configuration descriptions file, generator and build check;</p></li>
+<li><p>migrating the governing equations and other science into the Technical
+Guide;</p></li>
+<li><p>the remaining how-to recipes;</p></li>
+<li><p>tutorials;</p></li>
+<li><p>splitting the longest existing pages (principle 9).</p></li>
+</ul>
+</section>
+<section id="discussion-and-open-questions">
+<h2>8 Discussion and open questions<a class="headerlink" href="#discussion-and-open-questions" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Descriptions in code (option 3 of §6.7).</strong> Keeping the description next
+to the <code class="docutils literal notranslate"><span class="pre">Config::get</span></code> call that reads an option is the most robust way to keep
+the two in step, at the cost of a documentation mode in the executable. Worth
+revisiting once the companion-file approach is in place and its maintenance
+cost is known.</p></li>
+<li><p><strong>Where coupled-run documentation ultimately lives.</strong> Owned by Omega for now
+(§6.2); a coupled-model documentation space in E3SM may be the right home
+later.</p></li>
+<li><p><strong>Tutorials: here or Polaris.</strong> A Tutorials section exists in the User Guide
+as a placeholder. Standalone tutorials will most likely be Polaris pages that
+Omega links; coupled tutorials may be written here.</p></li>
+<li><p><strong>API reference.</strong> MOM6 and Oceananigans generate one. Omega has no Doxygen
+setup; whether an API reference earns its place is left open.</p></li>
+</ul>
+</section>
+<section id="verification">
+<h2>9 Verification<a class="headerlink" href="#verification" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>The documentation builds with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html-strict</span></code> (warnings are errors), as
+enforced on every pull request.</p></li>
+<li><p>Every page has an anchor with the correct prefix; no page from the old layout
+is left orphaned or unlinked.</p></li>
+<li><p>Every placeholder links a tracking issue.</p></li>
+<li><p>The versioned publication workflow is exercised by a <code class="docutils literal notranslate"><span class="pre">develop</span></code> build and, at
+the first release, by a tag build, with the switcher listing both.</p></li>
+<li><p>Links into the Omega documentation from Polaris, from the pull request
+template and from the rest of the E3SM documentation resolve.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Reductions.html" class="btn btn-neutral float-left" title="Global Reductions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="State.html" class="btn btn-neutral float-right" title="State" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

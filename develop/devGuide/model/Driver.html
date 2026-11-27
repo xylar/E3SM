@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Ocean State" href="OceanState.html" />
+    <link rel="prev" title="Model" href="index.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Model</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Driver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#standalone-driver">Standalone driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coupled-driver">Coupled driver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="OceanState.html">Ocean State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzMesh.html">Horizontal Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorzOperators.html">Horizontal Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertCoord.html">Vertical Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="AuxiliaryState.html">Auxiliary State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tendencies.html">Tendencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeStepping.html">Time stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SplitTimeStepping.html">Split Time Stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tracers.html">Tracers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State (EOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PGrad.html">Pressure Gradient (PGrad)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertAdv.html">Vertical Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VertMix.html">Vertical Mixing Coefficients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPPMix.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddy Parameterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Frazil.html">Frazil</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Forcing.html">Forcing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SfcCoupling.html">Surface Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Model</a></li>
+      <li class="breadcrumb-item active">Driver</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/model/Driver.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="driver">
+<span id="omega-dev-driver"></span><h1>Driver<a class="headerlink" href="#driver" title="Permalink to this heading"></a></h1>
+<p>The Omega Driver runs Omega either as a standalone model or as the ocean
+component of E3SM (currently via the MCT coupler). In both modes execution
+is divided into init, run, and finalize phases, but the coupled driver
+splits init into two phases and calls run once per coupling interval
+instead of once for the whole simulation. All entry points below are
+declared in <code class="docutils literal notranslate"><span class="pre">OceanDriver.h</span></code>.</p>
+<section id="standalone-driver">
+<h2>Standalone driver<a class="headerlink" href="#standalone-driver" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ocnInit</span></code> reads <code class="docutils literal notranslate"><span class="pre">omega.yml</span></code>, calls <code class="docutils literal notranslate"><span class="pre">initOmegaModules</span></code> to initialize every
+Omega module (including the default <code class="docutils literal notranslate"><span class="pre">TimeStepper</span></code>, which owns the model
+<code class="docutils literal notranslate"><span class="pre">Clock</span></code> and <code class="docutils literal notranslate"><span class="pre">EndAlarm</span></code>), reads the <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> or <code class="docutils literal notranslate"><span class="pre">RestartRead</span></code> IOStream,
+and updates halo/host arrays for the resulting state:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">ocnInit</span><span class="p">(</span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">Comm</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ocnRun</span></code> advances the model, calling the default <code class="docutils literal notranslate"><span class="pre">TimeStepper</span></code>’s <code class="docutils literal notranslate"><span class="pre">doStep</span></code>
+once per ocean time step, until the <code class="docutils literal notranslate"><span class="pre">EndAlarm</span></code> attached to the model
+<code class="docutils literal notranslate"><span class="pre">Clock</span></code> rings:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">ocnRun</span><span class="p">(</span><span class="n">TimeInstant</span><span class="w"> </span><span class="o">&amp;</span><span class="n">CurrTime</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ocnFinalize</span></code> cleans up all Omega objects; <code class="docutils literal notranslate"><span class="pre">CurrTime</span></code> is passed in case a
+final restart needs to be written:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">ocnFinalize</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TimeInstant</span><span class="w"> </span><span class="o">&amp;</span><span class="n">CurrTime</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The standalone <code class="docutils literal notranslate"><span class="pre">main</span></code> (<code class="docutils literal notranslate"><span class="pre">src/drivers/standalone/OceanDriver.cpp</span></code>) wraps
+these three calls with <code class="docutils literal notranslate"><span class="pre">MPI_Init</span></code>/<code class="docutils literal notranslate"><span class="pre">Kokkos::initialize</span></code> and their shutdown
+counterparts.</p>
+</section>
+<section id="coupled-driver">
+<h2>Coupled driver<a class="headerlink" href="#coupled-driver" title="Permalink to this heading"></a></h2>
+<p>The coupled driver (<code class="docutils literal notranslate"><span class="pre">src/drivers/coupled/</span></code>) runs Omega as the <code class="docutils literal notranslate"><span class="pre">ocn</span></code>
+component of an MCT-based E3SM system. <code class="docutils literal notranslate"><span class="pre">ocn_comp_mct.F90</span></code> is the MCT cap,
+exposing <code class="docutils literal notranslate"><span class="pre">ocn_init_mct</span></code>/<code class="docutils literal notranslate"><span class="pre">ocn_run_mct</span></code>/<code class="docutils literal notranslate"><span class="pre">ocn_final_mct</span></code> to the coupler. It
+calls <code class="docutils literal notranslate"><span class="pre">bind(c)</span></code> interfaces declared in <code class="docutils literal notranslate"><span class="pre">omega_f2cxx_interface.F90</span></code> and
+implemented in <code class="docutils literal notranslate"><span class="pre">omega_cxx2f_interface.cpp</span></code>, which call the C++ entry
+points below.</p>
+<section id="init">
+<h3>Init<a class="headerlink" href="#init" title="Permalink to this heading"></a></h3>
+<p>Init is split into two phases because the coupler needs Omega’s
+decomposition (<code class="docutils literal notranslate"><span class="pre">NCellsOwned</span></code>) before it can size and allocate the MCT
+attribute vectors (<code class="docutils literal notranslate"><span class="pre">x2o</span></code>/<code class="docutils literal notranslate"><span class="pre">o2x</span></code>) that <code class="docutils literal notranslate"><span class="pre">SfcCoupling</span></code> attaches to:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">ocnInit1</span><span class="p">(</span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">Comm</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">OcnId</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ConfigFile</span><span class="p">,</span>
+<span class="w">             </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">LogFile</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">StartType</span><span class="w"> </span><span class="n">StartType</span><span class="p">,</span>
+<span class="w">             </span><span class="k">const</span><span class="w"> </span><span class="n">TimeInitParams</span><span class="w"> </span><span class="o">&amp;</span><span class="n">TimeParams</span><span class="p">,</span>
+<span class="w">             </span><span class="k">const</span><span class="w"> </span><span class="n">CouplingInitParams</span><span class="w"> </span><span class="o">&amp;</span><span class="n">CouplingParams</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">ocnInit2</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Real</span><span class="w"> </span><span class="o">*</span><span class="n">CplToOcnData</span><span class="p">,</span><span class="w"> </span><span class="n">Real</span><span class="w"> </span><span class="o">*</span><span class="n">OcnToCplData</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ocnInit1</span></code> initializes every Omega module, using the coupled overload of
+<code class="docutils literal notranslate"><span class="pre">initOmegaModules(Comm,</span> <span class="pre">TimeParams,</span> <span class="pre">CouplingParams)</span></code>, which also calls
+<code class="docutils literal notranslate"><span class="pre">SfcCoupling::init</span></code>. It then reads the <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> or <code class="docutils literal notranslate"><span class="pre">RestartRead</span></code>
+IOStream based on <code class="docutils literal notranslate"><span class="pre">StartType</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">StartType</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">StartUp</span><span class="p">,</span><span class="w"> </span><span class="n">Continue</span><span class="p">,</span><span class="w"> </span><span class="n">Branch</span><span class="w"> </span><span class="p">};</span>
+</pre></div>
+</div>
+<p>converted from the coupler’s integer start-type code by
+<code class="docutils literal notranslate"><span class="pre">safeIntToStartType</span></code>. On restart/branch, the simulation time is taken from
+the restart file rather than the coupler (which only knows the case start
+time). On a cold start, <code class="docutils literal notranslate"><span class="pre">ocnInit1</span></code> advances the model <code class="docutils literal notranslate"><span class="pre">Clock</span></code> to the first
+coupling-interval boundary so it is in sync with the coupler’s clock.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ocnInit2</span></code> runs once the coupler has allocated <code class="docutils literal notranslate"><span class="pre">x2o</span></code>/<code class="docutils literal notranslate"><span class="pre">o2x</span></code>: it attaches
+them to <code class="docutils literal notranslate"><span class="pre">SfcCoupling</span></code> (<code class="docutils literal notranslate"><span class="pre">SfcCoupling::attachData</span></code>), does the initial
+export/import exchange with the coupler, and updates halo/host arrays.</p>
+</section>
+<section id="run">
+<h3>Run<a class="headerlink" href="#run" title="Permalink to this heading"></a></h3>
+<p>The coupled overload of <code class="docutils literal notranslate"><span class="pre">ocnRun</span></code> advances the model one coupling interval,
+rather than to the end of the simulation: it imports coupler fields into
+<code class="docutils literal notranslate"><span class="pre">Forcing</span></code> at the start of the interval, steps until <code class="docutils literal notranslate"><span class="pre">SfcCoupling</span></code>’s
+<code class="docutils literal notranslate"><span class="pre">CouplingAlarm</span></code> rings (updating <code class="docutils literal notranslate"><span class="pre">SfcCoupling</span></code>’s export accumulators every
+ocean time step), and exports the accumulated fields back to the coupler.
+<code class="docutils literal notranslate"><span class="pre">WriteRestart</span></code> is set by the coupler (from its own restart alarm) to force
+a restart write at the end of the interval:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">ocnRun</span><span class="p">(</span><span class="n">TimeInstant</span><span class="w"> </span><span class="o">&amp;</span><span class="n">CurrTime</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">WriteRestart</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="finalize">
+<h3>Finalize<a class="headerlink" href="#finalize" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">ocnFinalize</span></code> is shared with the standalone driver; it additionally clears
+all <code class="docutils literal notranslate"><span class="pre">SfcCoupling</span></code> instances.</p>
+</section>
+<section id="field-name-index-mapping">
+<h3>Field name/index mapping<a class="headerlink" href="#field-name-index-mapping" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">omega_cpl_indices.F90</span></code> builds the import (<code class="docutils literal notranslate"><span class="pre">x2o</span></code>) and export (<code class="docutils literal notranslate"><span class="pre">o2x</span></code>) field
+name and coupler-column-index arrays from a dummy MCT attribute vector,
+before Omega (and its <code class="docutils literal notranslate"><span class="pre">HorzMesh</span></code>) exists. <code class="docutils literal notranslate"><span class="pre">omega_ocn_init1</span></code> passes these
+arrays through to <code class="docutils literal notranslate"><span class="pre">omega_cxx2f_interface.cpp</span></code>’s <code class="docutils literal notranslate"><span class="pre">buildFieldIndexMap</span></code>, which
+builds the <code class="docutils literal notranslate"><span class="pre">std::map&lt;std::string,</span> <span class="pre">int&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">ImportIdx</span></code>/<code class="docutils literal notranslate"><span class="pre">ExportIdx</span></code>) required
+by <code class="docutils literal notranslate"><span class="pre">CouplingInitParams</span></code>; see <a class="reference internal" href="SfcCoupling.html#omega-dev-sfc-coupling"><span class="std std-ref">Surface Coupling</span></a>
+for how those maps are used.</p>
+</section>
+<section id="mesh-decomposition-queries">
+<h3>Mesh/decomposition queries<a class="headerlink" href="#mesh-decomposition-queries" title="Permalink to this heading"></a></h3>
+<p>Before the coupler-owned buffers exist, the Fortran bridge needs Omega’s
+decomposition to build its MCT <code class="docutils literal notranslate"><span class="pre">gsMap</span></code> and domain. These bridge-only
+queries expose that information and have no dependency on <code class="docutils literal notranslate"><span class="pre">SfcCoupling</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">omega_get_ncells_local</span><span class="p">();</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">omega_get_ncells_global</span><span class="p">();</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">omega_get_index_to_cell_id</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">CellID</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">omega_get_lonlat_cell</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">LonCell</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">LatCell</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">omega_get_area_cell</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">AreaCell</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="OceanState.html" class="btn btn-neutral float-right" title="Ocean State" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

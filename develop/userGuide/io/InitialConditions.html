@@ -1,0 +1,147 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Initial Conditions and Restarts &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Fields and Metadata" href="Fields.html" />
+    <link rel="prev" title="Mesh Files" href="Mesh.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build/index.html">Building Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run/index.html">Running Omega</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Input and Output</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Streams.html">I/O Streams</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Mesh.html">Mesh Files</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Initial Conditions and Restarts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Fields.html">Fields and Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Analysis.html">Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Input and Output</a></li>
+      <li class="breadcrumb-item active">Initial Conditions and Restarts</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/userGuide/io/InitialConditions.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="initial-conditions-and-restarts">
+<span id="omega-user-io-initial-conditions"></span><h1>Initial Conditions and Restarts<a class="headerlink" href="#initial-conditions-and-restarts" title="Permalink to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">OceanState</span></code> class provides a container for the non-tracer prognostic variables in Omega:
+<code class="docutils literal notranslate"><span class="pre">NormalVelocity</span></code> and <code class="docutils literal notranslate"><span class="pre">PseudoThickness</span></code>.
+Upon creation of an <code class="docutils literal notranslate"><span class="pre">OceanState</span></code> instance, these variables are allocated and registered with the
+IO infrastructure as part of the <code class="docutils literal notranslate"><span class="pre">State</span></code> and <code class="docutils literal notranslate"><span class="pre">Restart</span></code> field groups, so they are read from the
+initial-condition file and written to restart files.
+The class contains a method to update the time levels for the state variables between timesteps.
+This involves a halo update, time level index update, and updating the <code class="docutils literal notranslate"><span class="pre">IOFields</span></code> data references.</p>
+<p>The relative pressure at the top of the ocean column, <code class="docutils literal notranslate"><span class="pre">SurfacePressure</span></code>, is owned by the
+<a class="reference internal" href="../model/VerticalCoordinate.html#omega-user-model-vertical-coordinate"><span class="std std-ref">vertical coordinate</span></a> rather than the <code class="docutils literal notranslate"><span class="pre">OceanState</span></code>, since it is the top
+boundary condition of the pressure field. It is still registered in the <code class="docutils literal notranslate"><span class="pre">State</span></code> and <code class="docutils literal notranslate"><span class="pre">Restart</span></code>
+field groups, so it continues to be written to restart files and read from the initial-condition
+and restart files when present; if it is absent, it defaults to zero.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Mesh.html" class="btn btn-neutral float-left" title="Mesh Files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Fields.html" class="btn btn-neutral float-right" title="Fields and Metadata" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

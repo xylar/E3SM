@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Developing Omega Logging &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Error Handler" href="Error.html" />
+    <link rel="prev" title="Model Configuration (Config)" href="Config.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gettingStarted/index.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Framework</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="DataTypes.html">Data Types and Precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataTypes.html#arrays-and-kokkos">Arrays and Kokkos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ParallelLoops.html">Parallel loops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MachEnv.html">Machine Environment (MachEnv)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Decomp.html">Domain Decomposition (Decomp)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Halo.html">Halo Exchanges (Halo)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Broadcast.html">Broadcast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Reductions.html">Global Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Config.html">Model Configuration (Config)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Developing Omega Logging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#writing-log-messages">Writing log messages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initializing-omega-logger">Initializing Omega Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log-files-in-the-unit-tests">Log files in the unit tests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#creating-logging-macros">Creating Logging Macros</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#customer-formatter-for-kokkos">Customer formatter for Kokkos</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Error.html">Error Handler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Timing.html">Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TimeMgr.html">Time Manager (TimeMgr)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Dimension.html">Dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Field.html">Fields and Metadata (Field)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CFUnits.html">CFUnits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="IO.html">Parallel IO (IO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="IOStreams.html">IO Streams (IOStream)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TridiagonalSolvers.html">Tridiagonal Solvers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../howto/index.html">How-to Recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../techGuide/index.html">Technical Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Developer Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Framework</a></li>
+      <li class="breadcrumb-item active">Developing Omega Logging</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/devGuide/framework/Logging.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="developing-omega-logging">
+<span id="omega-dev-logging"></span><h1>Developing Omega Logging<a class="headerlink" href="#developing-omega-logging" title="Permalink to this heading"></a></h1>
+<p>Omega’s logging system is built upon the
+<a class="reference external" href="https://github.com/gabime/spdlog">spdlog</a> logging tool.</p>
+<p>Logging macros and custom formatters for Kokkos data types have been
+integrated into the Omega logging system via the Logging.h header file
+located in the src/infra directory. Users who wish to utilize Omega’s
+logging capabilities must include this header file in their code.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">src/infra/Logging.cpp</span></code> file encompasses various functions related
+to logging. As of the current version, this file contains the
+<code class="docutils literal notranslate"><span class="pre">OMEGA::initLogging</span></code> function, which initialize the logging process.
+It is recommended to invoke the <code class="docutils literal notranslate"><span class="pre">OMEGA::initLogging</span></code> function at the beginning
+of an Omega application to properly initialize the logging system.</p>
+<section id="writing-log-messages">
+<h2>Writing log messages<a class="headerlink" href="#writing-log-messages" title="Permalink to this heading"></a></h2>
+<p>To write log messages, include the Logging.h header file in your code.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">"Logging.h"</span>
+</pre></div>
+</div>
+<p>You can then use the following macros to write logs of different severity
+levels:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">LOG_TRACE</span><span class="w">   </span><span class="p">(</span><span class="n">logmsg</span><span class="p">);</span>
+<span class="n">LOG_DEBUG</span><span class="w">   </span><span class="p">(</span><span class="n">logmsg</span><span class="p">);</span>
+<span class="n">LOG_INFO</span><span class="w">    </span><span class="p">(</span><span class="n">logmsg</span><span class="p">);</span>
+<span class="n">LOG_WARN</span><span class="w">    </span><span class="p">(</span><span class="n">logmsg</span><span class="p">);</span>
+<span class="n">LOG_ERROR</span><span class="w">   </span><span class="p">(</span><span class="n">logmsg</span><span class="p">);</span>
+<span class="n">LOG_CRITICAL</span><span class="p">(</span><span class="n">logmsg</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The “logmsg” argument in these macros can be any string that follows the syntax
+of C++’s std::format function. For example, the following code writes a
+“Hello, World!” message as a TRACE level log:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">LOG_TRACE</span><span class="p">(</span><span class="s">"Hello, {}!"</span><span class="p">,</span><span class="w"> </span><span class="s">"World"</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>For more information about the syntax of logmsg, please see the spdlog documentation.</p>
+<p>Here is a table that summarizes the different log severities and their meanings:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_CRITICAL</span></code>: Used to indicate a critical error or issue that requires
+immediate attention and could potentially cause data loss or application
+failure.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_ERROR</span></code>: Used to indicate an error or issue that could cause
+application instability or incorrect behavior.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_WARN</span></code>: Used to indicate a warning or potential issue that should be
+addressed but does not necessarily require immediate attention.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_INFO</span></code>: Used to provide general informational messages about the
+application’s operation or progress.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_DEBUG</span></code>: Used to provide detailed debugging information for
+developers to track down issues or analyze behavior.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_TRACE</span></code>: Used to provide the most detailed level of information,
+including function calls and variable values, and is typically used for deep
+analysis and debugging.</p></li>
+</ol>
+<p>You can replace the string “World” with any variable whose type is
+a C++ basic data type, such as an int, a float, or a string. You can
+also use a limited set of Kokkos variables. For example, the following code
+writes the value of the variable <code class="docutils literal notranslate"><span class="pre">MyInt</span></code> as a TRACE level log:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">MyInt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<span class="n">LOG_TRACE</span><span class="p">(</span><span class="s">"The value of MyInt is: {}"</span><span class="p">,</span><span class="w"> </span><span class="n">MyInt</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="initializing-omega-logger">
+<h2>Initializing Omega Logger<a class="headerlink" href="#initializing-omega-logger" title="Permalink to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">OMEGA::initLogging</span></code> function, located within the <code class="docutils literal notranslate"><span class="pre">src/infra/Logging.cpp</span></code>
+file, serves as a pivotal component for initializing the Omega logging system.</p>
+<p>The function establishes the default logger configuration, ensuring that
+logging messages are effectively saved to a designated file. The path to
+this file can be passed as the second argument to <code class="docutils literal notranslate"><span class="pre">OMEGA::initLogging</span></code>. When
+it is omitted, the path comes from the <code class="docutils literal notranslate"><span class="pre">OMEGA_LOG_FILE</span></code> environment variable
+if that is set and non-empty, and from <code class="docutils literal notranslate"><span class="pre">OMEGA::OmegaDefaultLogfile</span></code>
+(<code class="docutils literal notranslate"><span class="pre">omega.log</span></code>) otherwise. The log file is truncated when it is opened, so it
+holds only the messages from the current run.</p>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">initLogging</span></code> also redirects <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> and <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> to the log
+file on the ranks that log. Pass <code class="docutils literal notranslate"><span class="pre">false</span></code> as the third argument to leave them
+alone. The coupled driver does this, since these streams are shared with any
+other component on the same rank. In coupled runs they stay in <code class="docutils literal notranslate"><span class="pre">e3sm.log.*</span></code>,
+while Omega’s own messages go to <code class="docutils literal notranslate"><span class="pre">ocn.log.*</span></code>.</p>
+</section>
+<section id="log-files-in-the-unit-tests">
+<h2>Log files in the unit tests<a class="headerlink" href="#log-files-in-the-unit-tests" title="Permalink to this heading"></a></h2>
+<p>Every unit test driver calls <code class="docutils literal notranslate"><span class="pre">OMEGA::initLogging(DefEnv)</span></code> without a file name,
+so without any further arrangement all of the tests would write to a single
+<code class="docutils literal notranslate"><span class="pre">omega.log</span></code> in the build’s <code class="docutils literal notranslate"><span class="pre">test</span></code> directory, with nothing to say which test
+wrote which line. To avoid this, <code class="docutils literal notranslate"><span class="pre">test/CMakeLists.txt</span></code> sets <code class="docutils literal notranslate"><span class="pre">OMEGA_LOG_FILE</span></code>
+per test in <code class="docutils literal notranslate"><span class="pre">add_omega_test</span></code>, so that each test writes to
+<code class="docutils literal notranslate"><span class="pre">test/logs/&lt;TEST_NAME&gt;.log</span></code>. Note that the name comes from the CTest test
+name rather than the source file, because several tests are built from the
+same source (for example <code class="docutils literal notranslate"><span class="pre">TEND_PLANE_TEST</span></code> and
+<code class="docutils literal notranslate"><span class="pre">TEND_PLANE_SINGLE_PRECISION_TEST</span></code> both come from <code class="docutils literal notranslate"><span class="pre">TendencyTermsTest.cpp</span></code>).</p>
+<p>A new test added with <code class="docutils literal notranslate"><span class="pre">add_omega_test</span></code> gets its own log file automatically. A
+test driver that hard-codes a log file name would opt out of this, so pass no
+file name to <code class="docutils literal notranslate"><span class="pre">initLogging</span></code> unless the test manages its own log files, as
+<code class="docutils literal notranslate"><span class="pre">LoggingTest</span></code> does.</p>
+<p>The environment variable relies on the MPI launcher passing its environment
+to the ranks it starts, which is true of <code class="docutils literal notranslate"><span class="pre">srun</span></code>. If a launcher does not, the
+tests fall back to writing <code class="docutils literal notranslate"><span class="pre">omega.log</span></code>.</p>
+</section>
+<section id="creating-logging-macros">
+<h2>Creating Logging Macros<a class="headerlink" href="#creating-logging-macros" title="Permalink to this heading"></a></h2>
+<p>The Omega logging macros, denoted by the prefix <code class="docutils literal notranslate"><span class="pre">LOG_</span></code>, are defined within
+the <code class="docutils literal notranslate"><span class="pre">src/infra/Logging.h</span></code> file. These macros constitute a main part of
+the logging infrastructure, enabling users to seamlessly incorporate
+logging functionality into their Omega applications.</p>
+<p>Furthermore, the logging framework includes a distinct set of macros that
+commence with the prefix <code class="docutils literal notranslate"><span class="pre">LOGGER_</span></code>. These macros offer enhanced
+versatility by accommodating the utilization of the spdlog logger as
+their first argument. This approach facilitats the integration of various
+logger types.</p>
+</section>
+<section id="customer-formatter-for-kokkos">
+<h2>Customer formatter for Kokkos<a class="headerlink" href="#customer-formatter-for-kokkos" title="Permalink to this heading"></a></h2>
+<p>Within the same header file, you will encounter specialized spdlog formatter
+structs designed to accommodate Kokkos data types.</p>
+<p>For further information on customizing the spdlog formatter, refer to
+<a class="reference external" href="https://github.com/gabime/spdlog/wiki/3.-Custom-formatting">Custom formatting</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Config.html" class="btn btn-neutral float-left" title="Model Configuration (Config)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Error.html" class="btn btn-neutral float-right" title="Error Handler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

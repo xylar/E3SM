@@ -1,0 +1,178 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frazil &mdash; Omega develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+      <script src="../../_static/jquery.js"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+      <script src="../../_static/doctools.js"></script>
+      <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Submesoscale Eddies" href="SubmesoEddies.html" />
+    <link rel="prev" title="Surface Forcing" href="SurfaceForcing.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+    <meta name="doc-version" content="develop">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Omega
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+  <div id="version-switcher"></div>
+  <script src="../../../shared/version-switcher.js"></script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userGuide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devGuide/index.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Technical Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../equations/index.html">Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../discretization/index.html">Discretization</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Physics and Parameterizations</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="VerticalMixing.html">Vertical Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="KPP.html">KPP Boundary Layer Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HorizontalMixing.html">Horizontal Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceForcing.html">Surface Forcing</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Frazil</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#common-behavior">Common behavior</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fixed-property-pathway-fraziltype-fixedproperty">Fixed-property pathway (<code class="docutils literal notranslate"><span class="pre">FrazilType:</span> <span class="pre">FixedProperty</span></code>)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#teos-10-pathway-fraziltype-teos10">TEOS-10 pathway (<code class="docutils literal notranslate"><span class="pre">FrazilType:</span> <span class="pre">Teos10</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SubmesoEddies.html">Submesoscale Eddies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RayleighDamping.html">Rayleigh Damping</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../Diagnostics.html">Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Bibliography.html">Bibliography</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../design/index.html">Design Documents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Omega</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Technical Guide</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Physics and Parameterizations</a></li>
+      <li class="breadcrumb-item active">Frazil</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/techGuide/physics/Frazil.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="frazil">
+<span id="omega-tech-frazil"></span><h1>Frazil<a class="headerlink" href="#frazil" title="Permalink to this heading"></a></h1>
+<p>Frazil ice forms in the water column wherever the water becomes colder than its local freezing temperature (aka super-cooled water). The implementation in Omega checks each column for the presence of such super-cooled water. Where it is found, the excess heat deficit is converted into frazil ice: the layer gains heat (and so warms back towards the freezing point), loses mass to the ice, and becomes saltier because frazil has a lower average salinity than seawater. Because frazil ice is buoyant, it is assumed to rise, so an ocean column is processed from the bottom upwards and ice formed at depth is added to a reservoir to interact with the layers above. If one of those layers is warmer than its freezing point, some or all of the rising ice melts there, cooling and freshening that layer. Only the net frazil mass, salt, and energy (i.e. the frazil that survives to the top) are passed to the coupler (or discarded in standalone mode). The optional <code class="docutils literal notranslate"><span class="pre">DepthLimit</span></code> parameter confines this process to the upper part of the column, to avoid instability or unrealistically deep frazil formation. Although the frazil code is designed to bring super-cooled water to its freezing temperature instantly , its implementation inside multi-phase time steppers means super-cooled water is eliminated gradually over several time steps. The details of the salt, mass and energy changes with the frazil formation (and its melt) is dependent on the option chosen (<code class="docutils literal notranslate"><span class="pre">FixedPropery</span></code> vs <code class="docutils literal notranslate"><span class="pre">Teos</span></code>).</p>
+<p>Frazil is implemented in <code class="docutils literal notranslate"><span class="pre">src/ocn/Frazil.cpp</span></code>, described in
+<a class="reference internal" href="../../devGuide/model/Frazil.html#omega-dev-frazil"><span class="std std-ref">Frazil</span></a>; its options are in <a class="reference internal" href="../../userGuide/model/Frazil.html#omega-user-model-frazil"><span class="std std-ref">Frazil</span></a>.</p>
+<section id="common-behavior">
+<h2>Common behavior<a class="headerlink" href="#common-behavior" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Freezing-point checks are based on conservative temperature and absolute
+salinity with pressure-dependent freezing temperature.</p></li>
+<li><p>Vertical accumulation order is bottom-to-top within each active column.</p></li>
+<li><p>Frazil tendencies are not time-step scaled inside <code class="docutils literal notranslate"><span class="pre">Frazil</span></code>; they are
+accumulated as tendency contributions.</p></li>
+</ul>
+</section>
+<section id="fixed-property-pathway-fraziltype-fixedproperty">
+<h2>Fixed-property pathway (<code class="docutils literal notranslate"><span class="pre">FrazilType:</span> <span class="pre">FixedProperty</span></code>)<a class="headerlink" href="#fixed-property-pathway-fraziltype-fixedproperty" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Uses simplified energetics: the energy of the super-cooled water sets the
+amount of solid ice formed (used constant latent heat of fusion of fresh ice).
+Salt is added based on a constant bulk salinity <code class="docutils literal notranslate"><span class="pre">IceRefSal</span></code> (default) or a
+manual toggle (for now) using the local salinity and the frazil porosity. The salt contribution is included in the salinity tendency term, but is not accounted for in the pseudo-thickness tendency.
+The fraction of existing frazil to be melted is set by the amount of pure ice that can be melted by the warm layer, and used to determine the energy, mass and salt added to the tendencies. There is also fractional thickness limit to the possible melt.</p></li>
+<li><p>Computes local layer tendencies (<code class="docutils literal notranslate"><span class="pre">HTend</span></code>, <code class="docutils literal notranslate"><span class="pre">TTend</span></code>, <code class="docutils literal notranslate"><span class="pre">STend</span></code>) and updates
+accumulated frazil stores.</p></li>
+<li><p>Converts accumulators to coupler units at the end of the column loop.</p></li>
+</ul>
+</section>
+<section id="teos-10-pathway-fraziltype-teos10">
+<h2>TEOS-10 pathway (<code class="docutils literal notranslate"><span class="pre">FrazilType:</span> <span class="pre">Teos10</span></code>)<a class="headerlink" href="#teos-10-pathway-fraziltype-teos10" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Uses teos-10 Gibbs SeaWater routines for frazil formation and melt state
+transitions.</p></li>
+<li><p>Formation uses <code class="docutils literal notranslate"><span class="pre">Phi</span></code> and <code class="docutils literal notranslate"><span class="pre">LayerMassFracMax</span></code> to partition and limit newly formed
+frazil contributions.</p></li>
+<li><p>Melt computes fraction melted subject to available thermodynamic energy and
+mass-limit constraints.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SurfaceForcing.html" class="btn btn-neutral float-left" title="Surface Forcing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SubmesoEddies.html" class="btn btn-neutral float-right" title="Submesoscale Eddies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Energy Exascale Earth System Model Project.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
